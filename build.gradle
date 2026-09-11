@@ -35,6 +35,7 @@ minecraft {
         configureEach {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -44,11 +45,10 @@ minecraft {
 
         client {
             workingDirectory project.file('run-client1')
-            args '--username', 'Dev1'
         }
 
         client2 {
-            parent minecraft.runs.client
+            parent runs.client
             workingDirectory project.file('run-client2')
             args '--username', 'Dev2'
         }
