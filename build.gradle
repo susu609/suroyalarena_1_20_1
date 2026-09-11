@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        // Required by MixinGradle.
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
@@ -32,12 +31,10 @@ minecraft {
     mappings channel: mapping_channel, version: mapping_version
     copyIdeResources = true
 
-    // Two isolated clients are kept ready for LAN/co-op testing.
     runs {
         configureEach {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -55,6 +52,11 @@ minecraft {
             workingDirectory project.file('run-client2')
             args '--username', 'Dev2'
         }
+
+        server {
+            workingDirectory project.file('run-server')
+            args '--nogui'
+        }
     }
 }
 
@@ -64,7 +66,6 @@ mixin {
 }
 
 repositories {
-    // SuModLib is published here by :publishToMavenLocal.
     mavenLocal()
     mavenCentral()
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
@@ -72,12 +73,7 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-    // Shared utilities from SuModLib.
-    implementation fg.deobf(
-            "net.susu609.modlib:sumodlib:${sumodlib_version}"
-    )
-
+    implementation fg.deobf("net.susu609.modlib:sumodlib:${sumodlib_version}")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
@@ -96,9 +92,7 @@ tasks.named('processResources', ProcessResources).configure {
             mod_description        : mod_description,
             sumodlib_version_range : sumodlib_version_range
     ]
-
     inputs.properties replaceProperties
-
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
@@ -116,8 +110,17 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-
     finalizedBy 'reobfJar'
+}
+
+tasks.register('runDomainSmoke', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'net.susu609.royalarena.DomainSmokeTest'
+}
+
+tasks.named('check').configure {
+    dependsOn 'runDomainSmoke'
 }
 
 tasks.withType(JavaCompile).configureEach {

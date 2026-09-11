@@ -1,3 +1,8 @@
 {
-  "mod.examplemod.name": "Example Mod"
+  "key.categories.royalarena": "Su Royal Arena",
+  "key.royalarena.open_matching": "Open Matching",
+  "key.royalarena.card_1": "Select Card 1",
+  "key.royalarena.card_2": "Select Card 2",
+  "key.royalarena.card_3": "Select Card 3",
+  "key.royalarena.card_4": "Select Card 4"
 }
