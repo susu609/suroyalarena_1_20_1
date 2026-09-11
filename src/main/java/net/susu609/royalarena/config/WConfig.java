@@ -1,4 +1,4 @@
-package net.susu609.examplemod.config;
+package net.susu609.royalarena.config;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
