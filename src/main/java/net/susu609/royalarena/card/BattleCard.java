@@ -27,6 +27,15 @@ public enum BattleCard {
         this.towerDamage = towerDamage;
         this.moveSpeed = moveSpeed;
     }
+
+    public String id() {
+        return name().toLowerCase(Locale.ROOT);
+    }
+
+    public String displayName() {
+        return displayName;
+    }
+
     public static BattleCard byId(String id) {
         for (BattleCard card : values()) {
             if (card.id().equals(id))
@@ -34,18 +43,14 @@ public enum BattleCard {
         }
         throw new IllegalArgumentException("Unknown battle card: " + id);
     }
-    public String id() {
-        return name().toLowerCase(Locale.ROOT);
+
+    public String entityId() {
+        return entityId;
     }
     public int cost() {
         return cost;
     }
-    public String displayName() {
-        return displayName;
-    }
-    public String entityId() {
-        return entityId;
-    }
+
     public double moveSpeed() {
         return moveSpeed;
     }

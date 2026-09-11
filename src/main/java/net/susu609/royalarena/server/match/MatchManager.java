@@ -21,6 +21,7 @@ public final class MatchManager {
 
     private MatchManager() {
     }
+
     public void handleDeploy(ServerPlayer player, int slot, BlockPos target) {
         UUID matchId = playerToMatch.get(player.getUUID());
         if (matchId == null)
@@ -29,23 +30,7 @@ public final class MatchManager {
         if (session != null)
             session.handleDeploy(player, slot, target);
     }
-    public void onPlayerLoggedOut(UUID playerId) {
-        UUID matchId = playerToMatch.get(playerId);
-        if (matchId == null)
-            return;
-        ServerMatchSession session = matches.get(matchId);
-        if (session != null)
-            session.onPlayerDisconnected(playerId);
-    }
-    public void shutdown(MinecraftServer server) {
-        for (ServerMatchSession session : matches.values()) {
-            session.closeNow(server);
-            ArenaAllocator.INSTANCE.release(session.reservation());
-        }
-        matches.clear();
-        playerToMatch.clear();
-        ArenaAllocator.INSTANCE.reset();
-    }
+
     public boolean startMatch(ServerPlayer blue, ServerPlayer red) {
         if (blue == red || isInMatch(blue.getUUID()) ||
                 isInMatch(red.getUUID()))
@@ -71,10 +56,7 @@ public final class MatchManager {
     public boolean isInMatch(UUID playerId) {
         return playerToMatch.containsKey(playerId);
     }
-    public void stopAll() {
-        for (ServerMatchSession session : matches.values())
-            session.forceStop();
-    }
+
     public void tick(MinecraftServer server) {
         Iterator<Map.Entry<UUID, ServerMatchSession>> it =
                 matches.entrySet().iterator();
@@ -89,5 +71,26 @@ public final class MatchManager {
                 it.remove();
             }
         }
+    }
+    public void onPlayerLoggedOut(UUID playerId) {
+        UUID matchId = playerToMatch.get(playerId);
+        if (matchId == null)
+            return;
+        ServerMatchSession session = matches.get(matchId);
+        if (session != null)
+            session.onPlayerDisconnected(playerId);
+    }
+    public void shutdown(MinecraftServer server) {
+        for (ServerMatchSession session : matches.values()) {
+            session.closeNow(server);
+            ArenaAllocator.INSTANCE.release(session.reservation());
+        }
+        matches.clear();
+        playerToMatch.clear();
+        ArenaAllocator.INSTANCE.reset();
+    }
+    public void stopAll() {
+        for (ServerMatchSession session : matches.values())
+            session.forceStop();
     }
 }

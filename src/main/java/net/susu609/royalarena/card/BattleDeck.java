@@ -32,18 +32,21 @@ public final class BattleDeck {
     public BattleCard nextCard() {
         return cycle.get(HAND_SIZE);
     }
-    public BattleCard play(int slot) {
-        BattleCard played = cardAt(slot);
-        cycle.remove(slot);
-        cycle.add(played);
-        return played;
-    }
+
     public BattleCard cardAt(int slot) {
         if (slot < 0 || slot >= HAND_SIZE) {
             throw new IllegalArgumentException("Card slot must be 0..3");
         }
         return cycle.get(slot);
     }
+
+    public BattleCard play(int slot) {
+        BattleCard played = cardAt(slot);
+        cycle.remove(slot);
+        cycle.add(played);
+        return played;
+    }
+
     public List<BattleCard> snapshotCycle() {
         return List.copyOf(cycle);
     }

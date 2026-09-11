@@ -25,7 +25,6 @@ condition, and an in-server matching queue.
   request.
 
 ## Part boundaries
-
 0. Clean template identity/resources.
 1. Pure match domain (`TeamSide`, `MatchState`, `MatchInstance`).
 2. Pure arena coordinate/layout model.

@@ -16,19 +16,24 @@ public final class MatchPlayer {
         this.deck = BattleDeck.starter();
         this.elixir = new ElixirMeter();
     }
-    public BattleDeck deck() {
-        return deck;
-    }
-    public ElixirMeter elixir() {
-        return elixir;
-    }
-    public int elixirTenths() {
-        return elixir.tenths();
-    }
+
     public UUID playerId() {
         return playerId;
     }
+
     public TeamSide side() {
         return side;
+    }
+
+    public BattleDeck deck() {
+        return deck;
+    }
+
+    public ElixirMeter elixir() {
+        return elixir;
+    }
+
+    public int elixirTenths() {
+        return elixir.tenths();
     }
 }

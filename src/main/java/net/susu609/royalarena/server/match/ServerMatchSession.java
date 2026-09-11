@@ -2,6 +2,7 @@ package net.susu609.royalarena.server.match;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,10 +12,12 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.entity.ArenaEntityTypes;
+import net.susu609.royalarena.entity.building.TowerHitboxEntity;
+import net.susu609.royalarena.entity.building.TowerVisualType;
 import net.susu609.royalarena.match.*;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
@@ -33,6 +36,8 @@ public final class ServerMatchSession {
     private final ServerLevel arenaLevel;
     private final ArenaReservation reservation;
     private final Map<UUID, PlayerReturnState> returnStates = new HashMap<>();
+    private final Map<TowerId, UUID> towerHitboxes =
+            new EnumMap<>(TowerId.class);
     private final List<ServerTroop> troops = new ArrayList<>();
 
     private int tickCounter;
@@ -53,35 +58,6 @@ public final class ServerMatchSession {
             match.finish(null);
         endAndRestore(server);
     }
-    private void endAndRestore(MinecraftServer server) {
-        for (ServerTroop troop : troops) {
-            Entity entity = arenaLevel.getEntity(troop.entityId());
-            if (entity != null)
-                entity.discard();
-        }
-        troops.clear();
-        for (TeamSide side : TeamSide.values()) {
-            UUID id = match.player(side).playerId();
-            ServerPlayer player = server.getPlayerList().getPlayer(id);
-            if (player == null)
-                continue;
-            PlayerReturnState state = returnStates.get(id);
-            if (state != null) {
-                ServerLevel targetLevel = server.getLevel(state.dimension());
-                if (targetLevel != null) {
-                    player.teleportTo(
-                            targetLevel, state.x(), state.y(),
-                            state.z(), state.yaw(), state.pitch());
-                }
-                player.setGameMode(state.gameType());
-            }
-            ModNetwork.sendToPlayer(
-                    player,
-                    new S2CMatchSnapshotPacket(MatchSnapshot.inactive()));
-        }
-        ArenaBuilder.clear(arenaLevel, match.arena());
-        complete = true;
-    }
     public boolean complete() {
         return complete;
     }
@@ -89,7 +65,8 @@ public final class ServerMatchSession {
         if (match.state() != MatchState.FINISHED)
             match.finish(null);
     }
-    public void handleDeploy(ServerPlayer sender, int slot, BlockPos requested)
+    public void handleDeploy(ServerPlayer sender, int slot,
+            BlockPos requested)
     {
         if (complete || sender.serverLevel() != arenaLevel)
             return;
@@ -112,7 +89,7 @@ public final class ServerMatchSession {
     }
     private boolean spawnTroop(BattleCard card, TeamSide side, int x, int z) {
         EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                RL.require(card.entityId()));
+                new ResourceLocation(card.entityId()));
         if (type == null)
             return false;
         Entity entity = type.create(arenaLevel);
@@ -135,20 +112,10 @@ public final class ServerMatchSession {
                 card.moveSpeed()));
         return true;
     }
-    private void sync(MinecraftServer server) {
-        for (TeamSide side : TeamSide.values()) {
-            ServerPlayer player = server.getPlayerList()
-                    .getPlayer(match.player(side).playerId());
-            if (player != null) {
-                ModNetwork.sendToPlayer(
-                        player, new S2CMatchSnapshotPacket(
-                                MatchSnapshot.from(match, side)));
-            }
-        }
-    }
     public MatchInstance match() {
         return match;
     }
+
     public void onPlayerDisconnected(UUID playerId) {
         TeamSide side = match.sideOf(playerId);
         if (side != null && match.state() != MatchState.FINISHED)
@@ -159,11 +126,13 @@ public final class ServerMatchSession {
     }
     public void start(MinecraftServer server) {
         ArenaBuilder.build(arenaLevel, match.arena());
+        spawnTowerHitboxes();
         preparePlayer(server, TeamSide.BLUE);
         preparePlayer(server, TeamSide.RED);
         match.startCountdown(COUNTDOWN_TICKS);
         sync(server);
     }
+
     private void preparePlayer(MinecraftServer server, TeamSide side) {
         ServerPlayer player =
                 server.getPlayerList().getPlayer(match.player(side).playerId());
@@ -176,27 +145,7 @@ public final class ServerMatchSession {
                 arenaLevel, anchor.x() + 0.5D, anchor.y(), anchor.z() + 0.5D,
                 side == TeamSide.BLUE ? 180.0F : 0.0F, 35.0F);
     }
-    public void tick(MinecraftServer server) {
-        if (complete)
-            return;
-        tickCounter++;
-        if (match.state() != MatchState.FINISHED) {
-            keepControllerPlayersAnchored(server);
-            match.tick();
-            if (match.state() == MatchState.BATTLE)
-                tickTroops();
-            if (tickCounter % 5 == 0 || match.state() == MatchState.FINISHED)
-                sync(server);
-        }
-        if (match.state() == MatchState.FINISHED) {
-            finishedTicks++;
-            if (finishedTicks == 1)
-                sync(server);
-            if (finishedTicks >= FINISH_DISPLAY_TICKS) {
-                endAndRestore(server);
-            }
-        }
-    }
+
     private void keepControllerPlayersAnchored(MinecraftServer server) {
         if (tickCounter % 10 != 0)
             return;
@@ -212,6 +161,67 @@ public final class ServerMatchSession {
                     35.0F);
         }
     }
+    private void spawnTowerHitboxes() {
+        for (TowerId id : TowerId.values()) {
+            TowerHitboxEntity hitbox =
+                    ArenaEntityTypes.createTower(id.kind(), arenaLevel);
+            if (hitbox == null) {
+                RoyalArena.LOGGER.error(
+                        "Could not create tower hitbox for {}", id);
+                continue;
+            }
+            ArenaPoint point = match.arena().towerPoint(id);
+            double centerOffset =
+                    TowerVisualType.from(id.kind()).blockGridCenterOffset();
+            hitbox.moveTo(
+                    point.x() + centerOffset, point.y(),
+                    point.z() + centerOffset,
+                    id.side() == TeamSide.BLUE ? 180.0F : 0.0F, 0.0F);
+            hitbox.addTag("royalarena_building");
+            hitbox.addTag("royalarena_tower_" +
+                    id.name().toLowerCase(java.util.Locale.ROOT));
+            if (arenaLevel.addFreshEntity(hitbox)) {
+                towerHitboxes.put(id, hitbox.getUUID());
+            } else {
+                RoyalArena.LOGGER.error(
+                        "Could not add tower hitbox for {}", id);
+            }
+        }
+    }
+    private void sync(MinecraftServer server) {
+        for (TeamSide side : TeamSide.values()) {
+            ServerPlayer player = server.getPlayerList()
+                    .getPlayer(match.player(side).playerId());
+            if (player != null) {
+                ModNetwork.sendToPlayer(
+                        player, new S2CMatchSnapshotPacket(
+                                MatchSnapshot.from(match, side)));
+            }
+        }
+    }
+    public void tick(MinecraftServer server) {
+        if (complete)
+            return;
+        tickCounter++;
+
+        if (match.state() != MatchState.FINISHED) {
+            keepControllerPlayersAnchored(server);
+            match.tick();
+            if (match.state() == MatchState.BATTLE)
+                tickTroops();
+            if (tickCounter % 5 == 0 || match.state() == MatchState.FINISHED)
+                sync(server);
+        }
+
+        if (match.state() == MatchState.FINISHED) {
+            finishedTicks++;
+            if (finishedTicks == 1)
+                sync(server);
+            if (finishedTicks >= FINISH_DISPLAY_TICKS) {
+                endAndRestore(server);
+            }
+        }
+    }
     private void tickTroops() {
         Iterator<ServerTroop> iterator = troops.iterator();
         while (iterator.hasNext()) {
@@ -221,30 +231,85 @@ public final class ServerMatchSession {
                 iterator.remove();
                 continue;
             }
-            TowerId targetId =
-                    match.chooseTowerTarget(troop.side(), entity.getX());
-            ArenaPoint target = match.arena().towerPoint(targetId);
-            double tx = target.x() + 0.5D;
-            double tz = target.z() + 0.5D;
-            double dx = tx - entity.getX();
-            double dz = tz - entity.getZ();
+            TowerId targetId = troop.targetTower(match, entity.getX());
+            TowerHitboxEntity targetEntity = towerHitbox(targetId);
+            if (targetEntity == null || targetEntity.isRemoved()) {
+                entity.setDeltaMovement(Vec3.ZERO);
+                continue;
+            }
+            double dx = targetEntity.getX() - entity.getX();
+            double dz = targetEntity.getZ() - entity.getZ();
             double horizontal = Math.sqrt(dx * dx + dz * dz);
-            if (horizontal <= 2.35D) {
+            double attackDistance = targetEntity.getBbWidth() * 0.5D +
+                    entity.getBbWidth() * 0.5D + 0.75D;
+            if (horizontal <= attackDistance) {
                 entity.setDeltaMovement(Vec3.ZERO);
                 if (troop.readyToAttack()) {
                     boolean wasAlive = !match.tower(targetId).isDestroyed();
                     match.damageTower(targetId, troop.towerDamage());
                     troop.resetAttackCooldown();
                     if (wasAlive && match.tower(targetId).isDestroyed()) {
-                        ArenaBuilder.markTowerDestroyed(arenaLevel, target);
+                        removeTowerHitbox(targetId);
+                        ArenaBuilder.markTowerDestroyed(
+                                arenaLevel, match.arena().towerPoint(targetId));
                     }
                 }
                 continue;
             }
             double speed = troop.moveSpeed();
             entity.setDeltaMovement(
-                    dx / horizontal * speed,
-                    entity.getDeltaMovement().y, dz / horizontal * speed);
+                    dx / horizontal * speed, entity.getDeltaMovement().y,
+                    dz / horizontal * speed);
         }
+    }
+    private TowerHitboxEntity towerHitbox(TowerId id) {
+        UUID uuid = towerHitboxes.get(id);
+        if (uuid == null)
+            return null;
+        Entity entity = arenaLevel.getEntity(uuid);
+        return entity instanceof TowerHitboxEntity hitbox ? hitbox : null;
+    }
+    private void removeTowerHitbox(TowerId id) {
+        UUID uuid = towerHitboxes.remove(id);
+        if (uuid == null)
+            return;
+        Entity entity = arenaLevel.getEntity(uuid);
+        if (entity != null)
+            entity.discard();
+    }
+    private void endAndRestore(MinecraftServer server) {
+        for (ServerTroop troop : troops) {
+            Entity entity = arenaLevel.getEntity(troop.entityId());
+            if (entity != null)
+                entity.discard();
+        }
+        troops.clear();
+        for (UUID uuid : towerHitboxes.values()) {
+            Entity entity = arenaLevel.getEntity(uuid);
+            if (entity != null)
+                entity.discard();
+        }
+        towerHitboxes.clear();
+        for (TeamSide side : TeamSide.values()) {
+            UUID id = match.player(side).playerId();
+            ServerPlayer player = server.getPlayerList().getPlayer(id);
+            if (player == null)
+                continue;
+            PlayerReturnState state = returnStates.get(id);
+            if (state != null) {
+                ServerLevel targetLevel = server.getLevel(state.dimension());
+                if (targetLevel != null) {
+                    player.teleportTo(
+                            targetLevel, state.x(), state.y(), state.z(),
+                            state.yaw(), state.pitch());
+                }
+                player.setGameMode(state.gameType());
+            }
+            ModNetwork.sendToPlayer(
+                    player,
+                    new S2CMatchSnapshotPacket(MatchSnapshot.inactive()));
+        }
+        ArenaBuilder.clear(arenaLevel, match.arena());
+        complete = true;
     }
 }

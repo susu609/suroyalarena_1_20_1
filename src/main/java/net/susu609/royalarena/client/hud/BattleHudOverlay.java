@@ -20,6 +20,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
 
     private BattleHudOverlay() {
     }
+
     public static int cardSlotAt(double mouseX, double mouseY, int screenWidth,
             int screenHeight)
     {
@@ -44,6 +45,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
             return;
         Minecraft mc = Minecraft.getInstance();
         List<BattleCard> hand = ClientMatchState.hand();
+
         int totalW = 4 * CARD_W + 3 * CARD_GAP;
         int startX = (screenWidth - totalW) / 2;
         int y = screenHeight - CARD_H - 14;
@@ -63,6 +65,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
                     mc.font, "Elixir " + card.cost(), x + 5, y + 19, 0xFFDFA7FF,
                     false);
         }
+
         BattleCard next = ClientMatchState.nextCard();
         if (next != null) {
             int x = startX + totalW + 8;
@@ -73,9 +76,11 @@ public final class BattleHudOverlay implements IGuiOverlay {
                     mc.font, next.displayName(), x + 5, y + 21, 0xFFFFFFFF,
                     false);
         }
+
         drawElixir(graphics, mc, screenWidth, y - 16);
         drawMatchInfo(graphics, mc, screenWidth);
     }
+
     private static void drawElixir(GuiGraphics graphics, Minecraft mc,
             int screenWidth, int y)
     {
@@ -92,7 +97,6 @@ public final class BattleHudOverlay implements IGuiOverlay {
                 mc.font, String.format("%.1f / 10", tenths / 10.0F),
                 x + barW + 6, y, 0xFFFFFFFF, false);
     }
-
     private static void drawMatchInfo(GuiGraphics graphics, Minecraft mc,
             int screenWidth)
     {
@@ -100,6 +104,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
         String timer = String.format("%d:%02d", seconds / 60, seconds % 60);
         graphics.drawCenteredString(
                 mc.font, timer, screenWidth / 2, 10, 0xFFFFFFFF);
+
         int blueKing = ClientMatchState.towerHealth(TowerId.BLUE_KING);
         int redKing = ClientMatchState.towerHealth(TowerId.RED_KING);
         graphics.drawString(
@@ -108,6 +113,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
         graphics.drawString(
                 mc.font, red, screenWidth - mc.font.width(red) - 10, 10,
                 0xFFFF7777, true);
+
         if (ClientMatchState.state() == MatchState.COUNTDOWN) {
             int count =
                     Math.max(1, (ClientMatchState.ticksRemaining() + 19) / 20);

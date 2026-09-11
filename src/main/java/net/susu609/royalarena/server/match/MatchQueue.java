@@ -14,10 +14,7 @@ public final class MatchQueue {
 
     private MatchQueue() {
     }
-    public void clear() {
-        waiting.clear();
-        dirty = false;
-    }
+
     public void join(ServerPlayer player) {
         UUID id = player.getUUID();
         if (MatchManager.INSTANCE.isInMatch(id)) {
@@ -36,18 +33,7 @@ public final class MatchQueue {
             dirty = false;
         }
     }
-    private void updatePositions(MinecraftServer server) {
-        List<UUID> ids = new ArrayList<>(waiting);
-        for (int i = 0; i < ids.size(); i++) {
-            ServerPlayer player = server.getPlayerList().getPlayer(ids.get(i));
-            if (player != null) {
-                ModNetwork.sendToPlayer(
-                        player, new S2CQueueStatusPacket(
-                                true, i + 1,
-                                "Searching for opponent"));
-            }
-        }
-    }
+
     public void leave(ServerPlayer player, String message) {
         if (waiting.remove(player.getUUID()))
             dirty = true;
@@ -59,10 +45,17 @@ public final class MatchQueue {
             dirty = false;
         }
     }
+
     public void remove(UUID playerId) {
         if (waiting.remove(playerId))
             dirty = true;
     }
+
+    public void clear() {
+        waiting.clear();
+        dirty = false;
+    }
+
     public void tick(MinecraftServer server) {
         boolean changed = dirty;
         if (waiting.removeIf(
@@ -71,6 +64,7 @@ public final class MatchQueue {
         {
             changed = true;
         }
+
         while (waiting.size() >= 2) {
             ServerPlayer first = pollOnline(server);
             if (first == null) {
@@ -99,6 +93,7 @@ public final class MatchQueue {
             dirty = false;
         }
     }
+
     private ServerPlayer pollOnline(MinecraftServer server) {
         while (!waiting.isEmpty()) {
             UUID id = waiting.removeFirst();
@@ -107,5 +102,18 @@ public final class MatchQueue {
                 return player;
         }
         return null;
+    }
+
+    private void updatePositions(MinecraftServer server) {
+        List<UUID> ids = new ArrayList<>(waiting);
+        for (int i = 0; i < ids.size(); i++) {
+            ServerPlayer player = server.getPlayerList().getPlayer(ids.get(i));
+            if (player != null) {
+                ModNetwork.sendToPlayer(
+                        player, new S2CQueueStatusPacket(
+                                true, i + 1,
+                                "Searching for opponent"));
+            }
+        }
     }
 }

@@ -24,15 +24,12 @@ public final class ArenaLayout {
     public static ArenaLayout standard(ArenaPoint center) {
         return new ArenaLayout(center);
     }
+
     public ArenaPoint bridgeLeft() {
         return center.offset(-5, 1, 0);
     }
     public ArenaPoint bridgeRight() {
         return center.offset(5, 1, 0);
-    }
-    public ArenaPoint cameraAnchor(TeamSide side) {
-        int z = side == TeamSide.BLUE ? center.z() + 24 : center.z() - 24;
-        return new ArenaPoint(center.x(), center.y() + 18, z);
     }
     public boolean canDeploy(TeamSide side, int worldX, int worldZ) {
         return deployArea(side).contains(worldX, worldZ);
@@ -40,16 +37,23 @@ public final class ArenaLayout {
     public ArenaBox deployArea(TeamSide side) {
         return side == TeamSide.BLUE ? blueDeploy : redDeploy;
     }
-    public ArenaPoint center() {
-        return center;
+
+    public ArenaPoint cameraAnchor(TeamSide side) {
+        int z = side == TeamSide.BLUE ? center.z() + 24 : center.z() - 24;
+        return new ArenaPoint(center.x(), center.y() + 18, z);
     }
+
     public ArenaPoint controllerAnchor(TeamSide side) {
         int z = side == TeamSide.BLUE ? center.z() + 20 : center.z() - 20;
         return new ArenaPoint(center.x(), center.y() + 4, z);
     }
+    public ArenaPoint center() {
+        return center;
+    }
     public int floorY() {
         return center.y();
     }
+
     public ArenaPoint towerPoint(TowerId id) {
         return switch (id) {
             case BLUE_LEFT -> center.offset(-6, 1, 9);

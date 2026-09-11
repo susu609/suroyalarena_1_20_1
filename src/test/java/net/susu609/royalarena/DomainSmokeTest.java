@@ -24,6 +24,8 @@ public final class DomainSmokeTest {
         matchLifecycleAndElixirAreDeterministic();
         deploymentIsServerValidatedAndCyclesDeck();
         towerTargetingMirrorsForBothSides();
+        troopKeepsTargetUntilTowerIsDestroyed();
+        towerVisualTypesMatchUploadedModels();
         kingTowerEndsMatch();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
@@ -32,10 +34,7 @@ public final class DomainSmokeTest {
         check(TeamSide.BLUE.opponent() == TeamSide.RED, "BLUE opponent");
         check(TeamSide.RED.opponent() == TeamSide.BLUE, "RED opponent");
     }
-    private static void check(boolean condition, String name) {
-        if (!condition)
-            throw new AssertionError(name);
-    }
+
     private static void arenaDeployZonesStayOnOwnHalf() {
         ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(100, 80, 200));
         check(arena.canDeploy(TeamSide.BLUE, 100, 207), "BLUE own half");
@@ -49,6 +48,7 @@ public final class DomainSmokeTest {
                 !arena.canDeploy(TeamSide.RED, 100, 185),
                 "RED end wall excluded");
     }
+
     private static void cameraMirrorsAroundArena() {
         ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 100, 0));
         var blue = ArenaCameraProfile.DEFAULT.transform(arena, TeamSide.BLUE);
@@ -57,6 +57,7 @@ public final class DomainSmokeTest {
         check(Math.abs(blue.z() + red.z()) < 0.0001D, "camera Z mirror");
         check(blue.yaw() == 180.0F && red.yaw() == 0.0F, "camera yaw mirror");
     }
+
     private static void deckCyclesPlayedCard() {
         BattleDeck deck = new BattleDeck(List.of(
                 BattleCard.ZOMBIE, BattleCard.SKELETON, BattleCard.SPIDER,
@@ -68,6 +69,7 @@ public final class DomainSmokeTest {
         check(deck.hand().get(3) == next, "next card enters hand");
         check(deck.nextCard() != first, "played card goes behind cycle");
     }
+
     private static void matchLifecycleAndElixirAreDeterministic() {
         MatchInstance match = MatchInstance.create(
                 UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
@@ -84,6 +86,7 @@ public final class DomainSmokeTest {
             match.tick();
         check(match.blue().elixirTenths() > before, "elixir regenerates");
     }
+
     private static void deploymentIsServerValidatedAndCyclesDeck() {
         MatchInstance match = MatchInstance.create(
                 UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
@@ -92,6 +95,7 @@ public final class DomainSmokeTest {
         int before = match.blue().elixirTenths();
         BattleCard selected = match.blue().deck().cardAt(0);
         BattleCard next = match.blue().deck().nextCard();
+
         var rejected = match.tryDeploy(TeamSide.BLUE, 0, 0, -8);
         check(!rejected.accepted(), "reject deployment on enemy half");
         check(
@@ -100,6 +104,7 @@ public final class DomainSmokeTest {
         check(
                 match.blue().deck().cardAt(0) == selected,
                 "rejected deployment keeps deck order");
+
         var accepted = match.tryDeploy(TeamSide.BLUE, 0, 0, 8);
         check(
                 accepted.accepted() && accepted.card() == selected,
@@ -111,6 +116,7 @@ public final class DomainSmokeTest {
                 match.blue().deck().cardAt(3) == next,
                 "accepted deployment cycles next card into hand");
     }
+
     private static void towerTargetingMirrorsForBothSides() {
         MatchInstance match = MatchInstance.create(
                 UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
@@ -125,6 +131,31 @@ public final class DomainSmokeTest {
                         net.susu609.royalarena.tower.TowerId.BLUE_LEFT,
                 "RED world-left lane maps to BLUE left tower");
     }
+    private static void check(boolean condition, String name) {
+        if (!condition)
+            throw new AssertionError(name);
+    }
+    private static void troopKeepsTargetUntilTowerIsDestroyed() {
+        MatchInstance match = MatchInstance.create(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                ArenaLayout.standard(new ArenaPoint(0, 80, 0)));
+        match.startBattle();
+        var troop = new net.susu609.royalarena.server.battle.ServerTroop(
+                UUID.randomUUID(), TeamSide.BLUE, 100, 0.1D);
+        var first = troop.targetTower(match, -5.0D);
+        check(
+                first == net.susu609.royalarena.tower.TowerId.RED_RIGHT,
+                "troop acquires initial lane tower");
+        check(
+                troop.targetTower(match, 5.0D) == first,
+                "troop keeps target after crossing lane");
+        match.damageTower(first, 10_000);
+        check(
+                troop.targetTower(match, 5.0D) ==
+                        net.susu609.royalarena.tower.TowerId.RED_KING,
+                "troop retargets king after lane tower destruction");
+    }
+
     private static void kingTowerEndsMatch() {
         MatchInstance match = MatchInstance.create(
                 UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
@@ -137,5 +168,31 @@ public final class DomainSmokeTest {
         check(
                 match.winner() == TeamSide.BLUE,
                 "opponent wins after king tower destruction");
+    }
+    private static void towerVisualTypesMatchUploadedModels() {
+        var crown = net.susu609.royalarena.entity.building.TowerVisualType.from(
+                net.susu609.royalarena.tower.TowerKind.PRINCESS);
+        var king = net.susu609.royalarena.entity.building.TowerVisualType.from(
+                net.susu609.royalarena.tower.TowerKind.KING);
+        check(
+                crown ==
+                        net.susu609.royalarena.entity.building.TowerVisualType.CROWN,
+                "Princess tower uses Crown Tower visual");
+        check(
+                crown.width() == 3.0F && crown.height() == 4.0F,
+                "Crown Tower hitbox matches 3x4-block model bounds");
+        check(
+                crown.blockGridCenterOffset() == 0.5D,
+                "odd-width Crown Tower centers on a block");
+        check(
+                king ==
+                        net.susu609.royalarena.entity.building.TowerVisualType.KING,
+                "King tower uses King Tower visual");
+        check(
+                king.width() == 4.0F && king.height() == 4.0F,
+                "King Tower hitbox matches 4x4-block model bounds");
+        check(
+                king.blockGridCenterOffset() == 0.0D,
+                "even-width King Tower centers between blocks");
     }
 }

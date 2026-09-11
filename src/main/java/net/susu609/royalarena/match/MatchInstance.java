@@ -45,12 +45,7 @@ public final class MatchInstance {
                     "A match needs two distinct players");
         return new MatchInstance(matchId, blueId, redId, arena);
     }
-    public ArenaLayout arena() {
-        return arena;
-    }
-    public MatchPlayer blue() {
-        return blue;
-    }
+
     public TowerId chooseTowerTarget(TeamSide attacker, double worldX) {
         TeamSide defender = attacker.opponent();
         boolean worldLeft = worldX < arena.center().x();
@@ -65,8 +60,28 @@ public final class MatchInstance {
             return lane;
         return TowerId.king(defender);
     }
+
+    public ArenaLayout arena() {
+        return arena;
+    }
+
+    public MatchPlayer blue() {
+        return blue;
+    }
+
+    public MatchPlayer red() {
+        return red;
+    }
     public TowerState tower(TowerId id) {
         return towers.get(id);
+    }
+
+    public MatchPlayer player(UUID playerId) {
+        if (blue.playerId().equals(playerId))
+            return blue;
+        if (red.playerId().equals(playerId))
+            return red;
+        return null;
     }
     public void damageKingTower(TeamSide towerSide, int damage) {
         damageTower(TowerId.king(towerSide), damage);
@@ -90,20 +105,11 @@ public final class MatchInstance {
     public UUID matchId() {
         return matchId;
     }
-    public MatchPlayer red() {
-        return red;
-    }
     public TeamSide sideOf(UUID playerId) {
         MatchPlayer player = player(playerId);
         return player == null ? null : player.side();
     }
-    public MatchPlayer player(UUID playerId) {
-        if (blue.playerId().equals(playerId))
-            return blue;
-        if (red.playerId().equals(playerId))
-            return red;
-        return null;
-    }
+
     public void startCountdown(int ticks) {
         if (state != MatchState.WAITING)
             return;
@@ -114,6 +120,7 @@ public final class MatchInstance {
         state = MatchState.COUNTDOWN;
         ticksRemaining = ticks;
     }
+
     public void startBattle() {
         if (state == MatchState.FINISHED)
             return;
@@ -131,29 +138,12 @@ public final class MatchInstance {
         }
         if (state != MatchState.BATTLE)
             return;
+
         blue.elixir().tick();
         red.elixir().tick();
         if (--ticksRemaining <= 0) {
             finishByTowerHealth();
         }
-    }
-    private void finishByTowerHealth() {
-        int blueTotal = totalRemainingHealth(TeamSide.BLUE);
-        int redTotal = totalRemainingHealth(TeamSide.RED);
-        if (blueTotal > redTotal)
-            finish(TeamSide.BLUE);
-        else if (redTotal > blueTotal)
-            finish(TeamSide.RED);
-        else {
-            state = MatchState.FINISHED;
-            ticksRemaining = 0;
-            winner = null;
-        }
-    }
-    private int totalRemainingHealth(TeamSide side) {
-        return tower(TowerId.left(side)).health() +
-                tower(TowerId.right(side)).health() +
-                tower(TowerId.king(side)).health();
     }
     public int ticksRemaining() {
         return ticksRemaining;
@@ -179,5 +169,25 @@ public final class MatchInstance {
     }
     public TeamSide winner() {
         return winner;
+    }
+
+    private void finishByTowerHealth() {
+        int blueTotal = totalRemainingHealth(TeamSide.BLUE);
+        int redTotal = totalRemainingHealth(TeamSide.RED);
+        if (blueTotal > redTotal)
+            finish(TeamSide.BLUE);
+        else if (redTotal > blueTotal)
+            finish(TeamSide.RED);
+        else {
+            state = MatchState.FINISHED;
+            ticksRemaining = 0;
+            winner = null;
+        }
+    }
+
+    private int totalRemainingHealth(TeamSide side) {
+        return tower(TowerId.left(side)).health() +
+                tower(TowerId.right(side)).health() +
+                tower(TowerId.king(side)).health();
     }
 }

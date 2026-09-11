@@ -19,7 +19,6 @@ mappings, Sponge Mixin 0.8.5, SuModLib 1.0.0.
 **Spec:** `docs/superpowers/specs/2026-09-11-royal-arena-mvp-design.md`
 
 ## Global Constraints
-
 - Package `net.susu609.royalarena`; mod id `royalarena`.
 - Never import `net.minecraft.client.*` from common/server packages.
 - Match/card/tower decisions are server-authoritative.
@@ -33,7 +32,6 @@ mappings, Sponge Mixin 0.8.5, SuModLib 1.0.0.
 **Files:** modify `settings.gradle`, `gradle.properties`,
 `src/main/resources/royalarena.mixins.json`; move resources to
 `assets/royalarena`; remove sample config.
-
 - [x] Replace template project identity.
 - [x] Restore `mod_license` and clean description line.
 - [x] Replace `examplemod.refmap.json` with `royalarena.refmap.json`.
@@ -50,7 +48,6 @@ mappings, Sponge Mixin 0.8.5, SuModLib 1.0.0.
 - [x] Compile/run smoke test and verify pass.
 
 ### Task 4: Server lifecycle + sync
-
 **Files:** create `server/match/*`, `network/*`, `event/CommonForgeEvents.java`.
 
 - [x] Start two-player sessions, allocate/build arena, enter countdown/battle,
@@ -62,7 +59,6 @@ mappings, Sponge Mixin 0.8.5, SuModLib 1.0.0.
 **Files:** create `client/state/*`, `client/camera/ArenaCameraController.java`,
 `client/hud/BattleHudOverlay.java`, `client/input/*`,
 `client/ClientModEvents.java`, `client/ClientForgeEvents.java`.
-
 - [x] Bind M and 1-4 keys.
 - [x] Render four-card hand, next card, elixir, timer, towers.
 - [x] Use a client-only marker entity as detached camera and mirror it by team.
@@ -74,7 +70,6 @@ mappings, Sponge Mixin 0.8.5, SuModLib 1.0.0.
 
 **Files:** create `server/battle/*`; extend `MatchInstance`, network snapshot
 and arena builder.
-
 - [x] Validate state/side/slot/elixir/deploy zone entirely on server.
 - [x] Spawn a tagged vanilla mob placeholder and cycle deck only after accepted
   deployment.
@@ -86,22 +81,18 @@ and arena builder.
 
 **Files:** create `match/MatchQueue.java`, queue packets,
 `client/screen/MatchingScreen.java`, queue client state.
-
 - [x] M opens screen.
 - [x] Join/cancel packets update server queue.
 - [x] Pair first two valid online players and create a match.
 - [x] Close matching screen when an active snapshot arrives.
 
 ### Task 10: Online deployment boundary
-
 **Files:** modify `build.gradle`; create `docs/ONLINE.md`.
-
 - [x] Add isolated `server` run configuration.
 - [x] Document one-server queue architecture and optional tunnel/VPS deployment
   without adding backend dependencies.
 
 ### Final verification
-
 - [x] Run pure domain smoke test.
 - [x] Scan common/server packages for `net.minecraft.client` imports.
 - [x] Scan output for `examplemod`/`suforgetemplate` residue.

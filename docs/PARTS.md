@@ -1,4 +1,4 @@
-# Royal Arena Parts 0–10
+# Royal Arena Parts 0–11
 
 ## Part 0 — Template cleanup
 
@@ -104,3 +104,43 @@ Queue only matches players already connected to the same Forge server.
 - `docs/ONLINE.md`: deployment model and scope.
 
 No external matchmaking backend/database is introduced in this MVP.
+
+## Part 11 — Combat entity foundation
+
+- `entity/ArenaEntityTypes.java`
+- `entity/building/TowerHitboxEntity.java`
+- `server/battle/ServerTroop.java`
+- `server/match/ServerMatchSession.java`
+
+Each logical tower now has an ephemeral invisible `royalarena:tower_hitbox`
+entity with a real bounding box. `TowerState` remains authoritative for HP/win
+state; the hitbox is only the physical world target.
+
+A deployed troop locks one lane tower instead of re-selecting every tick from
+its current X position. When that locked Princess tower is destroyed, the troop
+retargets the enemy King tower. Troop-vs-troop targeting is intentionally
+deferred to the next combat part.
+
+A scoped `Mob.isSunBurnTick()` mixin disables only vanilla daylight burning for
+entities tagged `royalarena_troop`. Ordinary mobs are unchanged, and normal
+fire/lava damage remains available for later combat mechanics.
+
+## Part 12 — Tower model entities + renderers
+
+- `entity/building/TowerVisualType.java`
+- `entity/building/CrownTowerEntity.java`
+- `entity/building/KingTowerEntity.java`
+- `client/model/CrownTowerModel.java`
+- `client/model/KingTowerModel.java`
+- `client/render/entity/CrownTowerRenderer.java`
+- `client/render/entity/KingTowerRenderer.java`
+
+Princess towers now spawn the supplied 3x4-block Crown Tower model and King
+towers spawn the supplied 4x4-block King Tower model. These world entities
+remain physical/rendering representatives only; `TowerState` still owns HP and
+match victory. The previous wool/gold tower pillars are no longer built,
+preventing overlap with the new entity models.
+
+The editable Blockbench sources are retained under `model_sources/towers/`, and
+both generated entity models use the shared
+`assets/royalarena/textures/entity/tower/tower_blocks.png` atlas.

@@ -32,6 +32,7 @@ public final class ClientForgeEvents {
         if (event.phase != TickEvent.Phase.END)
             return;
         Minecraft mc = Minecraft.getInstance();
+
         while (RoyalArenaKeyMappings.OPEN_MATCHING.consumeClick()) {
             if (!ClientMatchState.active() && mc.screen == null)
                 mc.setScreen(new MatchingScreen());
@@ -40,6 +41,7 @@ public final class ClientForgeEvents {
         consumeCardKey(RoyalArenaKeyMappings.CARD_2, 1);
         consumeCardKey(RoyalArenaKeyMappings.CARD_3, 2);
         consumeCardKey(RoyalArenaKeyMappings.CARD_4, 3);
+
         ArenaCameraController.tick();
     }
     private static void consumeCardKey(net.minecraft.client.KeyMapping mapping,
@@ -47,6 +49,13 @@ public final class ClientForgeEvents {
     {
         while (mapping.consumeClick())
             ClientMatchState.selectSlot(slot);
+    }
+
+    @SubscribeEvent
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        ArenaCameraController.release();
+        ClientMatchState.reset();
+        ClientQueueState.reset();
     }
     @SubscribeEvent
     public static void onMouse(InputEvent.MouseButton.Pre event) {
@@ -56,6 +65,7 @@ public final class ClientForgeEvents {
             return;
         if (event.getAction() != GLFW.GLFW_PRESS)
             return;
+
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             ClientMatchState.clearSelection();
             event.setCanceled(true);
@@ -63,6 +73,7 @@ public final class ClientForgeEvents {
         }
         if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_LEFT)
             return;
+
         int clickedSlot = BattleHudOverlay.cardSlotAt(
                 ArenaCameraController.cursorGuiX(),
                 ArenaCameraController.cursorGuiY(),
@@ -83,11 +94,5 @@ public final class ClientForgeEvents {
             }
         }
         event.setCanceled(true);
-    }
-    @SubscribeEvent
-    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        ArenaCameraController.release();
-        ClientMatchState.reset();
-        ClientQueueState.reset();
     }
 }

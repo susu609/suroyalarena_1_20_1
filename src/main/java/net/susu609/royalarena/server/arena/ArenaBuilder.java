@@ -6,9 +6,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
-import net.susu609.royalarena.match.TeamSide;
-import net.susu609.royalarena.tower.TowerId;
-import net.susu609.royalarena.tower.TowerKind;
 
 public final class ArenaBuilder {
     private ArenaBuilder() {
@@ -58,29 +55,9 @@ public final class ArenaBuilder {
                             arena.center().x() + ArenaLayout.HALF_WIDTH,
                             y + 1, z), Blocks.STONE_BRICKS.defaultBlockState());
         }
-        for (TowerId id : TowerId.values())
-            buildTower(
-                    level, arena.towerPoint(id), id.side(),
-                    id.kind() == TowerKind.KING);
+
     }
-    private static boolean isBridgeX(ArenaLayout arena, int x) {
-        int rel = x - arena.center().x();
-        return (rel >= -6 && rel <= -4) || (rel >= 4 && rel <= 6);
-    }
-    private static void buildTower(ServerLevel level, ArenaPoint point,
-            TeamSide side, boolean king)
-    {
-        Block body = side == TeamSide.BLUE ? Blocks.BLUE_WOOL : Blocks.RED_WOOL;
-        int height = king ? 4 : 3;
-        for (int dy = 0; dy < height; dy++) {
-            level.setBlockAndUpdate(
-                    new BlockPos(point.x(), point.y() + dy, point.z()),
-                    body.defaultBlockState());
-        }
-        level.setBlockAndUpdate(
-                new BlockPos(point.x(), point.y() + height, point.z()),
-                Blocks.GOLD_BLOCK.defaultBlockState());
-    }
+
     public static void markTowerDestroyed(ServerLevel level, ArenaPoint point) {
         for (int dy = 0; dy < 5; dy++) {
             level.setBlockAndUpdate(
@@ -91,6 +68,7 @@ public final class ArenaBuilder {
                 new BlockPos(point.x(), point.y() - 1, point.z()),
                 Blocks.CRACKED_STONE_BRICKS.defaultBlockState());
     }
+
     public static void clear(ServerLevel level, ArenaLayout arena) {
         int minY = arena.floorY();
         int maxY = minY + 5;
@@ -106,4 +84,10 @@ public final class ArenaBuilder {
             }
         }
     }
+
+    private static boolean isBridgeX(ArenaLayout arena, int x) {
+        int rel = x - arena.center().x();
+        return (rel >= -6 && rel <= -4) || (rel >= 4 && rel <= 6);
+    }
+
 }

@@ -12,22 +12,24 @@ public final class TowerState {
         this.maxHealth = maxHealth;
         this.health = maxHealth;
     }
-    public int damage(int amount) {
-        if (amount <= 0 || isDestroyed())
-            return health;
-        health = Math.max(0, health - amount);
-        return health;
-    }
-    public boolean isDestroyed() {
-        return health <= 0;
-    }
+
     public int health() {
         return health;
     }
     public TowerId id() {
         return id;
     }
+    public boolean isDestroyed() {
+        return health <= 0;
+    }
     public int maxHealth() {
         return maxHealth;
+    }
+
+    public int damage(int amount) {
+        if (amount <= 0 || isDestroyed())
+            return health;
+        health = Math.max(0, health - amount);
+        return health;
     }
 }

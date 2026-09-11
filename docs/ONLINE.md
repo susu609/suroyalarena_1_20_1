@@ -19,12 +19,19 @@ Match runtime is held in server memory and is authoritative.
 
 The Gradle configuration includes:
 
-- `client` -> Dev1
-- `client2` -> Dev2
+- `client` -> ForgeGradle default dev user (`Dev`)
+- `client2` -> `Dev2`
 - `server` -> dedicated server working directory `run-server`
 
-For a fast two-client test, connect Dev1 and Dev2 to the same server and either
-use the Matching screen (`M`) or `/royalarena debug_start`.
+For a fast two-client test, connect `Dev` and `Dev2` to the same server and
+either use the Matching screen (`M`) or `/royalarena debug_start`. `client2`
+inherits the Forge launch target from `client` but only adds the `Dev2`
+username, avoiding duplicate `--username` arguments.
+
+For local ForgeGradle clients, the generated `run-server/server.properties` must
+use `online-mode=false` (and typically `enforce-secure-profile=false`) because
+development users do not have valid Microsoft sessions. Restore
+`online-mode=true` before exposing a real public server.
 
 ## Internet access
 
@@ -41,4 +48,4 @@ requirement of the matchmaking code itself.
 
 Only add a separate service when the design actually needs multiple Minecraft
 servers/global queues, persistent global ranking, account-level data shared
-between servers, or fleet orchestration. That is outside Parts 0–10 MVP.
+between servers, or fleet orchestration. That is outside Parts 0–11.

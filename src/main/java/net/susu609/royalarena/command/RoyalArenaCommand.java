@@ -59,7 +59,8 @@ public final class RoyalArenaCommand {
                             ctx.getSource().sendSuccess(
                                     () -> Component.literal(
                                             "Stopping all Royal Arena matches" +
-                                                    "."), true);
+                                                    "."),
+                                    true);
                             return 1;
                         })));
     }

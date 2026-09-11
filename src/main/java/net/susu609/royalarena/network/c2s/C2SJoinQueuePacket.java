@@ -8,7 +8,8 @@ import net.susu609.royalarena.server.match.MatchQueue;
 import java.util.function.Supplier;
 
 public record C2SJoinQueuePacket() {
-    public static void encode(C2SJoinQueuePacket packet, FriendlyByteBuf buffer)
+    public static void encode(C2SJoinQueuePacket packet,
+            FriendlyByteBuf buffer)
     {
     }
     public static C2SJoinQueuePacket decode(FriendlyByteBuf buffer) {

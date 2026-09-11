@@ -29,6 +29,8 @@ Maven Local as required by the template workflow.
    spawning a troop.
 8. Troops move toward enemy Princess tower, then King tower. Destroying King
    tower ends the match.
+9. Princess/King tower targets are visible custom entity models generated from
+   the supplied Blockbench Crown/King tower sources.
 
 Development shortcut: `/royalarena debug_start` starts a match with the first
 two online players. `/royalarena stop_all` ends all active matches.

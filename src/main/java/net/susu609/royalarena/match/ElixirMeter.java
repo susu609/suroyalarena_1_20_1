@@ -7,18 +7,21 @@ public final class ElixirMeter {
 
     private int tenths = START_TENTHS;
     private int regenTicks;
-    public boolean spend(int wholeElixir) {
-        if (!canSpend(wholeElixir))
-            return false;
-        tenths -= wholeElixir * 10;
-        return true;
-    }
+
     public boolean canSpend(int wholeElixir) {
         return wholeElixir >= 0 && tenths >= wholeElixir * 10;
     }
     public int tenths() {
         return tenths;
     }
+
+    public boolean spend(int wholeElixir) {
+        if (!canSpend(wholeElixir))
+            return false;
+        tenths -= wholeElixir * 10;
+        return true;
+    }
+
     public void tick() {
         if (tenths >= MAX_TENTHS) {
             regenTicks = 0;

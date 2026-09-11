@@ -16,6 +16,37 @@ public final class MatchingScreen extends Screen {
     public MatchingScreen() {
         super(Component.literal("Su Royal Arena"));
     }
+
+    @Override protected void init() {
+        previousSearching = ClientQueueState.searching();
+        rebuildButton();
+    }
+
+    @Override public void tick() {
+        if (ClientMatchState.active()) {
+            minecraft.setScreen(null);
+            return;
+        }
+        if (previousSearching != ClientQueueState.searching()) {
+            previousSearching = ClientQueueState.searching();
+            rebuildButton();
+        }
+    }
+
+    private void rebuildButton() {
+        clearWidgets();
+        boolean searching = ClientQueueState.searching();
+        Component label =
+                Component.literal(searching ? "Cancel Search" : "Find Match");
+        addRenderableWidget(Button.builder(
+                label, button -> {
+                    if (ClientQueueState.searching())
+                        ModNetwork.sendToServer(new C2SLeaveQueuePacket());
+                    else
+                        ModNetwork.sendToServer(new C2SJoinQueuePacket());
+                }).bounds(width / 2 - 70, height / 2 + 28, 140, 20).build());
+    }
+
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY,
             float partialTick)
     {
@@ -29,34 +60,8 @@ public final class MatchingScreen extends Screen {
                 font, status, width / 2, height / 2 - 18, 0xFFCCCCCC);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
-    @Override protected void init() {
-        previousSearching = ClientQueueState.searching();
-        rebuildButton();
-    }
-    @Override public void tick() {
-        if (ClientMatchState.active()) {
-            minecraft.setScreen(null);
-            return;
-        }
-        if (previousSearching != ClientQueueState.searching()) {
-            previousSearching = ClientQueueState.searching();
-            rebuildButton();
-        }
-    }
+
     @Override public boolean isPauseScreen() {
         return false;
-    }
-    private void rebuildButton() {
-        clearWidgets();
-        boolean searching = ClientQueueState.searching();
-        Component label =
-                Component.literal(searching ? "Cancel Search" : "Find Match");
-        addRenderableWidget(Button.builder(
-                label, button -> {
-                    if (ClientQueueState.searching())
-                        ModNetwork.sendToServer(new C2SLeaveQueuePacket());
-                    else
-                        ModNetwork.sendToServer(new C2SJoinQueuePacket());
-                }).bounds(width / 2 - 70, height / 2 + 28, 140, 20).build());
     }
 }

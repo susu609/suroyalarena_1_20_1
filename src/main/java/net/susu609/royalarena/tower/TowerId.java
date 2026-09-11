@@ -17,19 +17,23 @@ public enum TowerId {
         this.side = side;
         this.kind = kind;
     }
-    public static TowerId king(TeamSide side) {
-        return side == TeamSide.BLUE ? BLUE_KING : RED_KING;
-    }
-    public static TowerId left(TeamSide side) {
-        return side == TeamSide.BLUE ? BLUE_LEFT : RED_LEFT;
-    }
-    public static TowerId right(TeamSide side) {
-        return side == TeamSide.BLUE ? BLUE_RIGHT : RED_RIGHT;
-    }
+
     public TowerKind kind() {
         return kind;
     }
     public TeamSide side() {
         return side;
+    }
+
+    public static TowerId king(TeamSide side) {
+        return side == TeamSide.BLUE ? BLUE_KING : RED_KING;
+    }
+
+    public static TowerId left(TeamSide side) {
+        return side == TeamSide.BLUE ? BLUE_LEFT : RED_LEFT;
+    }
+
+    public static TowerId right(TeamSide side) {
+        return side == TeamSide.BLUE ? BLUE_RIGHT : RED_RIGHT;
     }
 }

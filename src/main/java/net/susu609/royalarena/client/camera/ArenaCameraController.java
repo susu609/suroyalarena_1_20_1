@@ -25,6 +25,7 @@ public final class ArenaCameraController {
             release();
             return;
         }
+
         if (cameraEntity == null || cameraEntity.level() != minecraft.level) {
             cameraEntity = new Marker(EntityType.MARKER, minecraft.level);
         }
@@ -61,28 +62,47 @@ public final class ArenaCameraController {
         }
         mouseReleasedForArena = false;
     }
+
+    public static double cursorGuiX() {
+        Minecraft minecraft = Minecraft.getInstance();
+        Window window = minecraft.getWindow();
+        return minecraft.mouseHandler.xpos() * window.getGuiScaledWidth() /
+                (double) window.getScreenWidth();
+    }
+
+    public static double cursorGuiY() {
+        Minecraft minecraft = Minecraft.getInstance();
+        Window window = minecraft.getWindow();
+        return minecraft.mouseHandler.ypos() * window.getGuiScaledHeight() /
+                (double) window.getScreenHeight();
+    }
     /**
      * Projects the current OS cursor through the fixed strategic camera onto
-     * the arena floor. The server still validates whether the returned X/Z
-     * belongs to the local side's deployment area.
+     * the
+     * arena floor. The server still validates whether the returned X/Z belongs
+     * to the local side's deployment area.
      */
     public static BlockPos projectCursorToArena() {
         Minecraft minecraft = Minecraft.getInstance();
         if (cameraEntity == null || minecraft.level == null ||
                 !ClientMatchState.active())
             return null;
+
         Window window = minecraft.getWindow();
         int width = window.getScreenWidth();
         int height = window.getScreenHeight();
         if (width <= 0 || height <= 0)
             return null;
+
         double mouseX = minecraft.mouseHandler.xpos();
         double mouseY = minecraft.mouseHandler.ypos();
         double ndcX = (mouseX / width) * 2.0D - 1.0D;
         double ndcY = 1.0D - (mouseY / height) * 2.0D;
+
         Vec3 forward = cameraEntity.getViewVector(1.0F).normalize();
         Vec3 right = forward.cross(WORLD_UP).normalize();
         Vec3 up = right.cross(forward).normalize();
+
         double fovRadians = Math.toRadians(minecraft.options.fov().get());
         double tangent = Math.tan(fovRadians * 0.5D);
         double aspect = width / (double) height;
@@ -96,21 +116,10 @@ public final class ArenaCameraController {
         double distance = (planeY - origin.y) / direction.y;
         if (distance <= 0.0D || distance > 96.0D)
             return null;
+
         Vec3 hit = origin.add(direction.scale(distance));
         return new BlockPos(
                 (int) Math.floor(hit.x), arena.floorY(),
                 (int) Math.floor(hit.z));
-    }
-    public static double cursorGuiX() {
-        Minecraft minecraft = Minecraft.getInstance();
-        Window window = minecraft.getWindow();
-        return minecraft.mouseHandler.xpos() * window.getGuiScaledWidth() /
-                (double) window.getScreenWidth();
-    }
-    public static double cursorGuiY() {
-        Minecraft minecraft = Minecraft.getInstance();
-        Window window = minecraft.getWindow();
-        return minecraft.mouseHandler.ypos() * window.getGuiScaledHeight() /
-                (double) window.getScreenHeight();
     }
 }
