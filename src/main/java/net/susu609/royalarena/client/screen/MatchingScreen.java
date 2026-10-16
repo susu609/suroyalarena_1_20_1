@@ -9,6 +9,7 @@ import net.susu609.royalarena.client.state.ClientQueueState;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.c2s.C2SJoinQueuePacket;
 import net.susu609.royalarena.network.c2s.C2SLeaveQueuePacket;
+import net.susu609.royalarena.network.c2s.C2SStartPracticePacket;
 
 public final class MatchingScreen extends Screen {
     private boolean previousSearching;
@@ -19,7 +20,7 @@ public final class MatchingScreen extends Screen {
 
     @Override protected void init() {
         previousSearching = ClientQueueState.searching();
-        rebuildButton();
+        rebuildButtons();
     }
 
     @Override public void tick() {
@@ -29,11 +30,11 @@ public final class MatchingScreen extends Screen {
         }
         if (previousSearching != ClientQueueState.searching()) {
             previousSearching = ClientQueueState.searching();
-            rebuildButton();
+            rebuildButtons();
         }
     }
 
-    private void rebuildButton() {
+    private void rebuildButtons() {
         clearWidgets();
         boolean searching = ClientQueueState.searching();
         Component label =
@@ -45,6 +46,10 @@ public final class MatchingScreen extends Screen {
                     else
                         ModNetwork.sendToServer(new C2SJoinQueuePacket());
                 }).bounds(width / 2 - 70, height / 2 + 28, 140, 20).build());
+        addRenderableWidget(Button.builder(
+                Component.literal("Practice Match"),
+                button -> ModNetwork.sendToServer(new C2SStartPracticePacket()))
+                .bounds(width / 2 - 70, height / 2 + 52, 140, 20).build());
     }
 
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY,
@@ -58,6 +63,9 @@ public final class MatchingScreen extends Screen {
             status += "  #" + ClientQueueState.position();
         graphics.drawCenteredString(
                 font, status, width / 2, height / 2 - 18, 0xFFCCCCCC);
+        graphics.drawCenteredString(
+                font, "Practice: play BLUE against an empty RED side",
+                width / 2, height / 2 + 78, 0xFF999999);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 

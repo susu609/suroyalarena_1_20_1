@@ -6,7 +6,7 @@ import net.susu609.royalarena.match.TeamSide;
 
 public final class ArenaCameraProfile {
     public static final ArenaCameraProfile DEFAULT =
-            new ArenaCameraProfile(0.5D, 0.5D, 0.5D, 38.0F);
+            new ArenaCameraProfile(0.0D, 0.5D, 0.5D, 38.0F);
 
     private final double xOffset;
     private final double yOffset;

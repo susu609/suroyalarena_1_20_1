@@ -35,7 +35,21 @@ public final class MatchManager {
         if (blue == red || isInMatch(blue.getUUID()) ||
                 isInMatch(red.getUUID()))
             return false;
-        MinecraftServer server = blue.getServer();
+        return launch(blue.getServer(), blue.getUUID(), red.getUUID());
+    }
+
+    /**
+     * Practice match: the player is BLUE and RED is an empty side with an
+     * id that belongs to no player, so nobody deploys for RED.
+     */
+    public boolean startPractice(ServerPlayer player) {
+        if (isInMatch(player.getUUID()))
+            return false;
+        MatchQueue.INSTANCE.leave(player, "Practice match");
+        return launch(player.getServer(), player.getUUID(), UUID.randomUUID());
+    }
+
+    private boolean launch(MinecraftServer server, UUID blueId, UUID redId) {
         if (server == null)
             return false;
         ServerLevel level = server.overworld();
@@ -43,13 +57,12 @@ public final class MatchManager {
         UUID matchId = UUID.randomUUID();
         MatchInstance match =
                 MatchInstance.create(
-                        matchId, blue.getUUID(), red.getUUID(),
-                        reservation.layout());
+                        matchId, blueId, redId, reservation.layout());
         ServerMatchSession session =
                 new ServerMatchSession(match, level, reservation);
         matches.put(matchId, session);
-        playerToMatch.put(blue.getUUID(), matchId);
-        playerToMatch.put(red.getUUID(), matchId);
+        playerToMatch.put(blueId, matchId);
+        playerToMatch.put(redId, matchId);
         session.start(server);
         return true;
     }

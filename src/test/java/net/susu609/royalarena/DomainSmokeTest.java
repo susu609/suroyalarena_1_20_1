@@ -8,6 +8,7 @@ import net.susu609.royalarena.client.camera.ArenaCameraProfile;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
+import net.susu609.royalarena.tower.TowerId;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,8 @@ public final class DomainSmokeTest {
     public static void main(String[] args) {
         teamMirrorsCorrectly();
         arenaDeployZonesStayOnOwnHalf();
+        arenaIsEvenAndSymmetric();
+        troopsCrossTheRiverOnBridges();
         cameraMirrorsAroundArena();
         deckCyclesPlayedCard();
         matchLifecycleAndElixirAreDeterministic();
@@ -45,8 +48,66 @@ public final class DomainSmokeTest {
                 !arena.canDeploy(TeamSide.BLUE, 109, 207),
                 "BLUE border wall excluded");
         check(
-                !arena.canDeploy(TeamSide.RED, 100, 185),
+                !arena.canDeploy(TeamSide.RED, 100, 183),
                 "RED end wall excluded");
+        check(
+                !arena.canDeploy(TeamSide.BLUE, 100, 200) &&
+                        !arena.canDeploy(TeamSide.RED, 100, 199),
+                "river is not deployable");
+    }
+
+    private static void arenaIsEvenAndSymmetric() {
+        ArenaPoint c = new ArenaPoint(0, 80, 0);
+        ArenaLayout arena = ArenaLayout.standard(c);
+        check(arena.maxX() - arena.minX() + 1 == 18, "arena is 18 wide");
+        check(arena.maxZ() - arena.minZ() + 1 == 32, "arena is 32 long");
+        check(arena.isRiver(-1) && arena.isRiver(0) && !arena.isRiver(1) &&
+                !arena.isRiver(-2), "river is two rows on the Z axis");
+        for (int x = arena.minX(); x <= arena.maxX(); x++) {
+            check(arena.isBridge(x) == arena.isBridge(-1 - x),
+                    "bridges mirror across X");
+        }
+        check(arena.isBridge(-7) && arena.isBridge(-6) && !arena.isBridge(-5) &&
+                arena.isBridge(5) && arena.isBridge(6) && !arena.isBridge(7),
+                "bridges are two blocks wide");
+        for (TeamSide side : TeamSide.values()) {
+            TeamSide other = side.opponent();
+            ArenaPoint king = arena.towerPoint(TowerId.king(side));
+            ArenaPoint otherKing = arena.towerPoint(TowerId.king(other));
+            check(king.x() == 0 && king.z() == -otherKing.z(),
+                    "king towers mirror on the axis");
+            ArenaPoint left = arena.towerPoint(TowerId.left(side));
+            ArenaPoint otherLeft = arena.towerPoint(TowerId.left(other));
+            check(left.x() == -otherLeft.x() && left.z() == -otherLeft.z(),
+                    "each side's left tower is point-symmetric");
+            ArenaPoint right = arena.towerPoint(TowerId.right(side));
+            check(right.x() == -left.x() && right.z() == left.z(),
+                    "left and right towers mirror across X");
+        }
+        ArenaPoint blueLeft = arena.towerPoint(TowerId.BLUE_LEFT);
+        check(blueLeft.x() == arena.bridgeLeft().x(),
+                "princess tower lines up with its bridge");
+        int princessFront = blueLeft.z() - ArenaLayout.PRINCESS_SIZE / 2;
+        check(princessFront - ArenaLayout.RIVER_HALF == 8,
+                "eight empty rows between river and princess tower");
+        ArenaPoint blueKing = arena.towerPoint(TowerId.BLUE_KING);
+        check(arena.maxZ() - (blueKing.z() + ArenaLayout.KING_SIZE / 2 - 1)
+                == 1, "one free row behind the king tower");
+    }
+
+    private static void troopsCrossTheRiverOnBridges() {
+        ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 80, 0));
+        var first = arena.riverWaypoint(TeamSide.BLUE, -2.0D, 10.0D);
+        check(first != null && first.x() == -6.0D && first.z() == 1.5D,
+                "unaligned BLUE troop walks to the near bridge end");
+        var second = arena.riverWaypoint(TeamSide.BLUE, -6.0D, 1.5D);
+        check(second != null && second.x() == -6.0D && second.z() == -2.0D,
+                "aligned BLUE troop walks over the bridge");
+        check(arena.riverWaypoint(TeamSide.BLUE, -6.0D, -2.0D) == null,
+                "BLUE troop past the river heads for its tower");
+        var red = arena.riverWaypoint(TeamSide.RED, 4.0D, -10.0D);
+        check(red != null && red.x() == 6.0D && red.z() == -1.5D,
+                "RED troop mirrors the BLUE route");
     }
 
     private static void cameraMirrorsAroundArena() {
@@ -179,11 +240,14 @@ public final class DomainSmokeTest {
                         net.susu609.royalarena.entity.building.TowerVisualType.CROWN,
                 "Princess tower uses Crown Tower visual");
         check(
-                crown.width() == 3.0F && crown.height() == 4.0F,
-                "Crown Tower hitbox matches 3x4-block model bounds");
+                crown.width() == 4.0F && crown.height() == 4.0F,
+                "Crown Tower hitbox is the even 4x4 footprint");
         check(
-                crown.blockGridCenterOffset() == 0.5D,
-                "odd-width Crown Tower centers on a block");
+                crown.blockGridCenterOffset() == 0.0D,
+                "even-width Crown Tower centers between blocks");
+        check(
+                Math.abs(crown.modelScaleXZ() * 3.0F - 4.0F) < 1.0E-6F,
+                "3-wide Crown model is stretched to 4 blocks");
         check(
                 king ==
                         net.susu609.royalarena.entity.building.TowerVisualType.KING,

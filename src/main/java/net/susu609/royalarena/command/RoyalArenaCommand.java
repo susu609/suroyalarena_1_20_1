@@ -28,6 +28,15 @@ public final class RoyalArenaCommand {
                             ctx.getSource().getPlayerOrException();
                     MatchQueue.INSTANCE.leave(player, "Cancelled");
                     return 1;
+                })).then(Commands.literal("practice").executes(ctx -> {
+                    ServerPlayer player =
+                            ctx.getSource().getPlayerOrException();
+                    if (!MatchManager.INSTANCE.startPractice(player)) {
+                        ctx.getSource().sendFailure(Component.literal(
+                                "You are already in a match."));
+                        return 0;
+                    }
+                    return 1;
                 })).then(Commands.literal("debug_start")
                         .requires(source -> source.hasPermission(2))
                         .executes(ctx -> {

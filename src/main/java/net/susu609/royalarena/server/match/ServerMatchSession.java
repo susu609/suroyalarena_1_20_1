@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.entity.building.TowerHitboxEntity;
@@ -237,6 +238,12 @@ public final class ServerMatchSession {
                 entity.setDeltaMovement(Vec3.ZERO);
                 continue;
             }
+            ArenaWaypoint waypoint = match.arena().riverWaypoint(
+                    troop.side(), entity.getX(), entity.getZ());
+            if (waypoint != null) {
+                steer(entity, troop, waypoint.x(), waypoint.z());
+                continue;
+            }
             double dx = targetEntity.getX() - entity.getX();
             double dz = targetEntity.getZ() - entity.getZ();
             double horizontal = Math.sqrt(dx * dx + dz * dz);
@@ -256,11 +263,23 @@ public final class ServerMatchSession {
                 }
                 continue;
             }
-            double speed = troop.moveSpeed();
-            entity.setDeltaMovement(
-                    dx / horizontal * speed, entity.getDeltaMovement().y,
-                    dz / horizontal * speed);
+            steer(entity, troop, targetEntity.getX(), targetEntity.getZ());
         }
+    }
+    private static void steer(Entity entity, ServerTroop troop, double x,
+            double z)
+    {
+        double dx = x - entity.getX();
+        double dz = z - entity.getZ();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        if (horizontal < 1.0E-4D) {
+            entity.setDeltaMovement(Vec3.ZERO);
+            return;
+        }
+        double speed = troop.moveSpeed();
+        entity.setDeltaMovement(
+                dx / horizontal * speed, entity.getDeltaMovement().y,
+                dz / horizontal * speed);
     }
     private TowerHitboxEntity towerHitbox(TowerId id) {
         UUID uuid = towerHitboxes.get(id);

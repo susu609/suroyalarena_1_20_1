@@ -3,25 +3,28 @@ package net.susu609.royalarena.entity.building;
 import net.susu609.royalarena.tower.TowerKind;
 
 /**
- * Physical/rendering variant for a logical tower kind. Sizes intentionally
- * match the uploaded Blockbench model bounds in world blocks.
+ * Physical/rendering variant for a logical tower kind, sized in world blocks.
+ * The arena uses even sizes only, so the 3-block-wide Crown Tower model is
+ * stretched horizontally to a 4x4 footprint (height stays 4).
  */
 public enum TowerVisualType {
-    CROWN(TowerKind.PRINCESS, 3.0F, 4.0F, 0.5D),
-    KING(TowerKind.KING, 4.0F, 4.0F, 0.0D);
+    CROWN(TowerKind.PRINCESS, 4.0F, 4.0F, 0.0D, 4.0F / 3.0F),
+    KING(TowerKind.KING, 4.0F, 4.0F, 0.0D, 1.0F);
 
     private final TowerKind towerKind;
     private final float width;
     private final float height;
     private final double blockGridCenterOffset;
+    private final float modelScaleXZ;
 
     TowerVisualType(TowerKind towerKind, float width, float height,
-            double blockGridCenterOffset)
+            double blockGridCenterOffset, float modelScaleXZ)
     {
         this.towerKind = towerKind;
         this.width = width;
         this.height = height;
         this.blockGridCenterOffset = blockGridCenterOffset;
+        this.modelScaleXZ = modelScaleXZ;
     }
     public static TowerVisualType from(TowerKind kind) {
         return kind == TowerKind.KING ? KING : CROWN;
@@ -33,6 +36,10 @@ public enum TowerVisualType {
      */
     public double blockGridCenterOffset() {
         return blockGridCenterOffset;
+    }
+    /** Horizontal scale applied to the Blockbench model when rendering. */
+    public float modelScaleXZ() {
+        return modelScaleXZ;
     }
     public float height() {
         return height;

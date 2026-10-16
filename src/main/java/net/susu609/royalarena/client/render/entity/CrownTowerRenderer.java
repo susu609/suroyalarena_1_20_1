@@ -12,6 +12,7 @@ import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.model.CrownTowerModel;
 import net.susu609.royalarena.entity.building.CrownTowerEntity;
+import net.susu609.royalarena.entity.building.TowerVisualType;
 
 public final class CrownTowerRenderer extends EntityRenderer<CrownTowerEntity> {
     private static final ResourceLocation TEXTURE =
@@ -23,7 +24,7 @@ public final class CrownTowerRenderer extends EntityRenderer<CrownTowerEntity> {
         super(context);
         this.model = new CrownTowerModel<>(
                 context.bakeLayer(CrownTowerModel.LAYER_LOCATION));
-        this.shadowRadius = 1.5F;
+        this.shadowRadius = 2.0F;
     }
 
     @Override public void render(CrownTowerEntity entity, float entityYaw,
@@ -32,6 +33,8 @@ public final class CrownTowerRenderer extends EntityRenderer<CrownTowerEntity> {
     {
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - entityYaw));
+        float scaleXZ = TowerVisualType.CROWN.modelScaleXZ();
+        poseStack.scale(scaleXZ, 1.0F, scaleXZ);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0F, -1.501F, 0.0F);
         VertexConsumer consumer = buffer.getBuffer(model.renderType(TEXTURE));

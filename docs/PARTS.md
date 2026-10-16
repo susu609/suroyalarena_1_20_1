@@ -144,3 +144,20 @@ preventing overlap with the new entity models.
 The editable Blockbench sources are retained under `model_sources/towers/`, and
 both generated entity models use the shared
 `assets/royalarena/textures/entity/tower/tower_blocks.png` atlas.
+
+## Part 13 — Even arena + practice match
+
+- `arena/ArenaLayout.java`, `arena/ArenaWaypoint.java`
+- `server/arena/ArenaBuilder.java`
+- `entity/building/TowerVisualType.java`
+- `client/render/entity/CrownTowerRenderer.java`
+- `server/match/MatchManager.java`, `server/match/ServerMatchSession.java`
+- `network/c2s/C2SStartPracticePacket.java`
+- `client/screen/MatchingScreen.java`, `command/RoyalArenaCommand.java`
+
+The arena is now an even 18x32 grid with a water river, 2-wide bridges in
+line with 4x4 Princess towers, and an 8-row gap between river and towers
+(see `docs/ARENA.md`). Troops route over the bridge on their side.
+`Practice Match` starts a solo match against an empty RED side. The network
+protocol version is bumped to 2.
+
