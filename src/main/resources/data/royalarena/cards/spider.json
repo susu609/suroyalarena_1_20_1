@@ -1,0 +1,17 @@
+{
+  "id": "spider",
+  "type": "troop",
+  "display_name": "Spider",
+  "elixir": 3,
+  "entity": "minecraft:spider",
+  "count": 4,
+  "unit": {
+    "health": 10,
+    "damage": 2,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 1.5,
+    "flying": false,
+    "targets": "ground"
+  }
+}
