@@ -29,6 +29,11 @@ JitPack builds it. Until the tag exists you can set
 To use your own copy instead, run `./gradlew publishToMavenLocal` in
 `sumodlib_1_20_1` and set `sumodlib_source=local`.
 
+Once a version is released on Maven Central (see `PUBLISHING.md` in
+`sumodlib_1_20_1`), set `sumodlib_source=central` to use
+`io.github.susu609:sumodlib:<sumodlib_version>`. Central is not the default
+yet because nothing has been published there.
+
 ### Troubleshooting
 
 `Could not find net.susu609.modlib:sumodlib:..._mapped_official_1.20.1` (or the

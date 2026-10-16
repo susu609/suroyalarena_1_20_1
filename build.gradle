@@ -78,9 +78,12 @@ repositories {
 }
 
 // sumodlib_source=jitpack (default): download sumodlib from JitPack.
+// sumodlib_source=central: download it from Maven Central (once released).
 // sumodlib_source=local: use the copy installed by publishToMavenLocal.
 def sumodlibNotation = sumodlib_source == 'local' ?
         "net.susu609.modlib:sumodlib:${sumodlib_version}" :
+        sumodlib_source == 'central' ?
+        "io.github.susu609:sumodlib:${sumodlib_version}" :
         "com.github.susu609:sumodlib_1_20_1:${sumodlib_jitpack_version}"
 
 if (sumodlib_source == 'local') {
