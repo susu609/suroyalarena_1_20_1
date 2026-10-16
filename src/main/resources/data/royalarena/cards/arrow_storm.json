@@ -1,0 +1,10 @@
+{
+  "id": "arrow_storm",
+  "type": "spell",
+  "display_name": "Arrow Storm",
+  "elixir": 3,
+  "radius": 3.0,
+  "duration_ticks": 80,
+  "pulse_interval_ticks": 5,
+  "damage_per_pulse": 1
+}

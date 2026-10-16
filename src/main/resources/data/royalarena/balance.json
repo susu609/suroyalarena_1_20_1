@@ -1,0 +1,54 @@
+{
+  "cost_divisor": 5.4,
+  "spell_cost_divisor": 20.8,
+  "spell_tower_damage_multiplier": 0.3,
+  "cost_modifiers": {
+    "ranged_min_range": 4.0,
+    "ranged": 1.25,
+    "flying": 1.2,
+    "fast_min_speed": 1.33,
+    "fast": 1.1,
+    "swarm_3_4": 0.93,
+    "swarm_5_plus": 0.85,
+    "area_damage": 1.3
+  },
+  "towers": {
+    "princess": {
+      "health": 110,
+      "damage": 4,
+      "attack_interval_ticks": 16,
+      "range": 7.5
+    },
+    "king": {
+      "health": 185,
+      "damage": 4,
+      "attack_interval_ticks": 20,
+      "range": 7.0
+    }
+  },
+  "elixir": {
+    "start": 6,
+    "max": 10,
+    "phases": [
+      {
+        "until_tick": 2400,
+        "ticks_per_elixir": 56,
+        "play_cooldown_ticks": 20
+      },
+      {
+        "until_tick": 4800,
+        "ticks_per_elixir": 28,
+        "play_cooldown_ticks": 10
+      },
+      {
+        "until_tick": 6000,
+        "ticks_per_elixir": 19,
+        "play_cooldown_ticks": 7
+      }
+    ]
+  },
+  "match": {
+    "regulation_ticks": 3600,
+    "overtime_ticks": 2400
+  }
+}

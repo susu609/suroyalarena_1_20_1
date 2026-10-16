@@ -1,0 +1,17 @@
+{
+  "id": "zombie",
+  "type": "troop",
+  "display_name": "Zombie",
+  "elixir": 3,
+  "entity": "minecraft:zombie",
+  "count": 2,
+  "unit": {
+    "health": 20,
+    "damage": 3,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 0.83,
+    "flying": false,
+    "targets": "ground"
+  }
+}

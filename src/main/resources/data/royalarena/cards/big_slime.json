@@ -1,0 +1,25 @@
+{
+  "id": "big_slime",
+  "type": "troop",
+  "display_name": "Big Slime",
+  "elixir": 3,
+  "entity": "minecraft:slime",
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 5,
+    "attack_interval_ticks": 28,
+    "range": 1.2,
+    "move_speed": 0.67,
+    "flying": false,
+    "targets": "ground"
+  },
+  "split": {
+    "generations": 2,
+    "children": 2,
+    "health_factor": 0.5,
+    "damage_factor": 0.5,
+    "spread": 1.0,
+    "invulnerable_ticks": 6
+  }
+}
