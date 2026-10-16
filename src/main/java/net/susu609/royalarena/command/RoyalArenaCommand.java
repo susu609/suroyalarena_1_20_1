@@ -1,6 +1,8 @@
 package net.susu609.royalarena.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -12,6 +14,20 @@ import java.util.List;
 
 public final class RoyalArenaCommand {
     private RoyalArenaCommand() {
+    }
+
+    /** /royalarena bot (alias: practice): BLUE is you, a bot plays RED. */
+    private static int startSoloVsBot(
+            CommandContext<CommandSourceStack> ctx)
+            throws CommandSyntaxException
+    {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        if (!MatchManager.INSTANCE.startPractice(player)) {
+            ctx.getSource().sendFailure(
+                    Component.literal("You are already in a match."));
+            return 0;
+        }
+        return 1;
     }
 
     public static void register(
@@ -28,16 +44,11 @@ public final class RoyalArenaCommand {
                             ctx.getSource().getPlayerOrException();
                     MatchQueue.INSTANCE.leave(player, "Cancelled");
                     return 1;
-                })).then(Commands.literal("practice").executes(ctx -> {
-                    ServerPlayer player =
-                            ctx.getSource().getPlayerOrException();
-                    if (!MatchManager.INSTANCE.startPractice(player)) {
-                        ctx.getSource().sendFailure(Component.literal(
-                                "You are already in a match."));
-                        return 0;
-                    }
-                    return 1;
-                })).then(Commands.literal("debug_start")
+                })).then(Commands.literal("bot")
+                        .executes(RoyalArenaCommand::startSoloVsBot))
+                .then(Commands.literal("practice")
+                        .executes(RoyalArenaCommand::startSoloVsBot))
+                .then(Commands.literal("debug_start")
                         .requires(source -> source.hasPermission(2))
                         .executes(ctx -> {
                             List<ServerPlayer> players =

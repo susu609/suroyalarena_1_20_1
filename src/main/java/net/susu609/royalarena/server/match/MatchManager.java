@@ -4,7 +4,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.susu609.royalarena.bot.BotBrain;
 import net.susu609.royalarena.match.MatchInstance;
+import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.server.arena.ArenaAllocator;
 import net.susu609.royalarena.server.arena.ArenaReservation;
 
@@ -35,21 +37,24 @@ public final class MatchManager {
         if (blue == red || isInMatch(blue.getUUID()) ||
                 isInMatch(red.getUUID()))
             return false;
-        return launch(blue.getServer(), blue.getUUID(), red.getUUID());
+        return launch(blue.getServer(), blue.getUUID(), red.getUUID(), false);
     }
 
     /**
-     * Practice match: the player is BLUE and RED is an empty side with an
-     * id that belongs to no player, so nobody deploys for RED.
+     * Solo match: the player is BLUE and a bot plays RED. The bot has no
+     * player id (a random one only keeps the match bookkeeping unique).
      */
     public boolean startPractice(ServerPlayer player) {
         if (isInMatch(player.getUUID()))
             return false;
         MatchQueue.INSTANCE.leave(player, "Practice match");
-        return launch(player.getServer(), player.getUUID(), UUID.randomUUID());
+        return launch(player.getServer(), player.getUUID(), UUID.randomUUID(),
+                true);
     }
 
-    private boolean launch(MinecraftServer server, UUID blueId, UUID redId) {
+    private boolean launch(MinecraftServer server, UUID blueId, UUID redId,
+            boolean botForRed)
+    {
         if (server == null)
             return false;
         ServerLevel level = server.overworld();
@@ -58,8 +63,11 @@ public final class MatchManager {
         MatchInstance match =
                 MatchInstance.create(
                         matchId, blueId, redId, reservation.layout());
+        BotBrain bot = botForRed ?
+                new BotBrain(TeamSide.RED, matchId.getLeastSignificantBits()) :
+                null;
         ServerMatchSession session =
-                new ServerMatchSession(match, level, reservation);
+                new ServerMatchSession(match, level, reservation, bot);
         matches.put(matchId, session);
         playerToMatch.put(blueId, matchId);
         playerToMatch.put(redId, matchId);

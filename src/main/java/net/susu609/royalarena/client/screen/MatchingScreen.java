@@ -47,7 +47,7 @@ public final class MatchingScreen extends Screen {
                         ModNetwork.sendToServer(new C2SJoinQueuePacket());
                 }).bounds(width / 2 - 70, height / 2 + 28, 140, 20).build());
         addRenderableWidget(Button.builder(
-                Component.literal("Practice Match"),
+                Component.literal("Play vs Bot"),
                 button -> ModNetwork.sendToServer(new C2SStartPracticePacket()))
                 .bounds(width / 2 - 70, height / 2 + 52, 140, 20).build());
     }
@@ -64,7 +64,7 @@ public final class MatchingScreen extends Screen {
         graphics.drawCenteredString(
                 font, status, width / 2, height / 2 - 18, 0xFFCCCCCC);
         graphics.drawCenteredString(
-                font, "Practice: play BLUE against an empty RED side",
+                font, "Solo: you play BLUE against a bot",
                 width / 2, height / 2 + 78, 0xFF999999);
         super.render(graphics, mouseX, mouseY, partialTick);
     }

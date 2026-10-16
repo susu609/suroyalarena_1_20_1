@@ -58,6 +58,9 @@ if it still fails, delete `~/.gradle/caches/forge_gradle/bundled_deobf_repo`.
 9. Princess/King tower targets are visible custom entity models generated from
    the supplied Blockbench Crown/King tower sources.
 
+Solo: press `M` and choose **Play vs Bot** (or `/royalarena bot`) to play BLUE
+against a bot on RED; see `docs/BOT.md`.
+
 Development shortcut: `/royalarena debug_start` starts a match with the first
 two online players. `/royalarena stop_all` ends all active matches.
 

@@ -211,3 +211,14 @@ now the five designed troops plus Stray, Vindicator and Iron Golem as fillers.
 NoAI troop mobs ignored the velocity they were given and stood still; they are
 now moved explicitly. The camera no longer swings sideways: it looks straight
 down the arena at 50 degrees and the whole arena fits above the HUD panel.
+
+## Part 18 — Solo match against a bot
+
+- `bot/BotBrain.java`
+- `server/match/ServerMatchSession.java`, `server/match/MatchManager.java`
+- `client/screen/MatchingScreen.java`, `command/RoyalArenaCommand.java`
+- `docs/BOT.md`
+
+Practice matches now have a bot playing RED through the normal deploy rules.
+`/royalarena bot` (alias `practice`) and the **Play vs Bot** button start one.
+

@@ -33,6 +33,7 @@ public final class DomainSmokeTest {
         kingTowerEndsMatch();
         noRawResourceLocationConstructors();
         CombatSmokeTest.run();
+        BotSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

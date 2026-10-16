@@ -11,6 +11,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.bot.BotBrain;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.entity.building.TowerHitboxEntity;
 import net.susu609.royalarena.entity.building.TowerVisualType;
@@ -35,14 +36,17 @@ public final class ServerMatchSession {
     private final Map<TowerId, UUID> towerHitboxes =
             new EnumMap<>(TowerId.class);
     private final BattleField battle;
+    private final BotBrain bot;
 
     private int tickCounter;
     private int finishedTicks;
     private boolean complete;
 
+    /** {@code bot} plays for its side; null when both sides are players. */
     public ServerMatchSession(MatchInstance match, ServerLevel arenaLevel,
-            ArenaReservation reservation)
+            ArenaReservation reservation, BotBrain bot)
     {
+        this.bot = bot;
         this.match = match;
         this.arenaLevel = arenaLevel;
         this.reservation = reservation;
@@ -79,6 +83,15 @@ public final class ServerMatchSession {
         if (server != null)
             sync(server);
     }
+    /** The bot plays through the same rules as a player. */
+    private void botPlay() {
+        if (bot == null)
+            return;
+        BotBrain.Play play = bot.tick(match, battle.engine());
+        if (play != null)
+            match.tryDeploy(bot.side(), play.slot(), play.x(), play.z());
+    }
+
     /** Spawns troops whose one-second deploy time has run out. */
     private void spawnReadyDeploys() {
         for (PendingDeploy deploy : match.drainReadyDeploys())
@@ -180,8 +193,10 @@ public final class ServerMatchSession {
             keepControllerPlayersAnchored(server);
             match.tick();
             spawnReadyDeploys();
-            if (match.state() == MatchState.BATTLE)
+            if (match.state() == MatchState.BATTLE) {
+                botPlay();
                 battle.tick();
+            }
             if (tickCounter % 5 == 0 || match.state() == MatchState.FINISHED)
                 sync(server);
         }
