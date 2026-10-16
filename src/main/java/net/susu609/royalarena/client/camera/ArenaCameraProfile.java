@@ -6,8 +6,9 @@ import net.susu609.royalarena.match.TeamSide;
 
 /**
  * Strategic camera behind the local side, looking down the length of the
- * arena at a steep downward angle. The view is straight along the arena axis
- * (no sideways swing); "diagonal" here means the downward tilt only. RED's
+ * arena from high above: almost top-down, tilted a little so the far side is
+ * seen at a slight diagonal. The view is straight along the arena axis (no
+ * sideways swing). The values can be changed in royalarena-client.toml. RED's
  * camera is BLUE's rotated 180 degrees about the arena centre, so both
  * players see their own half the same way.
  *
@@ -19,7 +20,7 @@ import net.susu609.royalarena.match.TeamSide;
  */
 public final class ArenaCameraProfile {
     public static final ArenaCameraProfile DEFAULT =
-            new ArenaCameraProfile(50.0F, 28.0D, 5.0D);
+            new ArenaCameraProfile(68.0F, 30.0D, 5.0D);
 
     private final float pitch;
     private final double distance;
@@ -29,6 +30,16 @@ public final class ArenaCameraProfile {
         this.pitch = pitch;
         this.distance = distance;
         this.lookAhead = lookAhead;
+    }
+
+    public float pitch() {
+        return pitch;
+    }
+    public double distance() {
+        return distance;
+    }
+    public double lookAhead() {
+        return lookAhead;
     }
 
     public ArenaCameraTransform transform(ArenaLayout arena, TeamSide side) {

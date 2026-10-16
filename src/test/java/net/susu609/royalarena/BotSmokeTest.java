@@ -38,6 +38,7 @@ public final class BotSmokeTest {
         botIsReproducible();
         botThreatensAnIdleOpponent();
         botVersusBotPlaysAFullMatch();
+        botSettingsChangeItsPace();
         System.out.println("RoyalArena bot smoke tests: PASS");
     }
 
@@ -242,6 +243,24 @@ public final class BotSmokeTest {
                         " deaths");
         check(h.match.state() == MatchState.FINISHED ||
                 h.match.ticksRemaining() >= 0, "the match stays consistent");
+    }
+
+    private static void botSettingsChangeItsPace() {
+        int[] plays = new int[2];
+        int[] attackElixir = {10, 3};
+        for (int run = 0; run < 2; run++) {
+            Harness h = new Harness();
+            BotBrain bot = new BotBrain(TeamSide.RED, 11L);
+            bot.setSettings(new net.susu609.royalarena.bot.BotSettings(
+                    10, 40, attackElixir[run] * 10));
+            h.bots.add(bot);
+            for (int i = 0; i < 2400; i++)
+                h.tick();
+            plays[run] = h.played.size();
+        }
+        check(plays[1] > plays[0],
+                "a lower attack threshold makes the bot play more: " +
+                        plays[0] + " vs " + plays[1]);
     }
 
     private static void check(boolean condition, String name) {

@@ -196,8 +196,9 @@ public final class DomainSmokeTest {
                 "no sideways shift: the view runs along the arena axis");
         check(blue.yaw() == 180.0F && red.yaw() == 0.0F,
                 "no yaw swing: BLUE looks due north, RED due south");
-        check(blue.pitch() == red.pitch() && blue.pitch() > 45.0F,
-                "both cameras look steeply downward");
+        check(blue.pitch() == red.pitch() && blue.pitch() >= 65.0F &&
+                blue.pitch() < 90.0F,
+                "almost top-down, still tilted a little (65-89 degrees)");
         check(blue.z() > 0.0D && red.z() < 0.0D && blue.y() > 100.0D,
                 "each camera sits behind and above its own half");
 

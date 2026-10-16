@@ -23,7 +23,8 @@ import java.util.Random;
  * as a human, so elixir, the hand cycle, deploy areas and the deploy delay all
  * apply to it. Pure Java: it only reads the match and the combat engine.
  *
- * <p>Every {@link #THINK_EVERY_TICKS} ticks it looks at the board:</p>
+ * <p>Every {@link #THINK_EVERY_TICKS} ticks (the defaults; see
+ * {@link BotSettings}) it looks at the board:</p>
  * <ul>
  * <li><b>Defend.</b> If an enemy unit stands on its bank of the river it
  * plays the sturdiest card it can afford a few blocks behind that unit, in
@@ -48,8 +49,9 @@ public final class BotBrain {
 
     private final TeamSide side;
     private final Random random;
+    private BotSettings settings = BotSettings.DEFAULT;
     private int ticks;
-    private int lastPlayTick = -MIN_GAP_TICKS;
+    private int lastPlayTick = Integer.MIN_VALUE / 2;
 
     public BotBrain(TeamSide side, long seed) {
         this.side = side;
@@ -60,6 +62,11 @@ public final class BotBrain {
         return side;
     }
 
+    /** Difficulty knobs; can change between ticks (the config file). */
+    public void setSettings(BotSettings settings) {
+        this.settings = settings;
+    }
+
     /**
      * Call once per match tick. Returns the card to play now, or null. The
      * caller passes the result to {@code match.tryDeploy}.
@@ -67,8 +74,8 @@ public final class BotBrain {
     public Play tick(MatchInstance match, CombatEngine engine) {
         ticks++;
         if (match.state() != MatchState.BATTLE ||
-                ticks % THINK_EVERY_TICKS != 0 ||
-                ticks - lastPlayTick < MIN_GAP_TICKS)
+                ticks % settings.thinkEveryTicks() != 0 ||
+                ticks - lastPlayTick < settings.minGapTicks())
             return null;
 
         MatchPlayer me = match.player(side);
@@ -78,7 +85,7 @@ public final class BotBrain {
         if (threat != null) {
             int slot = sturdiestAffordable(me);
             play = slot < 0 ? null : defence(arena, slot, threat);
-        } else if (me.elixirTenths() >= ATTACK_MIN_TENTHS) {
+        } else if (me.elixirTenths() >= settings.attackMinTenths()) {
             int slot = randomAffordable(me);
             play = slot < 0 ? null : attack(match, slot);
         } else {

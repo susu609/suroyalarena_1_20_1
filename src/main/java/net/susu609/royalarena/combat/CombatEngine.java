@@ -43,6 +43,7 @@ public final class CombatEngine {
             new EnumMap<>(TowerId.class);
     private final Map<TowerId, UUID> towerTarget =
             new EnumMap<>(TowerId.class);
+    private double speedMultiplier = 1.0D;
 
     public CombatEngine(MatchInstance match) {
         this.match = match;
@@ -73,6 +74,11 @@ public final class CombatEngine {
 
     public void remove(UUID entityId) {
         units.removeIf(u -> u.id().equals(entityId));
+    }
+
+    /** Scales every troop's walking speed (config: troops.speedMultiplier). */
+    public void setSpeedMultiplier(double speedMultiplier) {
+        this.speedMultiplier = Math.max(0.0D, speedMultiplier);
     }
 
     public CombatUnit unit(UUID entityId) {
@@ -140,7 +146,7 @@ public final class CombatEngine {
             ArenaWaypoint waypoint = arena.route(
                     unit.x(), unit.z(), targetX, targetZ);
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
-                    stats.speedPerTick()));
+                    stats.speedPerTick() * speedMultiplier));
             return;
         }
         if (!unit.ready())

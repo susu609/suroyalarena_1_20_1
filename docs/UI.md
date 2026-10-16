@@ -28,16 +28,16 @@ The click area includes the space a card rises into.
 ## Camera
 
 The strategic camera sits behind the local side and looks straight down the
-arena axis at a steep downward angle (`ArenaCameraProfile`: pitch 50 degrees,
-28 blocks from a point 5 blocks toward the local side of the centre). There is
+arena axis from high above (`ArenaCameraProfile`: pitch 68 degrees, 30 blocks
+from a point 5 blocks toward the local side of the centre). There is
 no sideways swing; the "diagonal" view is the downward tilt. RED's camera is
 BLUE's rotated 180 degrees, so both players see their own half the same way.
 
 The numbers are chosen so the whole arena sits between the top of the screen
 and the HUD panel on a 16:9 window (vertical FOV 70); `DomainSmokeTest` checks
-this for both sides. To change the angle edit the three numbers in
-`ArenaCameraProfile.DEFAULT`; the test will tell you if the arena no longer
-fits. Cursor projection uses the camera's real view vector, so deployment
+this for both sides. Players can change pitch, distance, look-ahead and FOV in
+`royalarena-client.toml` (see `docs/CONFIG.md`); the defaults live in
+`ArenaCameraProfile.DEFAULT` and the test checks that they fit. Cursor projection uses the camera's real view vector, so deployment
 still lands under the cursor.
 
 ## Health bars

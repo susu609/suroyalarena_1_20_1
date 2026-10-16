@@ -8,6 +8,7 @@ import net.minecraft.world.entity.Marker;
 import net.minecraft.world.phys.Vec3;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.client.state.ClientMatchState;
+import net.susu609.royalarena.config.ArenaClientConfig;
 
 public final class ArenaCameraController {
     private static final Vec3 WORLD_UP = new Vec3(0.0D, 1.0D, 0.0D);
@@ -30,7 +31,7 @@ public final class ArenaCameraController {
             cameraEntity = new Marker(EntityType.MARKER, minecraft.level);
         }
         ArenaCameraTransform transform =
-                ArenaCameraProfile.DEFAULT.transform(
+                ArenaClientConfig.cameraProfile().transform(
                         ClientMatchState.arena(),
                         ClientMatchState.side());
         cameraEntity.absMoveTo(
@@ -103,7 +104,8 @@ public final class ArenaCameraController {
         Vec3 right = forward.cross(WORLD_UP).normalize();
         Vec3 up = right.cross(forward).normalize();
 
-        double fovRadians = Math.toRadians(minecraft.options.fov().get());
+        double fovRadians = Math.toRadians(ArenaClientConfig.effectiveFov(
+                minecraft.options.fov().get()));
         double tangent = Math.tan(fovRadians * 0.5D);
         double aspect = width / (double) height;
         Vec3 direction = forward.add(right.scale(ndcX * tangent * aspect))

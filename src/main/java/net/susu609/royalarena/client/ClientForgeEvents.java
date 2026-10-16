@@ -7,6 +7,7 @@ import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -19,6 +20,7 @@ import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.client.screen.MatchingScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.client.state.ClientQueueState;
+import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
@@ -62,6 +64,16 @@ public final class ClientForgeEvents {
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
+    /** Optional match FOV from royalarena-client.toml (0 = game FOV). */
+    @SubscribeEvent
+    public static void onComputeFov(ViewportEvent.ComputeFov event) {
+        if (!ClientMatchState.active())
+            return;
+        double fov = ArenaClientConfig.FOV.get();
+        if (fov > 0.0D)
+            event.setFOV(fov);
+    }
+
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
         DeployPreviewRenderer.render(event);

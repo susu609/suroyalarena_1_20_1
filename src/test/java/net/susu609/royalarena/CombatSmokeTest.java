@@ -43,6 +43,7 @@ public final class CombatSmokeTest {
         unitsPreferEnemyTroopsOverTowers();
         overlappingUnitsSpreadOut();
         troopsMarchOverTheBridgeToTheirTower();
+        speedMultiplierScalesWalking();
         crowdedUnitsStillGetThroughTheBridge();
         towersShootTheNearestEnemyOnTheirInterval();
         kingTowerSleepsUntilHitOrPrincessFalls();
@@ -370,6 +371,20 @@ public final class CombatSmokeTest {
         check(none[0] == 0.0D && none[1] == 0.0D,
                 "a unit with nobody close is not pushed");
         check(beside.alive(), "second bridge unit exists");
+    }
+
+    private static void speedMultiplierScalesWalking() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit zombie = spawn(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                -6.0D, 8.0D);
+        double normal = engine.tick().moves().get(0).speed();
+        engine.setSpeedMultiplier(2.0D);
+        double fast = engine.tick().moves().get(0).speed();
+        near(normal, BattleCard.ZOMBIE.stats().speedPerTick(),
+                "default walking speed comes from the card");
+        near(fast, normal * 2.0D, "speedMultiplier doubles the walk");
+        check(zombie.alive(), "zombie still alive");
     }
 
     private static void troopsMarchOverTheBridgeToTheirTower() {

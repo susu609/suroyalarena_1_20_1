@@ -2,8 +2,12 @@ package net.susu609.royalarena;
 
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.susu609.royalarena.config.ArenaClientConfig;
+import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.network.ModNetwork;
 import org.slf4j.Logger;
@@ -16,6 +20,10 @@ import org.slf4j.Logger;
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         ArenaEntityTypes.register(modBus);
         ModNetwork.register();
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT,
+                ArenaClientConfig.SPEC, MOD_ID + "-client.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,
+                ArenaCommonConfig.SPEC, MOD_ID + "-common.toml");
         LOGGER.info("{} loaded", MOD_ID);
     }
 }

@@ -33,6 +33,7 @@ import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.Formation;
 import net.susu609.royalarena.combat.Separation;
 import net.susu609.royalarena.combat.TickResult;
+import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
@@ -60,6 +61,8 @@ public final class BattleField {
     private final ArenaLayout arena;
     private final CombatEngine engine;
     private final Consumer<TowerId> onTowerDestroyed;
+    /** Ticks each troop has wanted to walk without moving (debug log). */
+    private final Map<UUID, Integer> stuckTicks = new HashMap<>();
 
     public BattleField(ServerLevel level, MatchInstance match,
             Consumer<TowerId> onTowerDestroyed)
@@ -169,6 +172,7 @@ public final class BattleField {
     // ---------------------------------------------------------------- tick
 
     public void tick() {
+        engine.setSpeedMultiplier(ArenaCommonConfig.SPEED_MULTIPLIER.get());
         for (CombatUnit unit : new ArrayList<>(engine.units())) {
             Entity entity = level.getEntity(unit.id());
             if (entity == null || !entity.isAlive()) {
@@ -196,6 +200,7 @@ public final class BattleField {
             if (entity != null)
                 entity.discard();
             engine.remove(unit.id());
+            stuckTicks.remove(unit.id());
         }
     }
 
@@ -207,6 +212,7 @@ public final class BattleField {
      */
     private void moveUnits(List<TickResult.Move> moves) {
         Map<UUID, double[]> walk = new HashMap<>();
+        Map<UUID, TickResult.Move> moveOf = new HashMap<>();
         for (TickResult.Move move : moves) {
             CombatUnit unit = engine.unit(move.unit());
             Entity entity = unit == null ? null : level.getEntity(move.unit());
@@ -220,8 +226,11 @@ public final class BattleField {
             double stride = Math.min(move.speed(), distance);
             walk.put(unit.id(),
                     new double[] {dx / distance * stride, dz / distance * stride});
+            moveOf.put(unit.id(), move);
             face(entity, dx, dz);
         }
+        boolean showRoutes = ArenaCommonConfig.SHOW_ROUTES.get();
+        boolean logMovement = ArenaCommonConfig.LOG_MOVEMENT.get();
         List<CombatUnit> units = engine.units();
         for (CombatUnit unit : units) {
             Entity entity = level.getEntity(unit.id());
@@ -229,8 +238,65 @@ public final class BattleField {
                 continue;
             double[] own = walk.getOrDefault(unit.id(), new double[2]);
             double[] push = Separation.offset(unit, units, arena);
+            double beforeX = entity.getX();
+            double beforeZ = entity.getZ();
             step(entity, own[0] + push[0], own[1] + push[1]);
+            TickResult.Move move = moveOf.get(unit.id());
+            if (showRoutes && move != null && level.getGameTime() % 5 == 0)
+                drawRoute(entity, move);
+            if (logMovement)
+                logMovement(unit, entity, move, Math.hypot(own[0], own[1]),
+                        Math.hypot(entity.getX() - beforeX,
+                                entity.getZ() - beforeZ));
         }
+    }
+
+    /** Particle trail from a troop to the point it is walking to. */
+    private void drawRoute(Entity entity, TickResult.Move move) {
+        double y = entity.getY() + 0.3D;
+        double dx = move.x() - entity.getX();
+        double dz = move.z() - entity.getZ();
+        double length = Math.min(8.0D, Math.hypot(dx, dz));
+        double total = Math.max(1.0E-6D, Math.hypot(dx, dz));
+        for (double t = 0.0D; t <= length; t += 0.5D) {
+            level.sendParticles(ParticleTypes.END_ROD,
+                    entity.getX() + dx / total * t, y,
+                    entity.getZ() + dz / total * t, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
+        level.sendParticles(ParticleTypes.HAPPY_VILLAGER, move.x(), y + 0.5D,
+                move.z(), 3, 0.1D, 0.1D, 0.1D, 0.0D);
+    }
+
+    private void logMovement(CombatUnit unit, Entity entity,
+            TickResult.Move move, double wanted, double moved)
+    {
+        int stuck = wanted > 0.005D && moved < 0.001D ?
+                stuckTicks.getOrDefault(unit.id(), 0) + 1 : 0;
+        stuckTicks.put(unit.id(), stuck);
+        String id = unit.id().toString().substring(0, 8);
+        if (stuck == 40) {
+            RoyalArena.LOGGER.warn(
+                    "[royalarena] troop {} {} at ({}, {}, {}) has wanted to " +
+                            "walk for 2 s but has not moved (onGround={})",
+                    id, entity.getType().getDescriptionId(),
+                    fmt(entity.getX()), fmt(entity.getY()), fmt(entity.getZ()),
+                    entity.onGround());
+        }
+        if ((level.getGameTime() + unit.id().hashCode()) % 20 != 0)
+            return;
+        RoyalArena.LOGGER.info(
+                "[royalarena] troop {} {} at ({}, {}, {}) -> {} wanted {} " +
+                        "moved {} onGround={} hp={}",
+                id, entity.getType().getDescriptionId(), fmt(entity.getX()),
+                fmt(entity.getY()), fmt(entity.getZ()),
+                move == null ? "stays (in range or no target)" :
+                        "(" + fmt(move.x()) + ", " + fmt(move.z()) + ")",
+                fmt(wanted), fmt(moved), entity.onGround(),
+                fmt(unit.health()));
+    }
+
+    private static String fmt(double value) {
+        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 
     private static void step(Entity entity, double dx, double dz) {

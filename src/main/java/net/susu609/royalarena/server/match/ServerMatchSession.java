@@ -12,6 +12,7 @@ import net.minecraft.world.level.GameType;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.bot.BotBrain;
+import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.entity.building.TowerHitboxEntity;
 import net.susu609.royalarena.entity.building.TowerVisualType;
@@ -87,6 +88,7 @@ public final class ServerMatchSession {
     private void botPlay() {
         if (bot == null)
             return;
+        bot.setSettings(ArenaCommonConfig.botSettings());
         BotBrain.Play play = bot.tick(match, battle.engine());
         if (play != null)
             match.tryDeploy(bot.side(), play.slot(), play.x(), play.z());

@@ -222,3 +222,14 @@ down the arena at 50 degrees and the whole arena fits above the HUD panel.
 Practice matches now have a bot playing RED through the normal deploy rules.
 `/royalarena bot` (alias `practice`) and the **Play vs Bot** button start one.
 
+## Part 19 — Config files, steeper camera, movement debugging
+
+- `config/ArenaClientConfig.java` (`royalarena-client.toml`: camera)
+- `config/ArenaCommonConfig.java` (`royalarena-common.toml`: troop speed, bot,
+  debug)
+- `bot/BotSettings.java`, `client/camera/ArenaCameraProfile.java`
+- `docs/CONFIG.md`
+
+The camera is now almost top-down (pitch 68, distance 30). Camera, troop speed,
+bot pace and two debug aids (route particles, movement log) are configurable
+and reload when the file is saved.
