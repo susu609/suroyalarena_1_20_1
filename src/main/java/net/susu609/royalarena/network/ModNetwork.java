@@ -1,11 +1,11 @@
 package net.susu609.royalarena.network;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
 import net.susu609.royalarena.network.c2s.C2SJoinQueuePacket;
@@ -18,7 +18,7 @@ public final class ModNetwork {
     private static final String PROTOCOL = "3";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
-                    new ResourceLocation(RoyalArena.MOD_ID, "main"),
+                    RL.of(RoyalArena.MOD_ID, "main"),
                     () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
 
     private static boolean registered;

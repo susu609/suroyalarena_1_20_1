@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,6 +18,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
@@ -166,7 +166,7 @@ public final class DeployPreviewRenderer {
 
     private static Entity createGhost(ClientLevel level, BattleCard card) {
         EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                new ResourceLocation(card.entityId()));
+                RL.require(card.entityId()));
         Entity entity = type == null ? null : type.create(level);
         if (entity == null)
             return null;

@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,6 +11,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.HudLayout.Rect;
@@ -291,7 +291,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
     private static ItemStack icon(BattleCard card) {
         return ICONS.computeIfAbsent(card, c -> {
             EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                    new ResourceLocation(c.entityId()));
+                    RL.require(c.entityId()));
             SpawnEggItem egg = type == null ? null : SpawnEggItem.byId(type);
             return new ItemStack(egg == null ? Items.PAPER : egg);
         });

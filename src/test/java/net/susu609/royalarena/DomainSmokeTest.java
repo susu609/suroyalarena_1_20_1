@@ -30,6 +30,7 @@ public final class DomainSmokeTest {
         towerTargetingMirrorsForBothSides();
         towerVisualTypesMatchUploadedModels();
         kingTowerEndsMatch();
+        noRawResourceLocationConstructors();
         CombatSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
@@ -272,6 +273,34 @@ public final class DomainSmokeTest {
                         net.susu609.royalarena.tower.TowerId.BLUE_LEFT,
                 "RED world-left lane maps to BLUE left tower");
     }
+    /**
+     * 1.20.1 deprecates ResourceLocation's constructors for removal. Ids are
+     * built with net.susu609.modlib.resource.RL (RL.of / RL.require / RL.mc /
+     * RL.parse) instead; see CLAUDE.md.
+     */
+    private static void noRawResourceLocationConstructors() {
+        java.nio.file.Path root = java.nio.file.Path.of("src/main/java");
+        if (!java.nio.file.Files.isDirectory(root))
+            return;
+        java.util.List<String> offenders = new java.util.ArrayList<>();
+        try (var files = java.nio.file.Files.walk(root)) {
+            for (java.nio.file.Path file : (Iterable<java.nio.file.Path>)
+                    files.filter(f -> f.toString().endsWith(".java"))::iterator)
+            {
+                var lines = java.nio.file.Files.readAllLines(file);
+                for (int i = 0; i < lines.size(); i++) {
+                    if (lines.get(i).contains("new ResourceLocation("))
+                        offenders.add(file + ":" + (i + 1));
+                }
+            }
+        } catch (java.io.IOException e) {
+            throw new AssertionError(e);
+        }
+        check(offenders.isEmpty(),
+                "use RL.of/RL.require (net.susu609.modlib.resource.RL) " +
+                        "instead of new ResourceLocation(...): " + offenders);
+    }
+
     private static void check(boolean condition, String name) {
         if (!condition)
             throw new AssertionError(name);

@@ -3,7 +3,6 @@ package net.susu609.royalarena.server.battle;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -19,6 +18,7 @@ import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
@@ -116,7 +116,7 @@ public final class BattleField {
             double health, double x, double z)
     {
         EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                new ResourceLocation(card.entityId()));
+                RL.require(card.entityId()));
         Entity entity = type == null ? null : type.create(level);
         if (entity == null) {
             RoyalArena.LOGGER.warn("Card {} could not create entity {}",
@@ -156,7 +156,7 @@ public final class BattleField {
         if (card.heldItemId() == null)
             return;
         Item item = ForgeRegistries.ITEMS.getValue(
-                new ResourceLocation(card.heldItemId()));
+                RL.require(card.heldItemId()));
         if (item == null)
             return;
         mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(item));
