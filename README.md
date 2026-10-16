@@ -11,10 +11,31 @@ Clash Royale, implemented as an independent Minecraft Forge mod.
 - Java 17
 - Mod ID: `royalarena`
 - Root package: `net.susu609.royalarena`
-- Shared dependency: `net.susu609.modlib:sumodlib:1.0.0` from Maven Local
+- Shared dependency: `sumodlib` 1.0.0, built from
+  [susu609/sumodlib_1_20_1](https://github.com/susu609/sumodlib_1_20_1) by
+  [JitPack](https://jitpack.io/#susu609/sumodlib_1_20_1)
 
-Before syncing this project, publish/install `sumodlib_1_20_1` version 1.0.0 to
-Maven Local as required by the template workflow.
+## Getting `sumodlib`
+
+By default Gradle downloads it from JitPack as
+`com.github.susu609:sumodlib_1_20_1:1.0.0` (`sumodlib_source=jitpack` in
+`gradle.properties`). That needs a git tag named `1.0.0` on the sumodlib repo:
+create a GitHub release with that tag, then open
+https://jitpack.io/#susu609/sumodlib_1_20_1 and press **Get it** once so
+JitPack builds it. Until the tag exists you can set
+`sumodlib_jitpack_version=master-SNAPSHOT` (any branch works as
+`<branch>-SNAPSHOT`).
+
+To use your own copy instead, run `./gradlew publishToMavenLocal` in
+`sumodlib_1_20_1` and set `sumodlib_source=local`.
+
+### Troubleshooting
+
+`Could not find net.susu609.modlib:sumodlib:..._mapped_official_1.20.1` (or the
+`com.github.susu609` equivalent) means Gradle cannot find the original
+artifact: it is not in Maven Local (`sumodlib_source=local`) or JitPack has not
+built that tag yet. After fixing it, reload Gradle with `--refresh-dependencies`;
+if it still fails, delete `~/.gradle/caches/forge_gradle/bundled_deobf_repo`.
 
 ## MVP flow
 

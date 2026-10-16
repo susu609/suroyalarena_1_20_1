@@ -65,14 +65,40 @@ mixin {
 }
 
 repositories {
+    // Keep mavenLocal first: with sumodlib_source=local it serves the copy
+    // you published yourself, which is handy for testing unreleased changes.
     mavenLocal()
     mavenCentral()
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    // sumodlib is built from its GitHub repo by JitPack (see README).
+    maven {
+        url = 'https://jitpack.io'
+        content { includeGroup 'com.github.susu609' }
+    }
+}
+
+// sumodlib_source=jitpack (default): download sumodlib from JitPack.
+// sumodlib_source=local: use the copy installed by publishToMavenLocal.
+def sumodlibNotation = sumodlib_source == 'local' ?
+        "net.susu609.modlib:sumodlib:${sumodlib_version}" :
+        "com.github.susu609:sumodlib_1_20_1:${sumodlib_jitpack_version}"
+
+if (sumodlib_source == 'local') {
+    def m2 = System.getProperty('maven.repo.local') ?:
+            "${System.getProperty('user.home')}/.m2/repository"
+    def published = new File(m2,
+            "net/susu609/modlib/sumodlib/${sumodlib_version}/sumodlib-${sumodlib_version}.jar")
+    if (!published.exists()) {
+        logger.warn("sumodlib ${sumodlib_version} was not found in Maven Local " +
+                "(${published}). In the sumodlib_1_20_1 project run " +
+                "'gradlew publishToMavenLocal', or set sumodlib_source=jitpack " +
+                "in gradle.properties.")
+    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    implementation fg.deobf("net.susu609.modlib:sumodlib:${sumodlib_version}")
+    implementation fg.deobf(sumodlibNotation)
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
