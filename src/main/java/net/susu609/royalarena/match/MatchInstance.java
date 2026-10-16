@@ -32,8 +32,7 @@ public final class MatchInstance {
         this.blue = new MatchPlayer(blueId, TeamSide.BLUE);
         this.red = new MatchPlayer(redId, TeamSide.RED);
         for (TowerId id : TowerId.values()) {
-            int hp = id.kind() == TowerKind.KING ? 2400 : 1400;
-            towers.put(id, new TowerState(id, hp));
+            towers.put(id, new TowerState(id, id.kind().maxHealth()));
         }
     }
 

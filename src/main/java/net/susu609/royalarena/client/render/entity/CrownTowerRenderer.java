@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.model.CrownTowerModel;
+import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.entity.building.CrownTowerEntity;
 import net.susu609.royalarena.entity.building.TowerVisualType;
 
@@ -44,6 +45,7 @@ public final class CrownTowerRenderer extends EntityRenderer<CrownTowerEntity> {
                 poseStack, consumer, packedLight, OverlayTexture.NO_OVERLAY,
                 1.0F, 1.0F, 1.0F, 1.0F);
         poseStack.popPose();
+        WorldHealthBar.renderTower(entity, poseStack, buffer);
         super.render(
                 entity, entityYaw, partialTick, poseStack, buffer, packedLight);
     }

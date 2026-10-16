@@ -119,6 +119,16 @@ public final class ArenaLayout {
         return center.y();
     }
 
+    /** Tower whose centre is within half a block of (x, z), or null. */
+    public TowerId towerAt(double x, double z) {
+        for (TowerId id : TowerId.values()) {
+            ArenaPoint p = towerPoint(id);
+            if (Math.abs(p.x() - x) <= 0.5D && Math.abs(p.z() - z) <= 0.5D)
+                return id;
+        }
+        return null;
+    }
+
     /**
      * Tower centre. All towers are even-sized, so the centre lies on a block
      * corner: the tower covers [x - size/2, x + size/2 - 1] on each axis.

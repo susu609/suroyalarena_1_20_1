@@ -1,5 +1,6 @@
 package net.susu609.royalarena.server.match;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -99,7 +100,9 @@ public final class ServerMatchSession {
         entity.moveTo(
                 x + 0.5D, match.arena().floorY() + 1.0D, z + 0.5D,
                 side == TeamSide.BLUE ? 180.0F : 0.0F, 0.0F);
-        entity.setCustomName(Component.literal(card.displayName()));
+        entity.setCustomName(Component.literal(card.displayName()).withStyle(
+                side == TeamSide.BLUE ? ChatFormatting.BLUE :
+                        ChatFormatting.RED));
         entity.addTag("royalarena_troop");
         entity.addTag("royalarena_team_" + side.name().toLowerCase());
         if (entity instanceof Mob mob) {

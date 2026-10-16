@@ -22,6 +22,7 @@ public final class DomainSmokeTest {
         arenaDeployZonesStayOnOwnHalf();
         arenaIsEvenAndSymmetric();
         troopsCrossTheRiverOnBridges();
+        hudKeepsReferenceProportions();
         cameraMirrorsAroundArena();
         deckCyclesPlayedCard();
         matchLifecycleAndElixirAreDeterministic();
@@ -84,6 +85,12 @@ public final class DomainSmokeTest {
             check(right.x() == -left.x() && right.z() == left.z(),
                     "left and right towers mirror across X");
         }
+        for (TowerId id : TowerId.values()) {
+            ArenaPoint p = arena.towerPoint(id);
+            check(arena.towerAt(p.x() + 0.2D, p.z() - 0.2D) == id,
+                    "tower lookup by position");
+        }
+        check(arena.towerAt(0.0D, 0.0D) == null, "no tower at the centre");
         ArenaPoint blueLeft = arena.towerPoint(TowerId.BLUE_LEFT);
         check(blueLeft.x() == arena.bridgeLeft().x(),
                 "princess tower lines up with its bridge");
@@ -93,6 +100,36 @@ public final class DomainSmokeTest {
         ArenaPoint blueKing = arena.towerPoint(TowerId.BLUE_KING);
         check(arena.maxZ() - (blueKing.z() + ArenaLayout.KING_SIZE / 2 - 1)
                 == 1, "one free row behind the king tower");
+    }
+
+    private static void hudKeepsReferenceProportions() {
+        var hud = net.susu609.royalarena.client.hud.HudLayout.of(1920, 1080);
+        var card = hud.card(0);
+        check(Math.abs(hud.u() - 1080.0F / 356.0F) < 1.0E-6F,
+                "u is screen height / 356");
+        check(card.w() == 94 && card.h() == 118,
+                "card is 31x39 units (94x118 px at 1080p)");
+        check(Math.abs(card.w() / (double) card.h() - 0.8D) < 0.01D,
+                "card keeps the 4:5 portrait ratio");
+        var last = hud.card(3);
+        check(card.right() < hud.card(1).x() && last.right() <= 1920 &&
+                card.x() >= 0, "cards do not overlap and stay on screen");
+        int columnLeft = Math.round((1920 - 200 * hud.u()) / 2.0F);
+        check(Math.abs(hud.panel().right() - (1920 - columnLeft)) <= 1,
+                "reference column is centred");
+        check(hud.panel().bottom() == 1080, "panel reaches the bottom");
+        check(hud.nextCard().w() < card.w() * 0.6D,
+                "next card is about 58% of a hand card");
+        check(hud.elixirBar().y() > card.bottom() - 1,
+                "elixir bar sits under the cards");
+        for (int slot = 0; slot < 4; slot++) {
+            var r = hud.card(slot);
+            check(hud.cardSlotAt(r.centerX(), r.centerY()) == slot,
+                    "card hit test");
+        }
+        check(hud.cardSlotAt(5, 5) == -1, "no card outside the hand");
+        var small = net.susu609.royalarena.client.hud.HudLayout.of(480, 270);
+        check(small.card(0).h() == 30, "layout scales with GUI height");
     }
 
     private static void troopsCrossTheRiverOnBridges() {
@@ -114,9 +151,20 @@ public final class DomainSmokeTest {
         ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 100, 0));
         var blue = ArenaCameraProfile.DEFAULT.transform(arena, TeamSide.BLUE);
         var red = ArenaCameraProfile.DEFAULT.transform(arena, TeamSide.RED);
-        check(blue.x() == red.x(), "camera X mirror");
-        check(Math.abs(blue.z() + red.z()) < 0.0001D, "camera Z mirror");
-        check(blue.yaw() == 180.0F && red.yaw() == 0.0F, "camera yaw mirror");
+        check(Math.abs(blue.x() + red.x()) < 0.0001D &&
+                Math.abs(blue.z() + red.z()) < 0.0001D,
+                "RED camera is BLUE's rotated 180 degrees");
+        check(blue.yaw() == 190.0F && red.yaw() == 10.0F,
+                "camera swings 10 degrees for each side");
+        check(blue.x() < 0.0D && blue.z() > 20.0D,
+                "BLUE camera sits behind BLUE, slightly to one side");
+        double yaw = Math.toRadians(blue.yaw());
+        double lookX = -Math.sin(yaw);
+        double lookZ = Math.cos(yaw);
+        double len = Math.hypot(blue.x(), blue.z());
+        check(Math.abs(lookX + blue.x() / len) < 1.0E-6D &&
+                Math.abs(lookZ + blue.z() / len) < 1.0E-6D,
+                "camera yaw points at the arena centre");
     }
 
     private static void deckCyclesPlayedCard() {

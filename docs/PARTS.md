@@ -161,3 +161,15 @@ line with 4x4 Princess towers, and an 8-row gap between river and towers
 `Practice Match` starts a solo match against an empty RED side. The network
 protocol version is bumped to 2.
 
+## Part 14 — Battle UI in reference units
+
+- `client/hud/HudLayout.java`, `client/hud/BattleHudOverlay.java`
+- `client/camera/ArenaCameraProfile.java`
+- `client/render/WorldHealthBar.java`, tower renderers,
+  `client/ClientForgeEvents.java`
+- `tower/TowerKind.java` (max HP per tower kind)
+
+HUD rebuilt with the original's proportions (`u = height / 356`), camera
+swung 10 degrees per side, and simple health bars for towers and damaged
+troops. See `docs/UI.md`.
+

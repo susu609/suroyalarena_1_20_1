@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -12,6 +13,7 @@ import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.BattleHudOverlay;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
+import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.client.screen.MatchingScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.client.state.ClientQueueState;
@@ -57,6 +59,13 @@ public final class ClientForgeEvents {
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
+    @SubscribeEvent
+    public static void onRenderLiving(RenderLivingEvent.Post<?, ?> event) {
+        WorldHealthBar.renderTroop(
+                event.getEntity(), event.getPoseStack(),
+                event.getMultiBufferSource());
+    }
+
     @SubscribeEvent
     public static void onMouse(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
