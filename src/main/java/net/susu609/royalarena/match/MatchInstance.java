@@ -6,12 +6,16 @@ import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
 import net.susu609.royalarena.tower.TowerState;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public final class MatchInstance {
     public static final int DEFAULT_BATTLE_TICKS = 20 * 180;
+    /** Time between an accepted card play and the troop appearing (1 s). */
+    public static final int DEPLOY_TICKS = 20;
 
     private final UUID matchId;
     private final ArenaLayout arena;
@@ -19,6 +23,8 @@ public final class MatchInstance {
     private final MatchPlayer red;
     private final Map<TowerId, TowerState> towers =
             new EnumMap<>(TowerId.class);
+    private final List<PendingDeploy> pending = new ArrayList<>();
+    private final List<PendingDeploy> ready = new ArrayList<>();
 
     private MatchState state = MatchState.WAITING;
     private int ticksRemaining;
@@ -100,6 +106,8 @@ public final class MatchInstance {
         state = MatchState.FINISHED;
         ticksRemaining = 0;
         winner = winningSide;
+        pending.clear();
+        ready.clear();
     }
     public UUID matchId() {
         return matchId;
@@ -140,6 +148,7 @@ public final class MatchInstance {
 
         blue.elixir().tick();
         red.elixir().tick();
+        advancePending();
         if (--ticksRemaining <= 0) {
             finishByTowerHealth();
         }
@@ -161,7 +170,33 @@ public final class MatchInstance {
         if (!player.elixir().spend(card.cost()))
             return DeployResult.rejected("not_enough_elixir");
         player.deck().play(slot);
+        pending.add(new PendingDeploy(card, side, worldX, worldZ,
+                DEPLOY_TICKS));
         return DeployResult.accepted(card);
+    }
+
+    /** Cards still waiting out their deploy time, oldest first. */
+    public List<PendingDeploy> pendingDeploys() {
+        return List.copyOf(pending);
+    }
+
+    /** Deploys whose time ran out since the last call; spawn these now. */
+    public List<PendingDeploy> drainReadyDeploys() {
+        List<PendingDeploy> out = List.copyOf(ready);
+        ready.clear();
+        return out;
+    }
+
+    private void advancePending() {
+        for (int i = 0; i < pending.size(); i++) {
+            PendingDeploy next = pending.get(i).tickDown();
+            if (next.ticksLeft() <= 0) {
+                ready.add(next);
+                pending.remove(i--);
+            } else {
+                pending.set(i, next);
+            }
+        }
     }
     public MatchPlayer player(TeamSide side) {
         return side == TeamSide.BLUE ? blue : red;
@@ -178,9 +213,7 @@ public final class MatchInstance {
         else if (redTotal > blueTotal)
             finish(TeamSide.RED);
         else {
-            state = MatchState.FINISHED;
-            ticksRemaining = 0;
-            winner = null;
+            finish(null);
         }
     }
 

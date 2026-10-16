@@ -5,9 +5,11 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.match.MatchSnapshot;
 import net.susu609.royalarena.match.MatchState;
+import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
@@ -41,6 +43,14 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
         buffer.writeBoolean(s.winner() != null);
         if (s.winner() != null)
             buffer.writeEnum(s.winner());
+        buffer.writeVarInt(s.pending().size());
+        for (PendingDeploy deploy : s.pending()) {
+            buffer.writeUtf(deploy.card().id(), 32);
+            buffer.writeEnum(deploy.side());
+            buffer.writeInt(deploy.x());
+            buffer.writeInt(deploy.z());
+            buffer.writeVarInt(deploy.ticksLeft());
+        }
     }
 
     public static S2CMatchSnapshotPacket decode(FriendlyByteBuf buffer) {
@@ -64,10 +74,19 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
             towerHp[i] = buffer.readVarInt();
         TeamSide winner =
                 buffer.readBoolean() ? buffer.readEnum(TeamSide.class) : null;
+        int pendingSize = buffer.readVarInt();
+        List<PendingDeploy> pending = new ArrayList<>(pendingSize);
+        for (int i = 0; i < pendingSize; i++) {
+            pending.add(new PendingDeploy(
+                    BattleCard.byId(buffer.readUtf(32)),
+                    buffer.readEnum(TeamSide.class), buffer.readInt(),
+                    buffer.readInt(), buffer.readVarInt()));
+        }
         return new S2CMatchSnapshotPacket(
                 new MatchSnapshot(
                         true, matchId, state, side, center, ticks, elixir,
-                        List.copyOf(hand), next, towerHp, winner));
+                        List.copyOf(hand), next, towerHp, winner,
+                        List.copyOf(pending)));
     }
 
     public static void handle(S2CMatchSnapshotPacket packet,

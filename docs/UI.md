@@ -21,8 +21,9 @@ is centred horizontally. All positions live in `client/hud/HudLayout.java`
 At 1080 px height `u` is about 3.03, so a card is 94 x 118 px.
 
 Cards show the mob's spawn egg as art and a small key number (1-4). Cards that
-cost more than the current elixir are greyed out; the selected card has a gold
-frame.
+cost more than the current elixir are greyed out. A hovered card rises 3 units
+with a light frame; the selected card rises 8 units with a gold frame and glow.
+The click area includes the space a card rises into.
 
 ## Camera
 
@@ -41,3 +42,17 @@ the cursor.
 
 Bars are billboards drawn like vanilla name tags (text backgrounds), with
 filled and empty segments side by side so they never overlap.
+
+## Deploy preview and delay
+
+- With a card selected, the tile under the cursor is tinted **green** when
+  deployable (own half, enough elixir) and **red** otherwise; green tiles also
+  show a translucent ghost of the troop. Clicking a red tile sends nothing and
+  keeps the card selected (the server still validates every deploy).
+- An accepted click spends elixir and cycles the hand at once, then the troop
+  waits `MatchInstance.DEPLOY_TICKS` (20 ticks = 1 s). Both players see the
+  ghost and a team-coloured square that fills up; the troop spawns when it is
+  full.
+- Ghosts are invisible client-only entities. Vanilla draws invisible mobs
+  translucent for spectators, and arena players are spectators.
+

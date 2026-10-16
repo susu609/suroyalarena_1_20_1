@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -13,6 +14,7 @@ import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.BattleHudOverlay;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
+import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.client.screen.MatchingScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
@@ -34,6 +36,7 @@ public final class ClientForgeEvents {
         if (event.phase != TickEvent.Phase.END)
             return;
         Minecraft mc = Minecraft.getInstance();
+        ClientMatchState.tick();
 
         while (RoyalArenaKeyMappings.OPEN_MATCHING.consumeClick()) {
             if (!ClientMatchState.active() && mc.screen == null)
@@ -59,6 +62,11 @@ public final class ClientForgeEvents {
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
+    @SubscribeEvent
+    public static void onRenderLevel(RenderLevelStageEvent event) {
+        DeployPreviewRenderer.render(event);
+    }
+
     @SubscribeEvent
     public static void onRenderLiving(RenderLivingEvent.Post<?, ?> event) {
         WorldHealthBar.renderTroop(
@@ -96,7 +104,11 @@ public final class ClientForgeEvents {
         int selectedSlot = ClientMatchState.selectedSlot();
         if (selectedSlot >= 0) {
             BlockPos target = ArenaCameraController.projectCursorToArena();
-            if (target != null) {
+            // Red tiles (enemy half, river, outside, not enough elixir) are
+            // not sent; the card stays selected.
+            if (target != null && ClientMatchState.canDeployAt(
+                    selectedSlot, target.getX(), target.getZ()))
+            {
                 ModNetwork.sendToServer(
                         new C2SDeployCardPacket(selectedSlot, target));
                 ClientMatchState.clearSelection();

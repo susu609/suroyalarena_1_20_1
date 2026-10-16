@@ -4,6 +4,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.match.MatchSnapshot;
 import net.susu609.royalarena.match.MatchState;
+import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
@@ -14,12 +15,15 @@ import java.util.List;
 public final class ClientMatchState {
     private static MatchSnapshot snapshot = MatchSnapshot.inactive();
     private static int selectedSlot = -1;
+    private static int clientTicks;
+    private static int appliedAtTick;
 
     private ClientMatchState() {
     }
 
     public static void apply(MatchSnapshot next) {
         snapshot = next;
+        appliedAtTick = clientTicks;
         if (!next.active())
             selectedSlot = -1;
         if (selectedSlot >= next.hand().size())
@@ -80,6 +84,40 @@ public final class ClientMatchState {
                 slot >= hand().size())
             return;
         selectedSlot = slot;
+    }
+
+    /** Called once per client tick to age pending deploys between packets. */
+    public static void tick() {
+        clientTicks++;
+    }
+
+    /** Pending deploys with their timers advanced by local ticks. */
+    public static List<PendingDeploy> pendingDeploys() {
+        if (!active())
+            return List.of();
+        int elapsed = clientTicks - appliedAtTick;
+        ArrayList<PendingDeploy> out = new ArrayList<>();
+        for (PendingDeploy deploy : snapshot.pending()) {
+            int left = deploy.ticksLeft() - elapsed;
+            if (left > 0) {
+                out.add(new PendingDeploy(deploy.card(), deploy.side(),
+                        deploy.x(), deploy.z(), left));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Client-side check before sending a deploy: own half, enough elixir.
+     * The server validates again.
+     */
+    public static boolean canDeployAt(int slot, int worldX, int worldZ) {
+        if (!active() || state() != MatchState.BATTLE || slot < 0 ||
+                slot >= hand().size())
+            return false;
+        if (hand().get(slot).cost() * 10 > elixirTenths())
+            return false;
+        return arena().canDeploy(side(), worldX, worldZ);
     }
 
     public static void clearSelection() {

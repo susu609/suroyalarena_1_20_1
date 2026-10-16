@@ -23,6 +23,7 @@ public final class DomainSmokeTest {
         arenaIsEvenAndSymmetric();
         troopsCrossTheRiverOnBridges();
         hudKeepsReferenceProportions();
+        troopSpawnsAfterOneSecondDeployTime();
         cameraMirrorsAroundArena();
         deckCyclesPlayedCard();
         matchLifecycleAndElixirAreDeterministic();
@@ -128,8 +129,57 @@ public final class DomainSmokeTest {
                     "card hit test");
         }
         check(hud.cardSlotAt(5, 5) == -1, "no card outside the hand");
+        var raised = hud.card(2,
+                net.susu609.royalarena.client.hud.HudLayout.SELECT_LIFT);
+        check(raised.y() < hud.card(2).y() && raised.h() == hud.card(2).h(),
+                "selected card rises without changing size");
+        check(hud.cardSlotAt(raised.centerX(), raised.y() + 1) == 2,
+                "raised card is still clickable at its top edge");
         var small = net.susu609.royalarena.client.hud.HudLayout.of(480, 270);
         check(small.card(0).h() == 30, "layout scales with GUI height");
+    }
+
+    private static void troopSpawnsAfterOneSecondDeployTime() {
+        MatchInstance match = MatchInstance.create(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                ArenaLayout.standard(new ArenaPoint(0, 80, 0)));
+        match.startBattle();
+        BattleCard card = match.blue().deck().cardAt(0);
+        int elixir = match.blue().elixirTenths();
+        check(match.tryDeploy(TeamSide.BLUE, 0, -3, 6).accepted(),
+                "deploy accepted");
+        check(match.blue().elixirTenths() == elixir - card.cost() * 10,
+                "elixir is spent on click");
+        check(match.pendingDeploys().size() == 1 &&
+                match.drainReadyDeploys().isEmpty(),
+                "troop waits instead of spawning at once");
+        var snapshot = net.susu609.royalarena.match.MatchSnapshot.from(
+                match, TeamSide.RED);
+        check(snapshot.pending().size() == 1,
+                "both players see the pending deploy");
+        for (int i = 0; i < MatchInstance.DEPLOY_TICKS - 1; i++)
+            match.tick();
+        check(match.drainReadyDeploys().isEmpty() &&
+                match.pendingDeploys().get(0).progress() > 0.9F,
+                "still pending one tick before the deploy time");
+        match.tick();
+        var ready = match.drainReadyDeploys();
+        check(ready.size() == 1 && ready.get(0).card() == card &&
+                ready.get(0).x() == -3 && ready.get(0).z() == 6 &&
+                match.pendingDeploys().isEmpty(),
+                "troop is ready after exactly one second");
+        check(match.drainReadyDeploys().isEmpty(), "ready list drains once");
+        int cheapest = 0;
+        for (int slot = 1; slot < 4; slot++) {
+            if (match.blue().deck().cardAt(slot).cost() <
+                    match.blue().deck().cardAt(cheapest).cost())
+                cheapest = slot;
+        }
+        check(match.tryDeploy(TeamSide.BLUE, cheapest, -3, 6).accepted() &&
+                match.pendingDeploys().size() == 1, "second deploy pending");
+        match.finish(TeamSide.RED);
+        check(match.pendingDeploys().isEmpty(),
+                "finishing the match drops pending deploys");
     }
 
     private static void troopsCrossTheRiverOnBridges() {

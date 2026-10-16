@@ -173,3 +173,15 @@ HUD rebuilt with the original's proportions (`u = height / 356`), camera
 swung 10 degrees per side, and simple health bars for towers and damaged
 troops. See `docs/UI.md`.
 
+## Part 15 — Card hover, deploy preview, 1 s deploy time
+
+- `client/hud/HudLayout.java`, `client/hud/BattleHudOverlay.java`
+- `client/render/DeployPreviewRenderer.java`, `client/ClientForgeEvents.java`
+- `client/state/ClientMatchState.java`
+- `match/PendingDeploy.java`, `match/MatchInstance.java`,
+  `match/MatchSnapshot.java`, `network/s2c/S2CMatchSnapshotPacket.java`
+- `server/match/ServerMatchSession.java`
+
+Hovered/selected cards rise; the cursor tile shows a green ghost or a red
+tint; troops spawn one second after an accepted click. Network protocol 3.
+

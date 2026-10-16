@@ -15,7 +15,7 @@ import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.network.s2c.S2CQueueStatusPacket;
 
 public final class ModNetwork {
-    private static final String PROTOCOL = "2";
+    private static final String PROTOCOL = "3";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
                     new ResourceLocation(RoyalArena.MOD_ID, "main"),

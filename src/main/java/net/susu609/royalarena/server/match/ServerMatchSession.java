@@ -80,14 +80,21 @@ public final class ServerMatchSession {
         DeployResult result = match.tryDeploy(side, slot, x, z);
         if (!result.accepted())
             return;
-        if (!spawnTroop(result.card(), side, x, z)) {
-            RoyalArena.LOGGER.warn(
-                    "Accepted card {} could not create entity {}",
-                    result.card().id(), result.card().entityId());
-        }
         MinecraftServer server = sender.getServer();
         if (server != null)
             sync(server);
+    }
+    /** Spawns troops whose one-second deploy time has run out. */
+    private void spawnReadyDeploys() {
+        for (PendingDeploy deploy : match.drainReadyDeploys()) {
+            if (!spawnTroop(deploy.card(), deploy.side(), deploy.x(),
+                    deploy.z()))
+            {
+                RoyalArena.LOGGER.warn(
+                        "Deployed card {} could not create entity {}",
+                        deploy.card().id(), deploy.card().entityId());
+            }
+        }
     }
     private boolean spawnTroop(BattleCard card, TeamSide side, int x, int z) {
         EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
@@ -211,6 +218,7 @@ public final class ServerMatchSession {
         if (match.state() != MatchState.FINISHED) {
             keepControllerPlayersAnchored(server);
             match.tick();
+            spawnReadyDeploys();
             if (match.state() == MatchState.BATTLE)
                 tickTroops();
             if (tickCounter % 5 == 0 || match.state() == MatchState.FINISHED)

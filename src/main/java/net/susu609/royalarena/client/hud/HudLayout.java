@@ -17,6 +17,9 @@ public final class HudLayout {
     public static final float CARD_TOP = 297.0F;
     public static final float CARD_W = 31.0F;
     public static final float CARD_H = 39.0F;
+    /** How far a card rises when hovered / selected. */
+    public static final float HOVER_LIFT = 3.0F;
+    public static final float SELECT_LIFT = 8.0F;
 
     private final float u;
     private final float originX;
@@ -49,12 +52,22 @@ public final class HudLayout {
         return ref(37.0F, PANEL_TOP, REF_WIDTH - 37.0F, REF_HEIGHT - PANEL_TOP);
     }
     public Rect card(int slot) {
-        return ref(CARD_LEFT + slot * CARD_PITCH, CARD_TOP, CARD_W, CARD_H);
+        return card(slot, 0.0F);
     }
-    /** Cost drop at the bottom centre of a card. */
-    public Rect cardCost(int slot) {
+    /** Card raised by {@code lift} units. */
+    public Rect card(int slot, float lift) {
+        return ref(CARD_LEFT + slot * CARD_PITCH, CARD_TOP - lift, CARD_W,
+                CARD_H);
+    }
+    /** Cost drop at the bottom centre of a card raised by {@code lift}. */
+    public Rect cardCost(int slot, float lift) {
         float x = CARD_LEFT + slot * CARD_PITCH + (CARD_W - 10.0F) / 2.0F;
-        return ref(x, CARD_TOP + CARD_H - 8.0F, 10.0F, 10.0F);
+        return ref(x, CARD_TOP + CARD_H - 8.0F - lift, 10.0F, 10.0F);
+    }
+    /** Clickable area: the card plus the space it rises into. */
+    public Rect cardHitArea(int slot) {
+        return ref(CARD_LEFT + slot * CARD_PITCH, CARD_TOP - SELECT_LIFT,
+                CARD_W, CARD_H + SELECT_LIFT);
     }
     public Rect nextLabel() {
         return ref(6.0F, 314.0F, 28.0F, 8.0F);
@@ -87,7 +100,7 @@ public final class HudLayout {
     /** Hand slot under the cursor, or -1. */
     public int cardSlotAt(double x, double y) {
         for (int slot = 0; slot < 4; slot++) {
-            if (card(slot).contains(x, y))
+            if (cardHitArea(slot).contains(x, y))
                 return slot;
         }
         return -1;
