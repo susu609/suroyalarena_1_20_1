@@ -12,11 +12,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
@@ -29,6 +31,7 @@ import net.susu609.royalarena.combat.ChildSpawn;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.Formation;
+import net.susu609.royalarena.combat.Separation;
 import net.susu609.royalarena.combat.TickResult;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.PendingDeploy;
@@ -36,9 +39,9 @@ import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -176,8 +179,7 @@ public final class BattleField {
         }
 
         TickResult result = engine.tick();
-        Set<UUID> walking = applyMoves(result.moves());
-        stopOthers(walking);
+        moveUnits(result.moves());
         for (TickResult.Attack attack : result.attacks())
             playAttack(attack);
         mirrorHealth();
@@ -185,11 +187,6 @@ public final class BattleField {
             removeDead(death);
         for (TowerId id : result.destroyedTowers())
             onTowerDestroyed.accept(id);
-    }
-
-    /** Zeroes all troop movement, used when the match ends. */
-    public void freeze() {
-        stopOthers(Set.of());
     }
 
     /** Discards every troop mob. */
@@ -202,36 +199,45 @@ public final class BattleField {
         }
     }
 
-    private Set<UUID> applyMoves(List<TickResult.Move> moves) {
-        Set<UUID> walking = new HashSet<>();
+    /**
+     * Moves every troop mob one step. Mobs are NoAI, and a NoAI mob does not
+     * run its travel/physics step at all, so setting a velocity does nothing:
+     * the mob has to be moved with Entity.move, which also does the block
+     * collisions. Gravity is applied here for the same reason.
+     */
+    private void moveUnits(List<TickResult.Move> moves) {
+        Map<UUID, double[]> walk = new HashMap<>();
         for (TickResult.Move move : moves) {
-            Entity entity = level.getEntity(move.unit());
+            CombatUnit unit = engine.unit(move.unit());
+            Entity entity = unit == null ? null : level.getEntity(move.unit());
             if (entity == null)
                 continue;
-            double dx = move.x() - entity.getX();
-            double dz = move.z() - entity.getZ();
+            double dx = move.x() - unit.x();
+            double dz = move.z() - unit.z();
             double distance = Math.hypot(dx, dz);
             if (distance < 1.0E-4D)
                 continue;
             double stride = Math.min(move.speed(), distance);
-            entity.setDeltaMovement(dx / distance * stride,
-                    entity.getDeltaMovement().y, dz / distance * stride);
+            walk.put(unit.id(),
+                    new double[] {dx / distance * stride, dz / distance * stride});
             face(entity, dx, dz);
-            walking.add(move.unit());
         }
-        return walking;
+        List<CombatUnit> units = engine.units();
+        for (CombatUnit unit : units) {
+            Entity entity = level.getEntity(unit.id());
+            if (entity == null)
+                continue;
+            double[] own = walk.getOrDefault(unit.id(), new double[2]);
+            double[] push = Separation.offset(unit, units, arena);
+            step(entity, own[0] + push[0], own[1] + push[1]);
+        }
     }
 
-    private void stopOthers(Set<UUID> walking) {
-        for (CombatUnit unit : engine.units()) {
-            if (walking.contains(unit.id()))
-                continue;
-            Entity entity = level.getEntity(unit.id());
-            if (entity != null) {
-                entity.setDeltaMovement(
-                        0.0D, entity.getDeltaMovement().y, 0.0D);
-            }
-        }
+    private static void step(Entity entity, double dx, double dz) {
+        double fall = entity.onGround() ? -0.1D :
+                Math.max(entity.getDeltaMovement().y - 0.08D, -1.5D);
+        entity.move(MoverType.SELF, new Vec3(dx, fall, dz));
+        entity.setDeltaMovement(0.0D, entity.onGround() ? 0.0D : fall, 0.0D);
     }
 
     private static void face(Entity entity, double dx, double dz) {

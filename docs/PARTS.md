@@ -170,7 +170,7 @@ protocol version is bumped to 2.
 - `tower/TowerKind.java` (max HP per tower kind)
 
 HUD rebuilt with the original's proportions (`u = height / 356`), camera
-swung 10 degrees per side, and simple health bars for towers and damaged
+tilted (see Part 17 for the current angle), and simple health bars for towers and damaged
 troops. See `docs/UI.md`.
 
 ## Part 15 — Card hover, deploy preview, 1 s deploy time
@@ -200,3 +200,14 @@ Troop-vs-troop combat, tower fire with a sleeping King, slime splitting and
 multi-unit cards on the vanilla health scale (towers 110/185 HP). The deck is
 now the five designed troops plus Stray, Vindicator and Iron Golem as fillers.
 
+
+
+## Part 17 — Troops move, camera fix
+
+- `server/battle/BattleField.java` (moves mobs with `Entity.move`),
+  `combat/Separation.java`, `arena/ArenaLayout.java` (bridge routing)
+- `client/camera/ArenaCameraProfile.java`
+
+NoAI troop mobs ignored the velocity they were given and stood still; they are
+now moved explicitly. The camera no longer swings sideways: it looks straight
+down the arena at 50 degrees and the whole arena fits above the HUD panel.

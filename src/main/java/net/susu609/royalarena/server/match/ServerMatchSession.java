@@ -188,10 +188,8 @@ public final class ServerMatchSession {
 
         if (match.state() == MatchState.FINISHED) {
             finishedTicks++;
-            if (finishedTicks == 1) {
-                battle.freeze();
+            if (finishedTicks == 1)
                 sync(server);
-            }
             if (finishedTicks >= FINISH_DISPLAY_TICKS) {
                 endAndRestore(server);
             }

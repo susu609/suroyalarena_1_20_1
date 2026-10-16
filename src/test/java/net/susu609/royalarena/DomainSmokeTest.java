@@ -24,6 +24,7 @@ public final class DomainSmokeTest {
         hudKeepsReferenceProportions();
         troopSpawnsAfterOneSecondDeployTime();
         cameraMirrorsAroundArena();
+        arenaFitsAboveTheHudPanel();
         deckCyclesPlayedCard();
         matchLifecycleAndElixirAreDeterministic();
         deploymentIsServerValidatedAndCyclesDeck();
@@ -187,20 +188,99 @@ public final class DomainSmokeTest {
         ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 100, 0));
         var blue = ArenaCameraProfile.DEFAULT.transform(arena, TeamSide.BLUE);
         var red = ArenaCameraProfile.DEFAULT.transform(arena, TeamSide.RED);
-        check(Math.abs(blue.x() + red.x()) < 0.0001D &&
-                Math.abs(blue.z() + red.z()) < 0.0001D,
+        check(Math.abs(blue.x() + red.x()) < 1.0E-9D &&
+                Math.abs(blue.z() + red.z()) < 1.0E-9D,
                 "RED camera is BLUE's rotated 180 degrees");
-        check(blue.yaw() == 190.0F && red.yaw() == 10.0F,
-                "camera swings 10 degrees for each side");
-        check(blue.x() < 0.0D && blue.z() > 20.0D,
-                "BLUE camera sits behind BLUE, slightly to one side");
-        double yaw = Math.toRadians(blue.yaw());
-        double lookX = -Math.sin(yaw);
-        double lookZ = Math.cos(yaw);
-        double len = Math.hypot(blue.x(), blue.z());
-        check(Math.abs(lookX + blue.x() / len) < 1.0E-6D &&
-                Math.abs(lookZ + blue.z() / len) < 1.0E-6D,
-                "camera yaw points at the arena centre");
+        check(blue.x() == 0.0D && red.x() == 0.0D,
+                "no sideways shift: the view runs along the arena axis");
+        check(blue.yaw() == 180.0F && red.yaw() == 0.0F,
+                "no yaw swing: BLUE looks due north, RED due south");
+        check(blue.pitch() == red.pitch() && blue.pitch() > 45.0F,
+                "both cameras look steeply downward");
+        check(blue.z() > 0.0D && red.z() < 0.0D && blue.y() > 100.0D,
+                "each camera sits behind and above its own half");
+
+        // The line of sight lands on the floor, on the arena axis, a few
+        // blocks toward the local side (the look-ahead point).
+        double[] hit = floorHit(blue, 100.0D);
+        check(Math.abs(hit[0]) < 1.0E-6D, "view hits the floor on the axis");
+        check(hit[1] > 0.0D && hit[1] < 10.0D,
+                "view looks at the local half, slightly past the centre");
+        double[] redHit = floorHit(red, 100.0D);
+        check(Math.abs(redHit[1] + hit[1]) < 1.0E-6D,
+                "RED looks at the mirrored point");
+    }
+
+    /** Where the camera's centre ray meets the floor plane, as (x, z). */
+    private static double[] floorHit(
+            net.susu609.royalarena.client.camera.ArenaCameraTransform c,
+            double floorY)
+    {
+        double yaw = Math.toRadians(c.yaw());
+        double pitch = Math.toRadians(c.pitch());
+        double dx = -Math.sin(yaw) * Math.cos(pitch);
+        double dy = -Math.sin(pitch);
+        double dz = Math.cos(yaw) * Math.cos(pitch);
+        double t = (floorY - c.y()) / dy;
+        return new double[] {c.x() + dx * t, c.z() + dz * t};
+    }
+
+    /**
+     * On a 16:9 window (vertical FOV 70) the whole arena must sit between the
+     * top of the screen and the HUD panel, for both sides, and the arena must
+     * not be clipped on the left or right.
+     */
+    private static void arenaFitsAboveTheHudPanel() {
+        ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 100, 0));
+        double panelTop = net.susu609.royalarena.client.hud.HudLayout.PANEL_TOP /
+                net.susu609.royalarena.client.hud.HudLayout.REF_HEIGHT;
+        for (TeamSide side : TeamSide.values()) {
+            var cam = ArenaCameraProfile.DEFAULT.transform(arena, side);
+            double yaw = Math.toRadians(cam.yaw());
+            double pitch = Math.toRadians(cam.pitch());
+            double[] fwd = {-Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch),
+                    Math.cos(yaw) * Math.cos(pitch)};
+            double[] right = cross(fwd, new double[] {0, 1, 0});
+            normalize(right);
+            double[] up = cross(right, fwd);
+            normalize(up);
+            double tan = Math.tan(Math.toRadians(70.0D) / 2.0D);
+            double minY = 1.0D;
+            double maxY = 0.0D;
+            for (int sx : new int[] {-9, 9}) {
+                for (int sz : new int[] {-16, 16}) {
+                    double[] d = {sx - cam.x(), 100.0D - cam.y(),
+                            sz - cam.z()};
+                    double depth = dot(d, fwd);
+                    check(depth > 0.1D, "arena corner is in front of the camera");
+                    double screenX = dot(d, right) / depth / (tan * 16.0D / 9.0D);
+                    double screenY = dot(d, up) / depth / tan;
+                    check(Math.abs(screenX) < 1.0D,
+                            "arena corner is inside the frame horizontally");
+                    double fromTop = (1.0D - screenY) / 2.0D;
+                    minY = Math.min(minY, fromTop);
+                    maxY = Math.max(maxY, fromTop);
+                }
+            }
+            check(minY > 0.02D, "far arena edge is not cut off at the top: " + minY);
+            check(maxY < panelTop,
+                    "near arena edge stays above the HUD panel: " + maxY);
+        }
+    }
+
+    private static double[] cross(double[] a, double[] b) {
+        return new double[] {a[1] * b[2] - a[2] * b[1],
+                a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
+    }
+
+    private static double dot(double[] a, double[] b) {
+        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    private static void normalize(double[] v) {
+        double length = Math.sqrt(dot(v, v));
+        for (int i = 0; i < 3; i++)
+            v[i] /= length;
     }
 
     private static void deckCyclesPlayedCard() {

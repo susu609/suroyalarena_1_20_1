@@ -5,40 +5,40 @@ import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.match.TeamSide;
 
 /**
- * Strategic camera behind the local side, swung around the arena centre by
- * {@code yawOffset} degrees so the view is slightly diagonal. RED's camera is
- * BLUE's rotated 180 degrees about the centre, so both players get the same
- * view of their own half.
+ * Strategic camera behind the local side, looking down the length of the
+ * arena at a steep downward angle. The view is straight along the arena axis
+ * (no sideways swing); "diagonal" here means the downward tilt only. RED's
+ * camera is BLUE's rotated 180 degrees about the arena centre, so both
+ * players see their own half the same way.
+ *
+ * <p>The camera looks at a point {@code lookAhead} blocks from the arena
+ * centre toward the local side, {@code distance} blocks away along a line
+ * {@code pitch} degrees below the horizontal. Those numbers keep the whole
+ * arena between the top of the screen and the HUD panel on a 16:9 window
+ * (checked by DomainSmokeTest).</p>
  */
 public final class ArenaCameraProfile {
     public static final ArenaCameraProfile DEFAULT =
-            new ArenaCameraProfile(0.5D, 0.5D, 38.0F, 10.0F);
+            new ArenaCameraProfile(50.0F, 28.0D, 5.0D);
 
-    private final double yOffset;
-    private final double distanceOffset;
     private final float pitch;
-    private final float yawOffset;
+    private final double distance;
+    private final double lookAhead;
 
-    public ArenaCameraProfile(double yOffset, double distanceOffset,
-            float pitch, float yawOffset)
-    {
-        this.yOffset = yOffset;
-        this.distanceOffset = distanceOffset;
+    public ArenaCameraProfile(float pitch, double distance, double lookAhead) {
         this.pitch = pitch;
-        this.yawOffset = yawOffset;
+        this.distance = distance;
+        this.lookAhead = lookAhead;
     }
 
     public ArenaCameraTransform transform(ArenaLayout arena, TeamSide side) {
         ArenaPoint center = arena.center();
-        ArenaPoint anchor = arena.cameraAnchor(side);
-        double distance =
-                Math.abs(anchor.z() - center.z()) + distanceOffset;
-        double sign = side == TeamSide.BLUE ? 1.0D : -1.0D;
-        double radians = Math.toRadians(yawOffset);
-        double x = center.x() - sign * distance * Math.sin(radians);
-        double z = center.z() + sign * distance * Math.cos(radians);
-        float baseYaw = side == TeamSide.BLUE ? 180.0F : 0.0F;
+        double sign = ArenaLayout.sideSign(side);
+        double radians = Math.toRadians(pitch);
+        double z = center.z() + sign * (lookAhead + distance * Math.cos(radians));
+        double y = center.y() + distance * Math.sin(radians);
         return new ArenaCameraTransform(
-                x, anchor.y() + yOffset, z, baseYaw + yawOffset, pitch);
+                center.x(), y, z, side == TeamSide.BLUE ? 180.0F : 0.0F,
+                pitch);
     }
 }

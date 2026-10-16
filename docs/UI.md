@@ -27,11 +27,18 @@ The click area includes the space a card rises into.
 
 ## Camera
 
-The strategic camera sits behind the local side and is swung 10 degrees around
-the arena centre (`ArenaCameraProfile`). RED's camera is BLUE's rotated 180
-degrees, so both players see their own half the same way. Cursor projection
-already uses the camera's real view vector, so deployment still lands under
-the cursor.
+The strategic camera sits behind the local side and looks straight down the
+arena axis at a steep downward angle (`ArenaCameraProfile`: pitch 50 degrees,
+28 blocks from a point 5 blocks toward the local side of the centre). There is
+no sideways swing; the "diagonal" view is the downward tilt. RED's camera is
+BLUE's rotated 180 degrees, so both players see their own half the same way.
+
+The numbers are chosen so the whole arena sits between the top of the screen
+and the HUD panel on a 16:9 window (vertical FOV 70); `DomainSmokeTest` checks
+this for both sides. To change the angle edit the three numbers in
+`ArenaCameraProfile.DEFAULT`; the test will tell you if the arena no longer
+fits. Cursor projection uses the camera's real view vector, so deployment
+still lands under the cursor.
 
 ## Health bars
 

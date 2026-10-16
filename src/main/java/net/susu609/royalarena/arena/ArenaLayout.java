@@ -100,9 +100,12 @@ public final class ArenaLayout {
 
     /**
      * Next point for a walker at (fx, fz) heading for (tx, tz): the target
-     * itself, or a bridge waypoint when the river is in the way. The walker
-     * first lines up with the bridge on its own X side at the near end, then
-     * crosses to one block past the far end.
+     * itself, or a bridge waypoint when the river is in the way. A walker
+     * anywhere over the width of the bridge on its own X side crosses it; one
+     * farther out first goes to the near end of the bridge, or, when it is
+     * already at the bank, slides along the bank (never backwards) until it
+     * is over the bridge. The wide tolerance matters: a narrow one makes
+     * crowded units flip between "line up" and "cross" every tick and stall.
      */
     public ArenaWaypoint route(double fx, double fz, double tx, double tz) {
         int from = sideOf(fz);
@@ -110,15 +113,14 @@ public final class ArenaLayout {
         if (from == to || to == 0)
             return new ArenaWaypoint(tx, tz);
         double bridgeX = bridgeFor(fx).x();
-        boolean linedUp = Math.abs(fx - bridgeX) <= 0.6D;
-        if (from == 0) {
-            if (!linedUp)
-                return new ArenaWaypoint(bridgeX, fz);
-            return new ArenaWaypoint(bridgeX, center.z() + to * (RIVER_HALF + 1.0D));
-        }
-        if (!linedUp)
-            return new ArenaWaypoint(bridgeX, center.z() + from * (RIVER_HALF + 0.5D));
-        return new ArenaWaypoint(bridgeX, center.z() + to * (RIVER_HALF + 1.0D));
+        double across = center.z() + to * (RIVER_HALF + 1.0D);
+        if (Math.abs(fx - bridgeX) <= BRIDGE_WIDTH / 2.0D)
+            return new ArenaWaypoint(bridgeX, across);
+        if (from == 0)
+            return new ArenaWaypoint(bridgeX, fz);
+        double nearEnd = center.z() + from * (RIVER_HALF + 0.5D);
+        boolean atTheBank = (fz - nearEnd) * from < 0.0D;
+        return new ArenaWaypoint(bridgeX, atTheBank ? fz : nearEnd);
     }
 
     /**
@@ -145,11 +147,6 @@ public final class ArenaLayout {
     }
     public ArenaBox deployArea(TeamSide side) {
         return side == TeamSide.BLUE ? blueDeploy : redDeploy;
-    }
-
-    public ArenaPoint cameraAnchor(TeamSide side) {
-        int z = side == TeamSide.BLUE ? center.z() + 24 : center.z() - 24;
-        return new ArenaPoint(center.x(), center.y() + 18, z);
     }
 
     public ArenaPoint controllerAnchor(TeamSide side) {

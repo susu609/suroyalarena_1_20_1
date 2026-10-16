@@ -29,6 +29,18 @@ imports) and acted out in the world by `server/battle/BattleField`.
 - **Formations.** The units of a card stand in a row (2), triangle (3) or grid
   around the tapped tile, clamped to the arena.
 
+## Movement
+
+Troop mobs are NoAI mobs, and a NoAI mob never runs its travel/physics step:
+setting a velocity on it does nothing and it stands still (and floats, since
+gravity is part of that step). `BattleField` therefore moves each mob itself
+with `Entity.move` (which also does block collisions) and applies gravity by
+hand. Overlapping units are nudged apart by `combat/Separation`, capped at 60%
+of the unit's walking speed so crowds keep moving; units on a bridge are not
+nudged, so nobody is pushed into the water. A unit anywhere over the width of
+its bridge counts as lined up to cross, and one at the bank slides sideways
+instead of walking back, so crowds at the bridge mouth do not stall.
+
 ## In the world
 
 `BattleField` runs once per tick: copy each mob's position into the engine,

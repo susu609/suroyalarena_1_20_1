@@ -9,6 +9,7 @@ import net.susu609.royalarena.combat.ChildSpawn;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.Formation;
+import net.susu609.royalarena.combat.Separation;
 import net.susu609.royalarena.combat.TickResult;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
@@ -40,7 +41,9 @@ public final class CombatSmokeTest {
         meleeIgnoresEnemiesAcrossTheRiver();
         archersShootAcrossTheRiver();
         unitsPreferEnemyTroopsOverTowers();
+        overlappingUnitsSpreadOut();
         troopsMarchOverTheBridgeToTheirTower();
+        crowdedUnitsStillGetThroughTheBridge();
         towersShootTheNearestEnemyOnTheirInterval();
         kingTowerSleepsUntilHitOrPrincessFalls();
         troopsDestroyTowersAndRetargetKing();
@@ -64,9 +67,13 @@ public final class CombatSmokeTest {
         return engine.add(UUID.randomUUID(), side, card.stats(), x, z);
     }
 
-    /** One combat tick, then every unit walks one step toward its waypoint. */
-    private static TickResult step(CombatEngine engine) {
+    /**
+     * One combat tick, then every unit walks one step toward its waypoint,
+     * nudged apart from its neighbours exactly like BattleField does.
+     */
+    private static TickResult step(CombatEngine engine, ArenaLayout arena) {
         TickResult result = engine.tick();
+        java.util.Map<UUID, double[]> walk = new java.util.HashMap<>();
         for (TickResult.Move move : result.moves()) {
             CombatUnit unit = engine.unit(move.unit());
             if (unit == null)
@@ -77,8 +84,20 @@ public final class CombatSmokeTest {
             if (distance < 1.0E-9D)
                 continue;
             double stride = Math.min(move.speed(), distance);
-            unit.setPosition(unit.x() + dx / distance * stride,
-                    unit.z() + dz / distance * stride);
+            walk.put(unit.id(),
+                    new double[] {dx / distance * stride, dz / distance * stride});
+        }
+        List<CombatUnit> units = engine.units();
+        double[][] motion = new double[units.size()][];
+        for (int i = 0; i < units.size(); i++) {
+            CombatUnit unit = units.get(i);
+            double[] own = walk.getOrDefault(unit.id(), new double[2]);
+            double[] push = Separation.offset(unit, units, arena);
+            motion[i] = new double[] {own[0] + push[0], own[1] + push[1]};
+        }
+        for (int i = 0; i < units.size(); i++) {
+            units.get(i).setPosition(units.get(i).x() + motion[i][0],
+                    units.get(i).z() + motion[i][1]);
         }
         return result;
     }
@@ -192,6 +211,15 @@ public final class CombatSmokeTest {
         ArenaWaypoint backAcross = arena.route(6.0D, -3.0D, 6.0D, 5.0D);
         check(backAcross.z() == 2.0D,
                 "lined up RED crosses to BLUE's bank");
+        ArenaWaypoint overTheBridge = arena.route(-5.2D, 1.2D, -6.0D, -10.0D);
+        check(overTheBridge.x() == -6.0D && overTheBridge.z() == -2.0D,
+                "anywhere over the bridge's width counts as lined up");
+        ArenaWaypoint slide = arena.route(-3.0D, 1.2D, -6.0D, -10.0D);
+        check(slide.x() == -6.0D && slide.z() == 1.2D,
+                "at the bank but off the bridge: slide sideways, never back");
+        ArenaWaypoint redSlide = arena.route(3.0D, -1.2D, 6.0D, 10.0D);
+        check(redSlide.x() == 6.0D && redSlide.z() == -1.2D,
+                "RED slides along its own bank the same way");
         ArenaWaypoint sameBank = arena.route(0.0D, 5.0D, 3.0D, 9.0D);
         check(sameBank.x() == 3.0D && sameBank.z() == 9.0D,
                 "same bank goes straight to the target");
@@ -276,6 +304,74 @@ public final class CombatSmokeTest {
         check(far.target() == null, "nothing in sight means no target");
     }
 
+    private static void crowdedUnitsStillGetThroughTheBridge() {
+        // Tough or numerous enough to survive the walk to the tower.
+        for (BattleCard card : new BattleCard[] {BattleCard.IRON_GOLEM,
+                BattleCard.SPIDER})
+        {
+            MatchInstance match = battle();
+            CombatEngine engine = new CombatEngine(match);
+            // Two cards on the very same tile: everything overlaps at first.
+            for (int copy = 0; copy < 2; copy++) {
+                for (double[] o : Formation.offsets(card.stats().count(), 0.8D))
+                    spawn(engine, card, TeamSide.BLUE, -6.0D + o[0], 3.0D + o[1]);
+            }
+            int total = engine.units().size();
+            boolean hit = false;
+            int across = 0;
+            for (int tick = 0; tick < 4000 && !hit; tick++) {
+                TickResult result = step(engine, match.arena());
+                hit = result.attacks().stream().anyMatch(
+                        a -> TowerId.RED_RIGHT.equals(a.victimTower()));
+            }
+            for (CombatUnit unit : engine.units()) {
+                if (unit.z() < -1.0D)
+                    across++;
+            }
+            check(hit, card.id() + ": crowded units reached the tower (" +
+                    across + "/" + total + " across the river)");
+        }
+    }
+
+    private static void overlappingUnitsSpreadOut() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        ArenaLayout arena = match.arena();
+        CombatUnit a = spawn(engine, BattleCard.ZOMBIE, TeamSide.BLUE, 0.0D, 5.0D);
+        CombatUnit b = spawn(engine, BattleCard.ZOMBIE, TeamSide.BLUE, 0.0D, 5.0D);
+        CombatUnit c = spawn(engine, BattleCard.SPIDER, TeamSide.BLUE, 0.2D, 5.1D);
+        for (int tick = 0; tick < 60; tick++) {
+            for (CombatUnit unit : engine.units()) {
+                double[] push = Separation.offset(unit, engine.units(), arena);
+                check(Math.hypot(push[0], push[1]) <=
+                        unit.stats().speedPerTick() * 0.6D + 1.0E-9D,
+                        "separation push stays below the unit's walking speed");
+                unit.setPosition(unit.x() + push[0], unit.z() + push[1]);
+            }
+        }
+        check(Math.hypot(a.x() - b.x(), a.z() - b.z()) >= 0.6D - 0.05D,
+                "two zombies standing on one spot are pushed apart");
+        check(Math.hypot(a.x() - c.x(), a.z() - c.z()) >=
+                a.radius() + c.radius() - 0.05D,
+                "a zombie and a spider do not overlap");
+
+        CombatUnit onBridge = spawn(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                -6.0D, 0.0D);
+        CombatUnit beside = spawn(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                -6.1D, 0.1D);
+        double[] push = Separation.offset(
+                onBridge, engine.units(), arena);
+        check(push[0] == 0.0D && push[1] == 0.0D,
+                "units on a bridge are not pushed toward the water");
+        CombatUnit alone = spawn(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                8.0D, 12.0D);
+        double[] none = Separation.offset(
+                alone, engine.units(), arena);
+        check(none[0] == 0.0D && none[1] == 0.0D,
+                "a unit with nobody close is not pushed");
+        check(beside.alive(), "second bridge unit exists");
+    }
+
     private static void troopsMarchOverTheBridgeToTheirTower() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
@@ -284,7 +380,7 @@ public final class CombatSmokeTest {
         boolean hitTower = false;
         boolean crossed = false;
         for (int tick = 0; tick < 4000 && !hitTower && golem.alive(); tick++) {
-            TickResult result = step(engine);
+            TickResult result = step(engine, match.arena());
             if (Math.abs(golem.z()) < 1.0D) {
                 crossed = true;
                 check(Math.abs(golem.x() + 6.0D) <= 1.0D,
