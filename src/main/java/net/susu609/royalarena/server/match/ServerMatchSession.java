@@ -1,22 +1,16 @@
 package net.susu609.royalarena.server.match;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaPoint;
-import net.susu609.royalarena.arena.ArenaWaypoint;
-import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.entity.building.TowerHitboxEntity;
 import net.susu609.royalarena.entity.building.TowerVisualType;
@@ -25,7 +19,7 @@ import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.server.arena.ArenaBuilder;
 import net.susu609.royalarena.server.arena.ArenaReservation;
-import net.susu609.royalarena.server.battle.ServerTroop;
+import net.susu609.royalarena.server.battle.BattleField;
 import net.susu609.royalarena.tower.TowerId;
 
 import java.util.*;
@@ -40,7 +34,7 @@ public final class ServerMatchSession {
     private final Map<UUID, PlayerReturnState> returnStates = new HashMap<>();
     private final Map<TowerId, UUID> towerHitboxes =
             new EnumMap<>(TowerId.class);
-    private final List<ServerTroop> troops = new ArrayList<>();
+    private final BattleField battle;
 
     private int tickCounter;
     private int finishedTicks;
@@ -52,6 +46,7 @@ public final class ServerMatchSession {
         this.match = match;
         this.arenaLevel = arenaLevel;
         this.reservation = reservation;
+        this.battle = new BattleField(arenaLevel, match, this::towerDestroyed);
     }
     public void closeNow(MinecraftServer server) {
         if (complete)
@@ -86,42 +81,8 @@ public final class ServerMatchSession {
     }
     /** Spawns troops whose one-second deploy time has run out. */
     private void spawnReadyDeploys() {
-        for (PendingDeploy deploy : match.drainReadyDeploys()) {
-            if (!spawnTroop(deploy.card(), deploy.side(), deploy.x(),
-                    deploy.z()))
-            {
-                RoyalArena.LOGGER.warn(
-                        "Deployed card {} could not create entity {}",
-                        deploy.card().id(), deploy.card().entityId());
-            }
-        }
-    }
-    private boolean spawnTroop(BattleCard card, TeamSide side, int x, int z) {
-        EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                new ResourceLocation(card.entityId()));
-        if (type == null)
-            return false;
-        Entity entity = type.create(arenaLevel);
-        if (entity == null)
-            return false;
-        entity.moveTo(
-                x + 0.5D, match.arena().floorY() + 1.0D, z + 0.5D,
-                side == TeamSide.BLUE ? 180.0F : 0.0F, 0.0F);
-        entity.setCustomName(Component.literal(card.displayName()).withStyle(
-                side == TeamSide.BLUE ? ChatFormatting.BLUE :
-                        ChatFormatting.RED));
-        entity.addTag("royalarena_troop");
-        entity.addTag("royalarena_team_" + side.name().toLowerCase());
-        if (entity instanceof Mob mob) {
-            mob.setNoAi(true);
-            mob.setPersistenceRequired();
-        }
-        if (!arenaLevel.addFreshEntity(entity))
-            return false;
-        troops.add(new ServerTroop(
-                entity.getUUID(), side, card.towerDamage(),
-                card.moveSpeed()));
-        return true;
+        for (PendingDeploy deploy : match.drainReadyDeploys())
+            battle.deploy(deploy);
     }
     public MatchInstance match() {
         return match;
@@ -220,84 +181,31 @@ public final class ServerMatchSession {
             match.tick();
             spawnReadyDeploys();
             if (match.state() == MatchState.BATTLE)
-                tickTroops();
+                battle.tick();
             if (tickCounter % 5 == 0 || match.state() == MatchState.FINISHED)
                 sync(server);
         }
 
         if (match.state() == MatchState.FINISHED) {
             finishedTicks++;
-            if (finishedTicks == 1)
+            if (finishedTicks == 1) {
+                battle.freeze();
                 sync(server);
+            }
             if (finishedTicks >= FINISH_DISPLAY_TICKS) {
                 endAndRestore(server);
             }
         }
     }
-    private void tickTroops() {
-        Iterator<ServerTroop> iterator = troops.iterator();
-        while (iterator.hasNext()) {
-            ServerTroop troop = iterator.next();
-            Entity entity = arenaLevel.getEntity(troop.entityId());
-            if (entity == null || !entity.isAlive()) {
-                iterator.remove();
-                continue;
-            }
-            TowerId targetId = troop.targetTower(match, entity.getX());
-            TowerHitboxEntity targetEntity = towerHitbox(targetId);
-            if (targetEntity == null || targetEntity.isRemoved()) {
-                entity.setDeltaMovement(Vec3.ZERO);
-                continue;
-            }
-            ArenaWaypoint waypoint = match.arena().riverWaypoint(
-                    troop.side(), entity.getX(), entity.getZ());
-            if (waypoint != null) {
-                steer(entity, troop, waypoint.x(), waypoint.z());
-                continue;
-            }
-            double dx = targetEntity.getX() - entity.getX();
-            double dz = targetEntity.getZ() - entity.getZ();
-            double horizontal = Math.sqrt(dx * dx + dz * dz);
-            double attackDistance = targetEntity.getBbWidth() * 0.5D +
-                    entity.getBbWidth() * 0.5D + 0.75D;
-            if (horizontal <= attackDistance) {
-                entity.setDeltaMovement(Vec3.ZERO);
-                if (troop.readyToAttack()) {
-                    boolean wasAlive = !match.tower(targetId).isDestroyed();
-                    match.damageTower(targetId, troop.towerDamage());
-                    troop.resetAttackCooldown();
-                    if (wasAlive && match.tower(targetId).isDestroyed()) {
-                        removeTowerHitbox(targetId);
-                        ArenaBuilder.markTowerDestroyed(
-                                arenaLevel, match.arena().towerPoint(targetId));
-                    }
-                }
-                continue;
-            }
-            steer(entity, troop, targetEntity.getX(), targetEntity.getZ());
-        }
-    }
-    private static void steer(Entity entity, ServerTroop troop, double x,
-            double z)
-    {
-        double dx = x - entity.getX();
-        double dz = z - entity.getZ();
-        double horizontal = Math.sqrt(dx * dx + dz * dz);
-        if (horizontal < 1.0E-4D) {
-            entity.setDeltaMovement(Vec3.ZERO);
-            return;
-        }
-        double speed = troop.moveSpeed();
-        entity.setDeltaMovement(
-                dx / horizontal * speed, entity.getDeltaMovement().y,
-                dz / horizontal * speed);
-    }
-    private TowerHitboxEntity towerHitbox(TowerId id) {
-        UUID uuid = towerHitboxes.get(id);
-        if (uuid == null)
-            return null;
-        Entity entity = arenaLevel.getEntity(uuid);
-        return entity instanceof TowerHitboxEntity hitbox ? hitbox : null;
+    /** A tower fell: remove its model, crack its base and play the blast. */
+    private void towerDestroyed(TowerId id) {
+        removeTowerHitbox(id);
+        ArenaPoint point = match.arena().towerPoint(id);
+        ArenaBuilder.markTowerDestroyed(arenaLevel, point);
+        arenaLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER, point.x(),
+                point.y() + 2.0D, point.z(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        arenaLevel.playSound(null, point.x(), point.y() + 2.0D, point.z(),
+                SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.5F, 0.8F);
     }
     private void removeTowerHitbox(TowerId id) {
         UUID uuid = towerHitboxes.remove(id);
@@ -308,12 +216,7 @@ public final class ServerMatchSession {
             entity.discard();
     }
     private void endAndRestore(MinecraftServer server) {
-        for (ServerTroop troop : troops) {
-            Entity entity = arenaLevel.getEntity(troop.entityId());
-            if (entity != null)
-                entity.discard();
-        }
-        troops.clear();
+        battle.clear();
         for (UUID uuid : towerHitboxes.values()) {
             Entity entity = arenaLevel.getEntity(uuid);
             if (entity != null)

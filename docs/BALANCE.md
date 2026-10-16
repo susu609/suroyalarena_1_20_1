@@ -74,7 +74,9 @@ All spells deal 30% damage to towers (`spell_tower_damage_multiplier`).
 | King | 185 | 4 | 1.0 s (20 ticks) | 7.0 |
 
 The King tower is asleep until it is damaged or one of its Princess towers is
-destroyed.
+destroyed. Tower range is measured from the tower's edge (its 4x4 footprint) to
+the target's edge, like unit ranges, so a Princess tower (7.5) always outranges
+an archer (6).
 
 ## Elixir and match time
 

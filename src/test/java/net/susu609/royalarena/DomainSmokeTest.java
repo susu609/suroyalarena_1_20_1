@@ -21,7 +21,6 @@ public final class DomainSmokeTest {
         teamMirrorsCorrectly();
         arenaDeployZonesStayOnOwnHalf();
         arenaIsEvenAndSymmetric();
-        troopsCrossTheRiverOnBridges();
         hudKeepsReferenceProportions();
         troopSpawnsAfterOneSecondDeployTime();
         cameraMirrorsAroundArena();
@@ -29,9 +28,9 @@ public final class DomainSmokeTest {
         matchLifecycleAndElixirAreDeterministic();
         deploymentIsServerValidatedAndCyclesDeck();
         towerTargetingMirrorsForBothSides();
-        troopKeepsTargetUntilTowerIsDestroyed();
         towerVisualTypesMatchUploadedModels();
         kingTowerEndsMatch();
+        CombatSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 
@@ -182,20 +181,6 @@ public final class DomainSmokeTest {
                 "finishing the match drops pending deploys");
     }
 
-    private static void troopsCrossTheRiverOnBridges() {
-        ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 80, 0));
-        var first = arena.riverWaypoint(TeamSide.BLUE, -2.0D, 10.0D);
-        check(first != null && first.x() == -6.0D && first.z() == 1.5D,
-                "unaligned BLUE troop walks to the near bridge end");
-        var second = arena.riverWaypoint(TeamSide.BLUE, -6.0D, 1.5D);
-        check(second != null && second.x() == -6.0D && second.z() == -2.0D,
-                "aligned BLUE troop walks over the bridge");
-        check(arena.riverWaypoint(TeamSide.BLUE, -6.0D, -2.0D) == null,
-                "BLUE troop past the river heads for its tower");
-        var red = arena.riverWaypoint(TeamSide.RED, 4.0D, -10.0D);
-        check(red != null && red.x() == 6.0D && red.z() == -1.5D,
-                "RED troop mirrors the BLUE route");
-    }
 
     private static void cameraMirrorsAroundArena() {
         ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 100, 0));
@@ -218,10 +203,7 @@ public final class DomainSmokeTest {
     }
 
     private static void deckCyclesPlayedCard() {
-        BattleDeck deck = new BattleDeck(List.of(
-                BattleCard.ZOMBIE, BattleCard.SKELETON, BattleCard.SPIDER,
-                BattleCard.SLIME, BattleCard.WOLF, BattleCard.BLAZE,
-                BattleCard.VINDICATOR, BattleCard.IRON_GOLEM));
+        BattleDeck deck = new BattleDeck(List.of(BattleCard.values()));
         BattleCard first = deck.hand().get(0);
         BattleCard next = deck.nextCard();
         deck.play(0);
@@ -293,26 +275,6 @@ public final class DomainSmokeTest {
     private static void check(boolean condition, String name) {
         if (!condition)
             throw new AssertionError(name);
-    }
-    private static void troopKeepsTargetUntilTowerIsDestroyed() {
-        MatchInstance match = MatchInstance.create(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                ArenaLayout.standard(new ArenaPoint(0, 80, 0)));
-        match.startBattle();
-        var troop = new net.susu609.royalarena.server.battle.ServerTroop(
-                UUID.randomUUID(), TeamSide.BLUE, 100, 0.1D);
-        var first = troop.targetTower(match, -5.0D);
-        check(
-                first == net.susu609.royalarena.tower.TowerId.RED_RIGHT,
-                "troop acquires initial lane tower");
-        check(
-                troop.targetTower(match, 5.0D) == first,
-                "troop keeps target after crossing lane");
-        match.damageTower(first, 10_000);
-        check(
-                troop.targetTower(match, 5.0D) ==
-                        net.susu609.royalarena.tower.TowerId.RED_KING,
-                "troop retargets king after lane tower destruction");
     }
 
     private static void kingTowerEndsMatch() {

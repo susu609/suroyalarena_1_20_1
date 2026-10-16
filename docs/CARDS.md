@@ -5,8 +5,9 @@ Starter card set on the vanilla health scale: **1 mod HP = 1 vanilla HP**
 circular area effects. Costs come from the formula in `docs/BALANCE.md`.
 
 Machine-readable definitions live in
-`src/main/resources/data/royalarena/cards/`. Nothing loads them yet; the
-current `BattleCard` enum still drives the game (see "Current code gap").
+`src/main/resources/data/royalarena/cards/`. The game reads the same numbers
+from the `BattleCard` enum; `CombatSmokeTest` fails if a JSON file and the
+enum disagree, and if a card's cost differs from `CostFormula`.
 
 ## Troops
 
@@ -69,18 +70,22 @@ Fireball kills a big slime in one hit, but the children it splits into spawn
 after the explosion and are not hit. Arrow Storm lasts 4 s, so it also clears
 children that split inside the circle.
 
-## Current code gap
+## Fillers until spells exist
 
-These values are the target design. The code still uses the Part 7
-placeholders, to be replaced in a later part:
+The deck needs 8 cards and the two spells are not built yet, so three more
+troops fill the deck. Costs come from the same formula:
+
+| Card | Mob | Count | HP | Damage | Interval | Range | Speed | Elixir |
+|---|---|---|---|---|---|---|---|---|
+| Stray | `minecraft:stray` (bow) | 1 | 20 | 3 | 1.2 | 6.0 | 1.0 | **2** |
+| Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 7 | 1.4 | 1.2 | 1.1 | **2** |
+| Iron Golem | `minecraft:iron_golem` | 1 | 100 | 8 | 1.6 | 1.5 | 0.67 | **4** |
+
+## Current code gap
 
 | Item | Code today | Target |
 |---|---|---|
-| Cards | `BattleCard` enum: Zombie, Skeleton, Spider, Slime, Wolf, Blaze, Vindicator, Iron Golem (single unit, `towerDamage` only) | Definitions above |
-| Princess / King tower HP | 1400 / 2400 (`MatchInstance`) | 110 / 185 |
+| Spells (Arrow Storm, Fireball) | not built | Definitions above |
 | Starting elixir | 5 (`ElixirMeter.START_TENTHS`) | 6 |
 | Elixir regeneration | 3.0 s per elixir (6 ticks per tenth) | 2.8 s, then 1.4 s, then ~0.95 s |
-| Match length | 180 s, no overtime | 180 s + 120 s overtime |
-
-The starter deck needs 8 cards; this set has 7. The 8th card is not chosen
-yet.
+| Match length | 180 s, no overtime or tower-count win | 180 s + 120 s overtime |

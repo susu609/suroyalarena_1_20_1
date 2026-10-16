@@ -91,7 +91,7 @@ public final class MatchInstance {
     public void damageKingTower(TeamSide towerSide, int damage) {
         damageTower(TowerId.king(towerSide), damage);
     }
-    public void damageTower(TowerId id, int damage) {
+    public void damageTower(TowerId id, double damage) {
         if (state != MatchState.BATTLE || damage <= 0)
             return;
         TowerState target = tower(id);

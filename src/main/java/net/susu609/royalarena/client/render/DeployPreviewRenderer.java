@@ -14,6 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -169,6 +170,8 @@ public final class DeployPreviewRenderer {
         Entity entity = type == null ? null : type.create(level);
         if (entity == null)
             return null;
+        if (entity instanceof Slime slime && card.mobSize() > 0)
+            slime.setSize(card.mobSize(), false);
         entity.setInvisible(true);
         entity.setSilent(true);
         if (entity instanceof Mob mob)

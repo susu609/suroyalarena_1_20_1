@@ -2,6 +2,7 @@ package net.susu609.royalarena.arena;
 
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
+import net.susu609.royalarena.tower.TowerKind;
 
 /**
  * Even 18x32 arena. Every size is even, so both mirror axes lie on block
@@ -79,21 +80,64 @@ public final class ArenaLayout {
         return worldX < center.x() ? bridgeLeft() : bridgeRight();
     }
 
+    /** +1 for BLUE (owns +Z), -1 for RED. */
+    public static int sideSign(TeamSide side) {
+        return side == TeamSide.BLUE ? 1 : -1;
+    }
+
     /**
-     * Where a troop of {@code side} should walk before heading for its tower:
-     * the near end of the bridge on its own side of the arena until it is
-     * lined up with it, then one block past the far end. Returns null once
-     * the troop has crossed the river.
+     * Which bank a world Z is on: +1 BLUE's, -1 RED's, 0 inside the river
+     * band (the river rows and the bridges across them).
      */
-    public ArenaWaypoint riverWaypoint(TeamSide side, double x, double z) {
-        double dir = side == TeamSide.BLUE ? -1.0D : 1.0D;
-        double forward = (z - center.z()) * dir;
-        if (forward >= RIVER_HALF + 0.9D)
-            return null;
-        double bridgeX = bridgeFor(x).x();
-        boolean linedUp = Math.abs(x - bridgeX) <= 0.6D;
-        double targetForward = linedUp ? RIVER_HALF + 1.0D : -RIVER_HALF - 0.5D;
-        return new ArenaWaypoint(bridgeX, center.z() + targetForward * dir);
+    public int sideOf(double worldZ) {
+        double rel = worldZ - center.z();
+        if (rel > RIVER_HALF)
+            return 1;
+        if (rel < -RIVER_HALF)
+            return -1;
+        return 0;
+    }
+
+    /**
+     * Next point for a walker at (fx, fz) heading for (tx, tz): the target
+     * itself, or a bridge waypoint when the river is in the way. The walker
+     * first lines up with the bridge on its own X side at the near end, then
+     * crosses to one block past the far end.
+     */
+    public ArenaWaypoint route(double fx, double fz, double tx, double tz) {
+        int from = sideOf(fz);
+        int to = sideOf(tz);
+        if (from == to || to == 0)
+            return new ArenaWaypoint(tx, tz);
+        double bridgeX = bridgeFor(fx).x();
+        boolean linedUp = Math.abs(fx - bridgeX) <= 0.6D;
+        if (from == 0) {
+            if (!linedUp)
+                return new ArenaWaypoint(bridgeX, fz);
+            return new ArenaWaypoint(bridgeX, center.z() + to * (RIVER_HALF + 1.0D));
+        }
+        if (!linedUp)
+            return new ArenaWaypoint(bridgeX, center.z() + from * (RIVER_HALF + 0.5D));
+        return new ArenaWaypoint(bridgeX, center.z() + to * (RIVER_HALF + 1.0D));
+    }
+
+    /**
+     * Keeps a spawn point on the floor and out of the water: clamps X/Z to
+     * the arena, and moves points inside the river band that are not on a
+     * bridge back to the bank of {@code preferredSide}.
+     */
+    public ArenaWaypoint clampSpawn(double x, double z, int preferredSide) {
+        double cx = Math.max(minX() + 0.5D, Math.min(maxX() + 0.5D, x));
+        double cz = Math.max(minZ() + 0.5D, Math.min(maxZ() + 0.5D, z));
+        if (sideOf(cz) == 0 && !isBridge((int) Math.floor(cx))) {
+            cz = center.z() + preferredSide * (RIVER_HALF + 0.5D);
+        }
+        return new ArenaWaypoint(cx, cz);
+    }
+
+    /** Half the footprint of a tower of this kind, in blocks. */
+    public static double towerHalfSize(TowerKind kind) {
+        return (kind == TowerKind.KING ? KING_SIZE : PRINCESS_SIZE) / 2.0D;
     }
 
     public boolean canDeploy(TeamSide side, int worldX, int worldZ) {

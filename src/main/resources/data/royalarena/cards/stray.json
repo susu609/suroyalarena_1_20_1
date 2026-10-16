@@ -1,0 +1,18 @@
+{
+  "id": "stray",
+  "type": "troop",
+  "display_name": "Stray",
+  "elixir": 2,
+  "entity": "minecraft:stray",
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 3,
+    "attack_interval_ticks": 24,
+    "range": 6.0,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground"
+  },
+  "held_item": "minecraft:bow"
+}

@@ -185,3 +185,18 @@ troops. See `docs/UI.md`.
 Hovered/selected cards rise; the cursor tile shows a green ghost or a red
 tint; troops spawn one second after an accepted click. Network protocol 3.
 
+## Part 16 — Troops fight, towers shoot
+
+- `combat/CombatEngine.java`, `CombatUnit.java`, `TickResult.java`,
+  `ChildSpawn.java`, `Formation.java`
+- `card/TroopStats.java`, `SplitRule.java`, `CostFormula.java`,
+  `BattleCard.java`, `BattleDeck.java`
+- `tower/TowerKind.java`, `TowerState.java`, `arena/ArenaLayout.java`
+- `server/battle/BattleField.java` (replaces `ServerTroop`),
+  `server/match/ServerMatchSession.java`
+- `docs/COMBAT.md`
+
+Troop-vs-troop combat, tower fire with a sleeping King, slime splitting and
+multi-unit cards on the vanilla health scale (towers 110/185 HP). The deck is
+now the five designed troops plus Stray, Vindicator and Iron Golem as fillers.
+

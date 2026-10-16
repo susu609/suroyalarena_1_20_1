@@ -20,8 +20,9 @@ public final class BattleDeck {
 
     public static BattleDeck starter() {
         return new BattleDeck(List.of(
-                BattleCard.ZOMBIE, BattleCard.SKELETON, BattleCard.SPIDER,
-                BattleCard.SLIME, BattleCard.WOLF, BattleCard.BLAZE,
+                BattleCard.ZOMBIE, BattleCard.SKELETON_ARCHER,
+                BattleCard.SPIDER, BattleCard.SKELETONS,
+                BattleCard.BIG_SLIME, BattleCard.STRAY,
                 BattleCard.VINDICATOR, BattleCard.IRON_GOLEM));
     }
 

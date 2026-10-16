@@ -1,0 +1,18 @@
+{
+  "id": "vindicator",
+  "type": "troop",
+  "display_name": "Vindicator",
+  "elixir": 2,
+  "entity": "minecraft:vindicator",
+  "count": 1,
+  "unit": {
+    "health": 24,
+    "damage": 7,
+    "attack_interval_ticks": 28,
+    "range": 1.2,
+    "move_speed": 1.1,
+    "flying": false,
+    "targets": "ground"
+  },
+  "held_item": "minecraft:iron_axe"
+}

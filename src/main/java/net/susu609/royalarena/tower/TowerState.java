@@ -3,7 +3,7 @@ package net.susu609.royalarena.tower;
 public final class TowerState {
     private final TowerId id;
     private final int maxHealth;
-    private int health;
+    private double health;
 
     public TowerState(TowerId id, int maxHealth) {
         if (maxHealth <= 0)
@@ -13,8 +13,9 @@ public final class TowerState {
         this.health = maxHealth;
     }
 
+    /** Remaining health, rounded up so a living tower never shows 0. */
     public int health() {
-        return health;
+        return (int) Math.ceil(health);
     }
     public TowerId id() {
         return id;
@@ -26,10 +27,10 @@ public final class TowerState {
         return maxHealth;
     }
 
-    public int damage(int amount) {
+    public int damage(double amount) {
         if (amount <= 0 || isDestroyed())
-            return health;
-        health = Math.max(0, health - amount);
-        return health;
+            return health();
+        health = Math.max(0.0D, health - amount);
+        return health();
     }
 }
