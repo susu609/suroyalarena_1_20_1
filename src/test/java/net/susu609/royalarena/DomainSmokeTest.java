@@ -20,6 +20,7 @@ public final class DomainSmokeTest {
         teamMirrorsCorrectly();
         arenaDeployZonesStayOnOwnHalf();
         arenaIsEvenAndSymmetric();
+        roadsJoinBridgesAndTowers();
         hudKeepsReferenceProportions();
         troopSpawnsAfterOneSecondDeployTime();
         cameraMirrorsAroundArena();
@@ -105,6 +106,47 @@ public final class DomainSmokeTest {
         ArenaPoint blueKing = arena.towerPoint(TowerId.BLUE_KING);
         check(arena.maxZ() - (blueKing.z() + ArenaLayout.KING_SIZE / 2 - 1)
                 == 1, "one free row behind the king tower");
+    }
+
+    private static void roadsJoinBridgesAndTowers() {
+        ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 80, 0));
+        int count = 0;
+        for (int x = arena.minX(); x <= arena.maxX(); x++) {
+            for (int z = arena.minZ(); z <= arena.maxZ(); z++) {
+                if (!arena.isPath(x, z))
+                    continue;
+                count++;
+                check(arena.isPath(-1 - x, z) && arena.isPath(x, -1 - z),
+                        "roads mirror on both axes");
+                check(!arena.isRiver(z), "no road in the river");
+                for (TowerId id : TowerId.values()) {
+                    ArenaPoint p = arena.towerPoint(id);
+                    int half = (int) ArenaLayout.towerHalfSize(id.kind());
+                    boolean under = x >= p.x() - half && x < p.x() + half &&
+                            z >= p.z() - half && z < p.z() + half;
+                    check(!under, "no road under " + id);
+                }
+            }
+        }
+        check(count > 40, "there is a road: " + count + " blocks");
+        for (int x = arena.minX(); x <= arena.maxX(); x++) {
+            if (!arena.isBridge(x))
+                continue;
+            check(arena.isPath(x, 1) && arena.isPath(x, -2),
+                    "a lane starts at both ends of each bridge");
+            for (int z = 1; z <= 8; z++)
+                check(arena.isPath(x, z), "the lane runs up to the road");
+        }
+        for (TowerId id : TowerId.values()) {
+            ArenaPoint p = arena.towerPoint(id);
+            int half = (int) ArenaLayout.towerHalfSize(id.kind());
+            int front = id.side() == TeamSide.BLUE ? p.z() - half - 1 :
+                    p.z() + half;
+            boolean reached = false;
+            for (int x = p.x() - half; x < p.x() + half; x++)
+                reached |= arena.isPath(x, front);
+            check(reached, "a road reaches the front of " + id);
+        }
     }
 
     private static void hudKeepsReferenceProportions() {

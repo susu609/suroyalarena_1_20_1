@@ -68,6 +68,31 @@ public final class ArenaLayout {
         return mirrored >= LANE_OFFSET - half && mirrored < LANE_OFFSET + half;
     }
 
+    /**
+     * Whether a floor block is part of the dirt road, as in Clash Royale: on
+     * each half a 2-wide lane from each bridge up to the Princess towers, a
+     * 2-row road across the front of the towers joining the two lanes, and a
+     * 2-wide approach from that road to the King tower. Mirrored on both
+     * axes; never in the river or under a tower.
+     */
+    public boolean isPath(int worldX, int worldZ) {
+        if (isRiver(worldZ))
+            return false;
+        int rx = worldX - center.x();
+        int rz = worldZ - center.z();
+        int depth = rz >= 0 ? rz : -1 - rz;
+        int roadFront = RIVER_HALF + RIVER_TO_PRINCESS - 2;
+        int roadBack = roadFront + 1;
+        boolean lane = isBridge(worldX) && depth >= RIVER_HALF &&
+                depth <= roadBack;
+        boolean road = depth >= roadFront && depth <= roadBack &&
+                rx >= -LANE_OFFSET - 1 && rx <= LANE_OFFSET;
+        int kingFront = KING_CENTER_Z - KING_SIZE / 2;
+        boolean approach = (rx == -1 || rx == 0) && depth >= roadFront &&
+                depth < kingFront;
+        return lane || road || approach;
+    }
+
     /** Centre of the left bridge (world -X), on the river axis. */
     public ArenaPoint bridgeLeft() {
         return center.offset(-LANE_OFFSET, 1, 0);

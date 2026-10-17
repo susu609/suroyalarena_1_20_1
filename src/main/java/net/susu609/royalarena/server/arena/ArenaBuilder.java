@@ -38,6 +38,8 @@ public final class ArenaBuilder {
             return arena.isBridge(x) ? Blocks.SPRUCE_PLANKS.defaultBlockState()
                     : Blocks.WATER.defaultBlockState();
         }
+        if (arena.isPath(x, z))
+            return Blocks.DIRT_PATH.defaultBlockState();
         boolean dark = ((x - arena.minX()) + (z - arena.minZ())) % 2 == 0;
         return dark ? Blocks.MOSS_BLOCK.defaultBlockState() :
                 Blocks.GRASS_BLOCK.defaultBlockState();

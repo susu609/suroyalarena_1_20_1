@@ -79,3 +79,17 @@ past the river; after that it walks straight at its tower.
 `Practice Match` on the Matching screen (`M`) or `/royalarena practice` starts
 a match with the player as BLUE and an empty RED side, to try cards and the
 map alone.
+
+## Roads
+
+The floor carries a dirt road (`minecraft:dirt_path`, `ArenaLayout.isPath`),
+as in Clash Royale. On each half:
+
+- a 2-wide lane from each bridge up to the row in front of the Princess
+  towers (it continues the bridge columns);
+- a 2-row road across the front of the towers, joining the two lanes;
+- a 2-wide approach from that road to the front of the King tower.
+
+The road is mirrored on both axes and never lies in the river or under a
+tower (`DomainSmokeTest`). It is decoration: troops walk the same routes on
+grass and road.
