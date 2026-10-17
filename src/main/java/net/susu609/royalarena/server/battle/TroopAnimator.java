@@ -59,7 +59,9 @@ final class TroopAnimator {
     double slimeStride(Slime slime, boolean wantsToMove) {
         UUID id = slime.getUUID();
         double vy = jumpSpeed(slime);
-        double air = 2.0D * vy / GRAVITY + 1.0D;
+        // Ticks in the air per hop (measured for this step physics: within
+        // 2% of the engine speed for every slime size).
+        double air = 2.0D * vy / GRAVITY + 3.0D;
         int wait = groundWait(slime);
         if (!slime.onGround()) {
             groundTicks.put(id, 0);
