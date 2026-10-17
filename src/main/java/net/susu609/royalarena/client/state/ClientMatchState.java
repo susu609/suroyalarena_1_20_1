@@ -17,11 +17,27 @@ public final class ClientMatchState {
     private static int selectedSlot = -1;
     private static int clientTicks;
     private static int appliedAtTick;
+    /** Client tick each tower last lost health, for its red flash. */
+    private static final int[] TOWER_HURT_AT = new int[TowerId.values().length];
+
+    static {
+        java.util.Arrays.fill(TOWER_HURT_AT, Integer.MIN_VALUE / 2);
+    }
 
     private ClientMatchState() {
     }
 
     public static void apply(MatchSnapshot next) {
+        if (next.active() && snapshot.active() &&
+                next.matchId().equals(snapshot.matchId())) {
+            for (TowerId id : TowerId.values()) {
+                if (next.towerHealth()[id.ordinal()] <
+                        snapshot.towerHealth()[id.ordinal()])
+                    TOWER_HURT_AT[id.ordinal()] = clientTicks;
+            }
+        } else {
+            java.util.Arrays.fill(TOWER_HURT_AT, Integer.MIN_VALUE / 2);
+        }
         snapshot = next;
         appliedAtTick = clientTicks;
         if (!next.active())
@@ -78,6 +94,22 @@ public final class ClientMatchState {
     public static int towerHealth(TowerId id) {
         int[] hp = snapshot.towerHealth();
         return id.ordinal() < hp.length ? hp[id.ordinal()] : 0;
+    }
+
+    /** Client ticks since the tower last lost health (huge if never). */
+    public static int ticksSinceTowerHurt(TowerId id) {
+        return clientTicks - TOWER_HURT_AT[id.ordinal()];
+    }
+
+    /**
+     * Whether a King tower shoots, as the engine decides it: it has been
+     * hit, or one of its Princess towers has fallen.
+     */
+    public static boolean kingAwake(TeamSide side) {
+        TowerId king = TowerId.king(side);
+        return towerHealth(king) < king.kind().maxHealth() ||
+                towerHealth(TowerId.left(side)) <= 0 ||
+                towerHealth(TowerId.right(side)) <= 0;
     }
 
     public static int selectedSlot() {

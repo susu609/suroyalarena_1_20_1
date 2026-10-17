@@ -348,3 +348,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `AoeFlashRenderer.java`, `SpellTargetHighlighter.java`,
   `network/s2c/S2CAoeFlashPacket.java` (colour), `S2CProjectilePacket.java`
 - `SpellSmokeTest` (Lightning, healing, Freeze, TNT)
+
+## Part 30 — Hurt flashes, the King wakes up
+
+- `server/battle/BattleField.java` (`flashIfHurt`; the old entity event 2
+  did nothing in 1.20.1)
+- `client/state/ClientMatchState.java` (`ticksSinceTowerHurt`, `kingAwake`),
+  `client/render/WorldHealthBar.java` (`towerOverlay`),
+  `client/render/entity/KingFigure.java`, `CrownTowerRenderer.java`,
+  `KingTowerRenderer.java`

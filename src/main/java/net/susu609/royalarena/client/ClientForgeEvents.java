@@ -20,6 +20,7 @@ import net.susu609.royalarena.client.render.AoeFlashRenderer;
 import net.susu609.royalarena.client.render.BotDragRenderer;
 import net.susu609.royalarena.client.render.BurnEffects;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
+import net.susu609.royalarena.client.render.entity.KingFigure;
 import net.susu609.royalarena.client.render.SpellTargetHighlighter;
 import net.susu609.royalarena.client.render.TroopVisuals;
 import net.susu609.royalarena.client.render.WorldHealthBar;
@@ -73,6 +74,7 @@ public final class ClientForgeEvents {
     public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         ArenaCameraController.release();
         ProjectileRenderer.clear();
+        KingFigure.clear();
         SpellTargetHighlighter.clear();
         AoeFlashRenderer.clear();
         BurnEffects.clear();

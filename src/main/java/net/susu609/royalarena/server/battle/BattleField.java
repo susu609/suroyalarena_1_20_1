@@ -68,6 +68,8 @@ public final class BattleField {
     private static final double PROJECTILE_VIEW_RANGE = 96.0D;
     /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
     private static final int VOLLEY_ARROWS = 5;
+    /** Fewest ticks between two red hurt flashes of one troop. */
+    private static final int FLASH_GAP = 6;
 
     private final ServerLevel level;
     private final MatchInstance match;
@@ -77,6 +79,10 @@ public final class BattleField {
     /** Ticks each troop has wanted to walk without moving (debug log). */
     private final Map<UUID, Integer> stuckTicks = new HashMap<>();
     private final TroopAnimator animator = new TroopAnimator();
+    /** Engine health each unit had when it last flashed red. */
+    private final Map<UUID, Double> flashedHealth = new HashMap<>();
+    /** Game tick each unit last flashed red. */
+    private final Map<UUID, Long> flashedAt = new HashMap<>();
     /** Burn ticks last sent to the clients, per unit. */
     private final Map<UUID, Integer> burnShown = new HashMap<>();
     /** Pending spells whose flight has already been shown. */
@@ -204,7 +210,9 @@ public final class BattleField {
             if (entity == null || !entity.isAlive()) {
                 engine.remove(unit.id());
                 animator.forget(unit.id());
-            burnShown.remove(unit.id());
+                burnShown.remove(unit.id());
+                flashedHealth.remove(unit.id());
+                flashedAt.remove(unit.id());
                 continue;
             }
             unit.setPosition(entity.getX(), entity.getZ());
@@ -238,6 +246,8 @@ public final class BattleField {
             stuckTicks.remove(unit.id());
             animator.forget(unit.id());
             burnShown.remove(unit.id());
+            flashedHealth.remove(unit.id());
+            flashedAt.remove(unit.id());
         }
     }
 
@@ -649,8 +659,6 @@ public final class BattleField {
             return;
         if (attack.victimUnit() != null) {
             Entity victim = level.getEntity(attack.victimUnit());
-            if (victim != null)
-                level.broadcastEntityEvent(victim, (byte) 2);
             if (attack.attackerUnit() != null && !attack.ranged())
                 animator.onHit(level.getEntity(attack.attackerUnit()),
                         victim);
@@ -715,6 +723,8 @@ public final class BattleField {
             if (entity instanceof LivingEntity living &&
                     living.getHealth() != (float) unit.health())
                 living.setHealth((float) unit.health());
+            if (entity != null)
+                flashIfHurt(unit, entity);
             // Frozen or stunned: vanilla's frozen look, the mob shakes.
             if (entity != null && unit.frozen())
                 entity.setTicksFrozen(entity.getTicksRequiredToFreeze());
@@ -731,6 +741,28 @@ public final class BattleField {
             else
                 burnShown.remove(unit.id());
         }
+    }
+
+    /**
+     * The vanilla hurt look (red tint, flinch, hurt sound) whenever a unit
+     * has lost health, whatever hit it: blows, arrows, splash, spells and
+     * burning. At most every {@link #FLASH_GAP} ticks, and a burn has to add
+     * up to half a heart, so a burning troop flickers instead of glowing.
+     */
+    private void flashIfHurt(CombatUnit unit, Entity entity) {
+        double before = flashedHealth.getOrDefault(unit.id(), unit.maxHealth());
+        if (unit.health() > before) {
+            // Healed: flash from the new level on.
+            flashedHealth.put(unit.id(), unit.health());
+            return;
+        }
+        long now = level.getGameTime();
+        if (before - unit.health() < 0.5D ||
+                now - flashedAt.getOrDefault(unit.id(), -100L) < FLASH_GAP)
+            return;
+        flashedHealth.put(unit.id(), unit.health());
+        flashedAt.put(unit.id(), now);
+        level.broadcastDamageEvent(entity, level.damageSources().generic());
     }
 
     /** Snowflakes drifting around a frozen tower. */
@@ -754,6 +786,8 @@ public final class BattleField {
     private void removeDead(TickResult.Death death) {
         animator.forget(death.unit());
         burnShown.remove(death.unit());
+        flashedHealth.remove(death.unit());
+        flashedAt.remove(death.unit());
         Entity entity = level.getEntity(death.unit());
         if (entity != null) {
             level.sendParticles(ParticleTypes.POOF, entity.getX(),

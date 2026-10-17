@@ -73,8 +73,14 @@ filled and empty segments side by side so they never overlap.
 
 A player model stands on top of each King tower (`KingFigure`, drawn by
 `KingTowerRenderer`): it wears the skin of that side's player (the bot is
-Steve or Alex), breathes, looks around, and throws its arm forward every time
-its tower shoots; the King's arrows leave from its hand. The snapshot packet
+Steve or Alex). While the King tower sleeps it dozes, head down, with a
+snore bubble every 1.5 s. When the tower wakes (it is hit, or one of its
+Princess towers falls) the King jumps with both arms up, with a level-up
+chime; then it breathes, looks around, and throws its arm forward every time
+its tower shoots; the King's arrows leave from its hand.
+
+Towers and their King flash with vanilla's red hurt tint for 8 ticks
+whenever the tower loses health (`WorldHealthBar.towerOverlay`). The snapshot packet
 carries both players' ids for this.
 
 ## Deploy preview and delay

@@ -6,7 +6,6 @@ import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
@@ -41,8 +40,8 @@ public final class KingTowerRenderer extends EntityRenderer<KingTowerEntity> {
         model.setupAnim(
                 entity, 0.0F, 0.0F, entity.tickCount + partialTick, 0.0F, 0.0F);
         model.renderToBuffer(
-                poseStack, consumer, packedLight, OverlayTexture.NO_OVERLAY,
-                1.0F, 1.0F, 1.0F, 1.0F);
+                poseStack, consumer, packedLight,
+                WorldHealthBar.towerOverlay(entity), 1.0F, 1.0F, 1.0F, 1.0F);
         poseStack.popPose();
         king.render(entity, entityYaw, partialTick, poseStack, buffer,
                 packedLight);

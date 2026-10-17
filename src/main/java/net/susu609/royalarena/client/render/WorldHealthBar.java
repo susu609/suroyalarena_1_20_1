@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.entity.Entity;
@@ -49,6 +50,24 @@ public final class WorldHealthBar {
             return;
         render(pose, buffer, entity.getBbHeight() * scale + 0.5D, health / max,
                 color.getValue(), null, SEGMENTS, TROOP_SCALE);
+    }
+
+    /** Ticks a tower (and its King) is tinted red after losing health. */
+    public static final int TOWER_HURT_TICKS = 8;
+
+    /**
+     * Overlay for drawing a tower: vanilla's red hurt tint for a moment
+     * after it loses health, like a troop that is hit, else none.
+     */
+    public static int towerOverlay(Entity entity) {
+        if (!ClientMatchState.active())
+            return OverlayTexture.NO_OVERLAY;
+        TowerId id = ClientMatchState.arena().towerAt(
+                entity.getX(), entity.getZ());
+        boolean hurt = id != null &&
+                ClientMatchState.ticksSinceTowerHurt(id) < TOWER_HURT_TICKS;
+        return OverlayTexture.pack(OverlayTexture.u(0.0F),
+                OverlayTexture.v(hurt));
     }
 
     /**

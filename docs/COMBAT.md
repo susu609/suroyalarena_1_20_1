@@ -81,6 +81,12 @@ animate on their own from the movement.
 
 ## Area damage, burning, the bot's hand
 
+- **Hurt flash.** Every troop that loses health, from any source (blows,
+  arrows, splash, spells, burning), gets vanilla's red hurt tint, flinch and
+  hurt sound (`BattleField.flashIfHurt`, a vanilla damage event). At most
+  every 6 ticks per troop, and burning has to add up to half a heart, so a
+  burning troop flickers rather than staying red.
+
 - **Red flash.** Wherever area damage lands (a Creeper blast, a Witch
   potion, the Fireball, each Arrow Storm volley) the clients flash a red
   circle of the damage radius on the floor: two quick flashes fading out over
