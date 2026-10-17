@@ -2,7 +2,6 @@ package net.susu609.royalarena;
 
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -16,13 +15,14 @@ import org.slf4j.Logger;
     public static final String MOD_ID = "royalarena";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public RoyalArena() {
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+    /** Forge passes the loading context (the static get() is deprecated). */
+    public RoyalArena(FMLJavaModLoadingContext context) {
+        IEventBus modBus = context.getModEventBus();
         ArenaEntityTypes.register(modBus);
         ModNetwork.register();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT,
+        context.registerConfig(ModConfig.Type.CLIENT,
                 ArenaClientConfig.SPEC, MOD_ID + "-client.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,
+        context.registerConfig(ModConfig.Type.COMMON,
                 ArenaCommonConfig.SPEC, MOD_ID + "-common.toml");
         LOGGER.info("{} loaded", MOD_ID);
     }
