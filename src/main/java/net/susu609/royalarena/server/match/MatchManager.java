@@ -10,6 +10,7 @@ import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.server.arena.ArenaAllocator;
+import net.susu609.royalarena.server.arena.ArenaDimension;
 import net.susu609.royalarena.server.arena.ArenaReservation;
 import net.susu609.royalarena.server.deck.DeckStorage;
 
@@ -61,7 +62,7 @@ public final class MatchManager {
     {
         if (server == null)
             return false;
-        ServerLevel level = server.overworld();
+        ServerLevel level = ArenaDimension.level(server);
         ArenaReservation reservation = ArenaAllocator.INSTANCE.allocate(level);
         UUID matchId = UUID.randomUUID();
         // Saved decks, shuffled for this match; the bot draws a random

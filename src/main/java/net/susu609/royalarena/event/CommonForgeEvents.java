@@ -1,5 +1,8 @@
 package net.susu609.royalarena.event;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
@@ -9,6 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.command.RoyalArenaCommand;
+import net.susu609.royalarena.server.arena.ArenaDimension;
 import net.susu609.royalarena.server.match.MatchManager;
 import net.susu609.royalarena.server.match.MatchQueue;
 
@@ -24,6 +28,26 @@ public final class CommonForgeEvents {
             return;
         MatchQueue.INSTANCE.tick(event.getServer());
         MatchManager.INSTANCE.tick(event.getServer());
+    }
+
+    /**
+     * A player who logged out during a match comes back in the empty arena
+     * dimension, where the arena is gone: send them to the overworld spawn.
+     */
+    @SubscribeEvent
+    public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) ||
+                !ArenaDimension.is(player.level()) ||
+                MatchManager.INSTANCE.isInMatch(player.getUUID()))
+            return;
+        MinecraftServer server = player.getServer();
+        if (server == null)
+            return;
+        ServerLevel overworld = server.overworld();
+        BlockPos spawn = overworld.getSharedSpawnPos();
+        player.setGameMode(server.getDefaultGameType());
+        player.teleportTo(overworld, spawn.getX() + 0.5D, spawn.getY(),
+                spawn.getZ() + 0.5D, player.getYRot(), 0.0F);
     }
 
     @SubscribeEvent

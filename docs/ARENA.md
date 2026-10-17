@@ -95,3 +95,21 @@ laid out like Clash Royale's: on each half a "U" through the three towers.
 The road is mirrored on both axes, and `DomainSmokeTest` checks that it links
 both bridges of a side to all three of its towers. It is decoration: troops
 walk the same routes on grass and road.
+
+## Where matches are played
+
+Matches run in their own empty dimension, `royalarena:arena`
+(`data/royalarena/dimension/arena.json`, a sumodlib void dimension: noon
+forever, nothing generated). Arenas sit on a 64-block grid from the origin
+with the floor at Y 64 (`ArenaDimension`, `ArenaAllocator`), so they never
+land on terrain whatever world type the save uses. Players are moved there
+for the match and back to where they were afterwards. A player who logs out
+during a match and comes back later is sent to the overworld spawn.
+
+If the dimension is missing (an old jar of sumodlib), matches fall back to
+the sky above the overworld spawn as before.
+
+For testing, `runClient` opens the Void world "Royal Arena Test" straight
+away (sumodlib's `sumodlib.devWorld` property in `build.gradle`; `client2`
+does not, so it can join over LAN), and the dev server creates Void worlds
+(`level-type=sumodlib:void`).

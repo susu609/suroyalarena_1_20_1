@@ -44,11 +44,16 @@ minecraft {
 
         client {
             workingDirectory project.file('run-client1')
+            // sumodlib: skip the title screen and open (or create) this
+            // Void test world.
+            property 'sumodlib.devWorld', 'Royal Arena Test'
         }
 
         client2 {
             parent minecraft.runs.client
             workingDirectory project.file('run-client2')
+            // The second client joins over LAN instead of opening a world.
+            property 'sumodlib.devWorld', ''
             args '--username', 'Dev2'
         }
 

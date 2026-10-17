@@ -25,12 +25,23 @@ public final class ArenaAllocator {
     public ArenaReservation allocate(ServerLevel level) {
         int slot = reusable.isEmpty() ? nextSlot++ : reusable.removeFirst();
         active.add(slot);
-        BlockPos spawn = level.getSharedSpawnPos();
         int gridX = slot % COLUMNS;
         int gridZ = slot / COLUMNS;
-        int x = spawn.getX() + gridX * SPACING;
-        int z = spawn.getZ() + gridZ * SPACING;
-        int y = Mth.clamp(spawn.getY() + 48, 96, 220);
+        int x;
+        int y;
+        int z;
+        if (ArenaDimension.is(level)) {
+            // Empty dimension: a fixed grid from the origin.
+            x = gridX * SPACING;
+            z = gridZ * SPACING;
+            y = ArenaDimension.FLOOR_Y;
+        } else {
+            // Fallback: high above the overworld spawn.
+            BlockPos spawn = level.getSharedSpawnPos();
+            x = spawn.getX() + gridX * SPACING;
+            z = spawn.getZ() + gridZ * SPACING;
+            y = Mth.clamp(spawn.getY() + 48, 96, 220);
+        }
         return new ArenaReservation(
                 slot, ArenaLayout.standard(new ArenaPoint(x, y, z)));
     }

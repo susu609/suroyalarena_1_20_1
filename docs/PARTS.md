@@ -270,3 +270,13 @@ card list matches `BattleCard`.
   `client/hud/CardFace.java` (card drawing shared with the HUD)
 - `server/match/MatchManager.java` (saved decks, shuffled; random bot deck)
 - `DeckSmokeTest`
+
+## Part 23 — Empty arena dimension, Void test worlds
+
+- `data/royalarena/dimension/arena.json`, `server/arena/ArenaDimension.java`
+- `server/arena/ArenaAllocator.java`, `server/match/MatchManager.java`
+- `event/CommonForgeEvents.java` (logins left in the arena dimension)
+- `build.gradle` (`sumodlib.devWorld`), `run-server/server.properties`
+
+Needs sumodlib with `VoidWorlds` (the `sumodlib:void` dimension type and
+world preset).
