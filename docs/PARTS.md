@@ -389,3 +389,14 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `src/test/.../StatsReport.java` (`gradlew statsReport`),
   `StatsServer.java` (`gradlew statsServe`), `Sim.solo`,
   `BalanceReport.play`
+
+## Part 34 — Match log
+
+- `match/MatchRecord.java` (plays, elixir over time, end reason),
+  `match/MatchInstance.java` (`finish(winner, reason)`)
+- `combat/CombatStats.java` (damage, tower damage, kills, healing per card),
+  `combat/CombatEngine.java`, `combat/CombatUnit.java` (burn source)
+- `stats/MatchLog.java` (one JSON line per match), `stats/Json.java`
+- `server/stats/MatchLogWriter.java`, `server/match/ServerMatchSession.java`,
+  `config/ArenaCommonConfig.java` (`[stats] recordMatches`)
+- `MatchLogSmokeTest`, `MiniJson` (tests); see `docs/MATCH_LOG.md`

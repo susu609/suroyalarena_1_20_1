@@ -121,6 +121,15 @@ public enum BattleCard {
         throw new IllegalArgumentException("Unknown battle card: " + id);
     }
 
+    /** The troop card these stats belong to (split children too), or null. */
+    public static BattleCard forStats(TroopStats stats) {
+        for (BattleCard card : values()) {
+            if (card.stats != null && card.stats == stats)
+                return card;
+        }
+        return null;
+    }
+
     /** The card whose display name is {@code name}, or null. */
     public static BattleCard byDisplayName(String name) {
         for (BattleCard card : values()) {

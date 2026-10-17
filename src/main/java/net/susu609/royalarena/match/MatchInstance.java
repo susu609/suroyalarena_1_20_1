@@ -40,6 +40,7 @@ public final class MatchInstance {
     private int battleTicks;
     private boolean overtime;
     private TeamSide winner;
+    private final MatchRecord record = new MatchRecord();
 
     private MatchInstance(UUID matchId, UUID blueId, UUID redId,
             ArenaLayout arena, BattleDeck blueDeck, BattleDeck redDeck)
@@ -118,14 +119,20 @@ public final class MatchInstance {
         boolean standing = !target.isDestroyed();
         target.damage(damage);
         // The King ends the match; in overtime, so does the first tower.
-        if (standing && target.isDestroyed() &&
-                (id.kind() == TowerKind.KING || overtime)) {
-            finish(id.side().opponent());
+        if (standing && target.isDestroyed()) {
+            if (id.kind() == TowerKind.KING)
+                finish(id.side().opponent(), MatchRecord.EndReason.KING);
+            else if (overtime)
+                finish(id.side().opponent(),
+                        MatchRecord.EndReason.OVERTIME_TOWER);
         }
     }
-    public void finish(TeamSide winningSide) {
+
+    /** Ends the match; {@code winningSide} null is a draw. */
+    public void finish(TeamSide winningSide, MatchRecord.EndReason reason) {
         if (state == MatchState.FINISHED)
             return;
+        record.end(reason);
         state = MatchState.FINISHED;
         ticksRemaining = 0;
         winner = winningSide;
@@ -134,6 +141,16 @@ public final class MatchInstance {
     }
     public UUID matchId() {
         return matchId;
+    }
+
+    /** Plays, elixir and the end of this match, for the match log. */
+    public MatchRecord record() {
+        return record;
+    }
+
+    /** Ticks of battle so far, overtime included. */
+    public int battleTicks() {
+        return battleTicks;
     }
     public TeamSide sideOf(UUID playerId) {
         MatchPlayer player = player(playerId);
@@ -158,6 +175,7 @@ public final class MatchInstance {
         ticksRemaining = DEFAULT_BATTLE_TICKS;
         battleTicks = 0;
         overtime = false;
+        record.start(blue.elixirTenths(), red.elixirTenths());
     }
 
     /** Whether the match is in overtime (sudden death: first crown wins). */
@@ -196,6 +214,7 @@ public final class MatchInstance {
         blue.elixir().tick(perElixir);
         red.elixir().tick(perElixir);
         battleTicks++;
+        record.tick(battleTicks, blue.elixirTenths(), red.elixirTenths());
         advancePending();
         if (--ticksRemaining <= 0)
             timeUp();
@@ -217,6 +236,7 @@ public final class MatchInstance {
         if (!player.elixir().spend(card.cost()))
             return DeployResult.rejected("not_enough_elixir");
         player.deck().play(slot);
+        record.play(side, card, battleTicks);
         pending.add(new PendingDeploy(card, side, worldX, worldZ,
                 card.deployTicks()));
         return DeployResult.accepted(card);
@@ -260,7 +280,8 @@ public final class MatchInstance {
         int blueCrowns = crowns(TeamSide.BLUE);
         int redCrowns = crowns(TeamSide.RED);
         if (blueCrowns != redCrowns) {
-            finish(blueCrowns > redCrowns ? TeamSide.BLUE : TeamSide.RED);
+            finish(blueCrowns > redCrowns ? TeamSide.BLUE : TeamSide.RED,
+                    MatchRecord.EndReason.CROWNS);
         } else if (!overtime) {
             overtime = true;
             ticksRemaining = OVERTIME_TICKS;
@@ -272,13 +293,9 @@ public final class MatchInstance {
     private void finishByTowerHealth() {
         int blueTotal = totalRemainingHealth(TeamSide.BLUE);
         int redTotal = totalRemainingHealth(TeamSide.RED);
-        if (blueTotal > redTotal)
-            finish(TeamSide.BLUE);
-        else if (redTotal > blueTotal)
-            finish(TeamSide.RED);
-        else {
-            finish(null);
-        }
+        TeamSide winning = blueTotal > redTotal ? TeamSide.BLUE :
+                redTotal > blueTotal ? TeamSide.RED : null;
+        finish(winning, MatchRecord.EndReason.TOWER_HEALTH);
     }
 
     private int totalRemainingHealth(TeamSide side) {

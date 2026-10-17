@@ -1,5 +1,6 @@
 package net.susu609.royalarena.combat;
 
+import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
@@ -29,6 +30,7 @@ public final class CombatUnit {
     private UUID target;
     private int burnTicks;
     private double burnPerTick;
+    private BattleCard burnSource;
     private int frozenTicks;
     private int slowTicks;
 
@@ -167,12 +169,21 @@ public final class CombatUnit {
         health = 0.0D;
     }
 
-    /** Sets the unit burning; a new burn replaces the old one. */
-    void ignite(int ticks, double perSecond) {
+    /**
+     * Sets the unit burning; a new burn replaces the old one. {@code source}
+     * is the card that set it alight, credited with the burn damage.
+     */
+    void ignite(int ticks, double perSecond, BattleCard source) {
         if (ticks <= 0 || perSecond <= 0.0D)
             return;
         burnTicks = ticks;
         burnPerTick = perSecond / 20.0D;
+        burnSource = source;
+    }
+
+    /** The card whose burn is on the unit, or null. */
+    BattleCard burnSource() {
+        return burnSource;
     }
 
     /** Damage the burn deals this tick (0 when not burning). */

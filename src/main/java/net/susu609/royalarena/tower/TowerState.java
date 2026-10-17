@@ -17,6 +17,10 @@ public final class TowerState {
     public int health() {
         return (int) Math.ceil(health);
     }
+    /** Remaining health, unrounded. */
+    public double remaining() {
+        return health;
+    }
     public TowerId id() {
         return id;
     }

@@ -6,6 +6,7 @@ import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.client.camera.ArenaCameraProfile;
 import net.susu609.royalarena.match.MatchInstance;
+import net.susu609.royalarena.match.MatchRecord;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
@@ -40,6 +41,7 @@ public final class DomainSmokeTest {
         DeckSmokeTest.run();
         TraitSmokeTest.run();
         PowerCreepTest.run();
+        MatchLogSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 
@@ -262,7 +264,7 @@ public final class DomainSmokeTest {
         }
         check(match.tryDeploy(TeamSide.BLUE, cheapest, -3, 6).accepted() &&
                 match.pendingDeploys().size() == 1, "second deploy pending");
-        match.finish(TeamSide.RED);
+        match.finish(TeamSide.RED, MatchRecord.EndReason.ABANDONED);
         check(match.pendingDeploys().isEmpty(),
                 "finishing the match drops pending deploys");
     }
@@ -533,6 +535,8 @@ public final class DomainSmokeTest {
         check(match.state() == MatchState.FINISHED &&
                 match.winner() == TeamSide.BLUE,
                 "the first tower in overtime wins");
+        check(match.record().endReason() ==
+                MatchRecord.EndReason.OVERTIME_TOWER, "ended in overtime");
 
         MatchInstance ahead = freshBattle();
         ahead.damageTower(TowerId.BLUE_RIGHT, 1000.0D);
@@ -542,6 +546,8 @@ public final class DomainSmokeTest {
             ahead.tick();
         check(!ahead.overtime() && ahead.winner() == TeamSide.RED,
                 "more crowns at the end of regulation wins");
+        check(ahead.record().endReason() == MatchRecord.EndReason.CROWNS,
+                "ended on crowns");
     }
 
     private static void kingTowerEndsMatch() {
@@ -556,6 +562,8 @@ public final class DomainSmokeTest {
         check(
                 match.winner() == TeamSide.BLUE,
                 "opponent wins after king tower destruction");
+        check(match.record().endReason() == MatchRecord.EndReason.KING,
+                "ended by the King");
     }
     private static void towerVisualTypesMatchUploadedModels() {
         var crown = net.susu609.royalarena.entity.building.TowerVisualType.from(

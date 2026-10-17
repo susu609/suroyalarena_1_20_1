@@ -22,6 +22,7 @@ import net.susu609.royalarena.tower.TowerState;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +58,9 @@ public final class CombatEngine {
     private final Map<TowerId, Integer> towerFrozen =
             new EnumMap<>(TowerId.class);
     private final List<ActiveSpell> spells = new ArrayList<>();
+    /** The card every unit came from (split children included). */
+    private final Map<UUID, BattleCard> cardOf = new HashMap<>();
+    private final CombatStats stats = new CombatStats();
     /** Shots in the air, with the ticks until they land. */
     private final List<InFlight> flying = new ArrayList<>();
     private double speedMultiplier = 1.0D;
@@ -133,7 +137,13 @@ public final class CombatEngine {
 
     private CombatUnit register(CombatUnit unit) {
         units.add(unit);
+        cardOf.put(unit.id(), BattleCard.forStats(unit.stats()));
         return unit;
+    }
+
+    /** What each card has done so far this match. */
+    public CombatStats stats() {
+        return stats;
     }
 
     public void remove(UUID entityId) {
@@ -498,7 +508,8 @@ public final class CombatEngine {
         for (Hit hit : hits) {
             SpellStats spell = hit.spell().card.spell();
             if (hit.tower() != null) {
-                hitTower(hit.tower(), hit.damage(), destroyed);
+                hitTower(hit.tower(), hit.damage(), destroyed,
+                        hit.spell().side, hit.spell().card);
                 int stop = Math.max(spell.freezeTicks(), spell.stunTicks());
                 if (stop > 0) {
                     towerFrozen.merge(hit.tower(), stop, Math::max);
@@ -510,16 +521,21 @@ public final class CombatEngine {
             }
             CombatUnit unit = hit.unit();
             if (spell.heal()) {
+                double before = unit.health();
                 unit.heal(hit.damage());
+                stats.healing(hit.spell().side, hit.spell().card,
+                        unit.health() - before);
                 continue;
             }
-            if (!unit.hurt(hit.damage()))
+            if (!damageUnit(unit, hit.damage(), hit.spell().side,
+                    hit.spell().card))
                 continue;
             if (spell.freezeTicks() > 0)
                 unit.freeze(spell.freezeTicks());
             if (spell.stunTicks() > 0)
                 unit.stun(spell.stunTicks());
-            unit.ignite(spell.burnTicks(), spell.burnPerSecond());
+            unit.ignite(spell.burnTicks(), spell.burnPerSecond(),
+                    hit.spell().card);
             if (spell.knockback() > 0.0D && unit.alive())
                 knockBack(unit, hit.spell().x, hit.spell().z,
                         -ArenaLayout.sideSign(hit.spell().side),
@@ -555,7 +571,8 @@ public final class CombatEngine {
         for (CombatUnit unit : units) {
             double burn = unit.burnStep();
             if (burn > 0.0D)
-                unit.hurt(burn);
+                damageUnit(unit, burn, unit.side().opponent(),
+                        unit.burnSource());
         }
     }
 
@@ -570,16 +587,21 @@ public final class CombatEngine {
             List<Push> pushes)
     {
         for (Attack attack : attacks) {
+            // The shooter may have died while its arrow flew; it still counts.
+            BattleCard source = attack.attackerUnit() == null ? null :
+                    cardOf.get(attack.attackerUnit());
             CombatUnit victim = null;
             if (attack.victimUnit() != null) {
                 victim = unit(attack.victimUnit());
                 if (victim != null)
-                    victim.hurt(attack.damage());
+                    damageUnit(victim, attack.damage(), attack.side(),
+                            source);
             } else {
-                hitTower(attack.victimTower(), attack.damage(), destroyed);
+                hitTower(attack.victimTower(), attack.damage(), destroyed,
+                        attack.side(), source);
             }
             if (attack.splash() > 0.0D)
-                splash(attack, victim, destroyed);
+                splash(attack, victim, destroyed, source);
             if (attack.slowTicks() > 0 && victim != null && victim.alive())
                 victim.slow(attack.slowTicks());
             if (attack.knockback() > 0.0D && victim != null && victim.alive()) {
@@ -594,10 +616,29 @@ public final class CombatEngine {
         }
     }
 
-    private void hitTower(TowerId id, double damage, List<TowerId> destroyed) {
+    /**
+     * Hurts a unit and credits {@code source} of side {@code by} (null: the
+     * towers of that side) with the health really taken off.
+     */
+    private boolean damageUnit(CombatUnit victim, double amount, TeamSide by,
+            BattleCard source)
+    {
+        double before = victim.health();
+        if (!victim.hurt(amount))
+            return false;
+        stats.troopDamage(by, source, before - victim.health(),
+                !victim.alive());
+        return true;
+    }
+
+    private void hitTower(TowerId id, double damage, List<TowerId> destroyed,
+            TeamSide by, BattleCard source)
+    {
         TowerState tower = match.tower(id);
         boolean wasStanding = !tower.isDestroyed();
+        double before = tower.remaining();
         match.damageTower(id, damage);
+        stats.towerDamage(by, source, before - tower.remaining());
         if (wasStanding && tower.isDestroyed())
             destroyed.add(id);
     }
@@ -609,7 +650,7 @@ public final class CombatEngine {
      * stood when it was hit.
      */
     private void splash(Attack attack, CombatUnit victim,
-            List<TowerId> destroyed)
+            List<TowerId> destroyed, BattleCard source)
     {
         double cx = victim != null ? victim.x() : attack.x();
         double cz = victim != null ? victim.z() : attack.z();
@@ -619,14 +660,15 @@ public final class CombatEngine {
                 continue;
             if (Math.hypot(other.x() - cx, other.z() - cz) <=
                     attack.splash() + other.radius() + EPSILON)
-                other.hurt(attack.damage());
+                damageUnit(other, attack.damage(), attack.side(), source);
         }
         for (TowerId id : TowerId.values()) {
             if (id == attack.victimTower() || id.side() == attack.side() ||
                     match.tower(id).isDestroyed())
                 continue;
             if (distanceToTower(cx, cz, id) <= attack.splash() + EPSILON)
-                hitTower(id, attack.damage(), destroyed);
+                hitTower(id, attack.damage(), destroyed, attack.side(),
+                        source);
         }
     }
 

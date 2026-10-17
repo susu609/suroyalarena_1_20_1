@@ -57,6 +57,9 @@ panel, increase `lookAhead`.
 [debug]
 	showRoutes = false      # particles from each walking troop to the point it walks to
 	logMovement = false     # log troop movement once a second, and warn when a troop is stuck
+
+[stats]
+	recordMatches = true    # one line per finished match in royalarena/matches.jsonl (docs/MATCH_LOG.md)
 ```
 
 Bot difficulty, roughly:

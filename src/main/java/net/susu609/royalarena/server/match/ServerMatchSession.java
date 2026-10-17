@@ -11,6 +11,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.fml.ModList;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
@@ -28,6 +29,8 @@ import net.susu609.royalarena.network.s2c.S2CShakePacket;
 import net.susu609.royalarena.server.arena.ArenaBuilder;
 import net.susu609.royalarena.server.arena.ArenaReservation;
 import net.susu609.royalarena.server.battle.BattleField;
+import net.susu609.royalarena.server.stats.MatchLogWriter;
+import net.susu609.royalarena.stats.MatchLog;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
 
@@ -54,6 +57,8 @@ public final class ServerMatchSession {
     private static final int DRAG_MAX_TICKS = 18;
     private int finishedTicks;
     private boolean complete;
+    private long startedMillis = System.currentTimeMillis();
+    private boolean logged;
 
     /** {@code bot} plays for its side; null when both sides are players. */
     public ServerMatchSession(MatchInstance match, ServerLevel arenaLevel,
@@ -69,7 +74,8 @@ public final class ServerMatchSession {
         if (complete)
             return;
         if (match.state() != MatchState.FINISHED)
-            match.finish(null);
+            match.finish(null, MatchRecord.EndReason.ABANDONED);
+        logMatch();
         endAndRestore(server);
     }
     public boolean complete() {
@@ -77,7 +83,7 @@ public final class ServerMatchSession {
     }
     public void forceStop() {
         if (match.state() != MatchState.FINISHED)
-            match.finish(null);
+            match.finish(null, MatchRecord.EndReason.ABANDONED);
     }
     public void handleDeploy(ServerPlayer sender, int slot,
             BlockPos requested)
@@ -96,6 +102,29 @@ public final class ServerMatchSession {
         if (server != null)
             sync(server);
     }
+    /**
+     * Adds this match to the match log (once), unless it is turned off or
+     * the match never got to the battle.
+     */
+    private void logMatch() {
+        if (logged || !ArenaCommonConfig.RECORD_MATCHES.get() ||
+                match.record().battleTicks() == 0)
+            return;
+        logged = true;
+        MatchLog.Side[] sides = new MatchLog.Side[2];
+        for (TeamSide side : TeamSide.values()) {
+            sides[side.ordinal()] = bot != null && bot.side() == side ?
+                    MatchLog.Side.bot() :
+                    MatchLog.Side.player(match.player(side).playerId());
+        }
+        String version = ModList.get().getModContainerById(RoyalArena.MOD_ID)
+                .map(c -> c.getModInfo().getVersion().toString())
+                .orElse("unknown");
+        MatchLogWriter.append(MatchLog.line(match, battle.engine().stats(),
+                sides[TeamSide.BLUE.ordinal()], sides[TeamSide.RED.ordinal()],
+                bot == null ? "pvp" : "bot", version, startedMillis));
+    }
+
     /** The bot plays through the same rules as a player. */
     private void botPlay(MinecraftServer server) {
         if (bot == null)
@@ -156,12 +185,13 @@ public final class ServerMatchSession {
     public void onPlayerDisconnected(UUID playerId) {
         TeamSide side = match.sideOf(playerId);
         if (side != null && match.state() != MatchState.FINISHED)
-            match.finish(side.opponent());
+            match.finish(side.opponent(), MatchRecord.EndReason.DISCONNECT);
     }
     public ArenaReservation reservation() {
         return reservation;
     }
     public void start(MinecraftServer server) {
+        startedMillis = System.currentTimeMillis();
         ArenaBuilder.build(arenaLevel, match.arena());
         spawnTowerHitboxes();
         preparePlayer(server, TeamSide.BLUE);
@@ -256,6 +286,8 @@ public final class ServerMatchSession {
 
         if (match.state() == MatchState.FINISHED) {
             finishedTicks++;
+            if (finishedTicks == 1)
+                logMatch();
             if (finishedTicks == 1)
                 sync(server);
             if (finishedTicks >= FINISH_DISPLAY_TICKS) {

@@ -62,6 +62,19 @@ public final class ArenaCommonConfig {
 
     static {
         BUILDER.pop();
+        BUILDER.comment("Match statistics.").push("stats");
+    }
+
+    public static final ForgeConfigSpec.BooleanValue RECORD_MATCHES = BUILDER
+            .comment("Add one line per finished match to " +
+                    "royalarena/matches.jsonl in the game folder: decks, " +
+                    "result, and per card plays, elixir and damage. " +
+                    "Players appear only as an anonymous code; the file " +
+                    "stays on this computer.")
+            .define("recordMatches", true);
+
+    static {
+        BUILDER.pop();
     }
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();

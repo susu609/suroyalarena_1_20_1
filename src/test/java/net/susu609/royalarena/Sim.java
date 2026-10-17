@@ -190,9 +190,9 @@ final class Sim {
                 fell ? tick / 20.0D : -1.0D);
     }
 
-    /** How a bot match went. */
+    /** How a bot match went, with the match and engine to look into. */
     record Outcome(TeamSide winner, int ticks, boolean overtime,
-                   boolean kingFell)
+                   boolean kingFell, MatchInstance match, CombatEngine engine)
     {
     }
 
@@ -231,6 +231,7 @@ final class Sim {
         }
         boolean kingFell = match.tower(TowerId.BLUE_KING).isDestroyed() ||
                 match.tower(TowerId.RED_KING).isDestroyed();
-        return new Outcome(match.winner(), tick, match.overtime(), kingFell);
+        return new Outcome(match.winner(), tick, match.overtime(), kingFell,
+                match, engine);
     }
 }
