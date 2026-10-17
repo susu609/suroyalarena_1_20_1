@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -70,6 +69,7 @@ public final class BattleField {
     private final Consumer<TowerId> onTowerDestroyed;
     /** Ticks each troop has wanted to walk without moving (debug log). */
     private final Map<UUID, Integer> stuckTicks = new HashMap<>();
+    private final TroopAnimator animator = new TroopAnimator();
     /** Pending spells whose flight has already been shown. */
     private final Set<String> launched = new HashSet<>();
 
@@ -194,6 +194,7 @@ public final class BattleField {
             Entity entity = level.getEntity(unit.id());
             if (entity == null || !entity.isAlive()) {
                 engine.remove(unit.id());
+                animator.forget(unit.id());
                 continue;
             }
             unit.setPosition(entity.getX(), entity.getZ());
@@ -224,6 +225,7 @@ public final class BattleField {
                 entity.discard();
             engine.remove(unit.id());
             stuckTicks.remove(unit.id());
+            animator.forget(unit.id());
         }
     }
 
@@ -260,10 +262,20 @@ public final class BattleField {
             if (entity == null)
                 continue;
             double[] own = walk.getOrDefault(unit.id(), new double[2]);
+            if (entity instanceof Slime slime) {
+                double factor = animator.slimeStride(slime,
+                        walk.containsKey(unit.id()));
+                own = new double[] {own[0] * factor, own[1] * factor};
+            }
             double[] push = Separation.offset(unit, units, arena);
             double beforeX = entity.getX();
             double beforeZ = entity.getZ();
-            step(entity, own[0] + push[0], own[1] + push[1]);
+            step(entity, own[0] + push[0], own[1] + push[1],
+                    animator.takeLift(unit.id()));
+            boolean walking = walk.containsKey(unit.id());
+            animator.updatePose(entity, unit.target() != null, walking);
+            if (!walking)
+                faceTarget(entity, unit);
             TickResult.Move move = moveOf.get(unit.id());
             if (showRoutes && move != null && level.getGameTime() % 5 == 0)
                 drawRoute(entity, move);
@@ -322,8 +334,36 @@ public final class BattleField {
         return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 
-    private static void step(Entity entity, double dx, double dz) {
-        double fall = entity.onGround() ? -0.1D :
+    /** Turns a troop that stands fighting toward what it fights. */
+    private void faceTarget(Entity entity, CombatUnit unit) {
+        double tx;
+        double tz;
+        Entity enemy = unit.target() == null ? null :
+                level.getEntity(unit.target());
+        if (enemy != null) {
+            tx = enemy.getX();
+            tz = enemy.getZ();
+        } else if (unit.lockedTower() != null) {
+            ArenaPoint p = arena.towerPoint(unit.lockedTower());
+            tx = p.x();
+            tz = p.z();
+        } else {
+            return;
+        }
+        double dx = tx - entity.getX();
+        double dz = tz - entity.getZ();
+        if (dx * dx + dz * dz > 1.0E-4D)
+            face(entity, dx, dz);
+    }
+
+    /**
+     * One movement step with gravity; {@code lift} > 0 starts a jump (slime
+     * hops, tosses, pounces).
+     */
+    private static void step(Entity entity, double dx, double dz,
+            double lift)
+    {
+        double fall = lift > 0.0D ? lift : entity.onGround() ? -0.1D :
                 Math.max(entity.getDeltaMovement().y - 0.08D, -1.5D);
         entity.move(MoverType.SELF, new Vec3(dx, fall, dz));
         entity.setDeltaMovement(0.0D, entity.onGround() ? 0.0D : fall, 0.0D);
@@ -447,8 +487,7 @@ public final class BattleField {
             Entity attacker = level.getEntity(attack.attackerUnit());
             if (attacker != null) {
                 face(attacker, to[0] - from[0], to[2] - from[2]);
-                if (attacker instanceof LivingEntity living)
-                    living.swing(InteractionHand.MAIN_HAND);
+                animator.onAttack(attacker);
             }
         }
         if (!attack.ranged())
@@ -471,6 +510,9 @@ public final class BattleField {
             Entity victim = level.getEntity(attack.victimUnit());
             if (victim != null)
                 level.broadcastEntityEvent(victim, (byte) 2);
+            if (attack.attackerUnit() != null && !attack.ranged())
+                animator.onHit(level.getEntity(attack.attackerUnit()),
+                        victim);
         }
         level.playSound(null, to[0], to[1], to[2],
                 attack.ranged() ? SoundEvents.ARROW_HIT :
@@ -532,6 +574,7 @@ public final class BattleField {
      * slime splitting does not kick in on top of the card's own rule.
      */
     private void removeDead(TickResult.Death death) {
+        animator.forget(death.unit());
         Entity entity = level.getEntity(death.unit());
         if (entity != null) {
             level.sendParticles(ParticleTypes.POOF, entity.getX(),

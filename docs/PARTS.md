@@ -290,3 +290,11 @@ world preset).
 - `client/render/ProjectileRenderer.java` (3D arrows and fireballs)
 - `server/battle/BattleField.java` (launch on fire, effects on landing,
   Arrow Storm volleys, Fireball flight)
+
+## Part 25 — Troop animations
+
+- `server/battle/TroopAnimator.java`, `server/battle/BattleField.java`
+
+Attack poses, the archers' bow draw, the Iron Golem swing and toss, slime
+hops and squish, spider pounce; troops turn toward what they fight. See
+`docs/COMBAT.md`.

@@ -60,6 +60,23 @@ dead and spawn slime children. Mobs have no vanilla AI, are invulnerable to
 vanilla damage and are discarded (not killed) so vanilla slime splitting never
 adds to the card's own.
 
+## Animations
+
+NoAI mobs do not animate attacks by themselves, so `TroopAnimator` sets the
+vanilla triggers from what the engine decides:
+
+| Troop | Animation | Trigger |
+|---|---|---|
+| Zombie, Skeletons (sword), Vindicator | arms up / axe raised | `setAggressive` while it has an enemy or stands fighting |
+| Skeleton Archer, Stray | bow raised, string drawn, released on the shot | aggressive pose, `startUsingItem` / `stopUsingItem` on the bow |
+| Iron Golem | arm swing and golem attack sound; the victim is tossed up a little | entity event 4, a small upward hop of the victim |
+| Slime | moves in hops and squishes on landing; bounces when it attacks | jumps every 5-8 ticks (bigger slimes jump higher), moving only while in the air, fast enough that its average speed is the engine's |
+| Spider | pounces on each bite | small hop |
+
+Troops standing to fight turn toward their enemy or tower. Hops and tosses
+only change a mob's height, never the position the engine uses. Walking legs
+animate on their own from the movement.
+
 ## Not built yet
 
 Flying and building-only troops, hit knockback,
