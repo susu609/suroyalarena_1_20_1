@@ -58,3 +58,14 @@ mở `http://<IP máy>:8000/docs/stats/` (cách này chia sẻ cả repo trong m
 | Lượt đánh mỗi trận | bot đánh thẻ này bao nhiêu lần một trận |
 
 Thẻ có nhãn ⚠ nằm ngoài dải sức mạnh, hoặc tỉ lệ thắng lệch hẳn khỏi 40–60%.
+
+## Trang công khai (GitHub Pages)
+
+Repo này private, nên trang được đăng qua repo public riêng
+`susu609/royalarena-stats` tại https://susu609.github.io/royalarena-stats/.
+Workflow `.github/workflows/stats-site.yml` chạy khi `docs/stats/` hoặc ảnh thẻ
+đổi trên `master` (hoặc bấm Run workflow): `build-site.sh` gom trang, số liệu
+và ảnh thẻ vào một thư mục rồi đẩy sang repo đó. Chỉ những file này được công
+khai, mã nguồn mod thì không. Workflow cần secret `STATS_SITE_TOKEN` (token
+fine-grained, quyền Contents: Read and write, chỉ cho `royalarena-stats`);
+thiếu secret thì nó báo và dừng, không lỗi.

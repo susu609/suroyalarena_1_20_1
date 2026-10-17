@@ -1,0 +1,71 @@
+# Publishes the card stats page (docs/stats/) to the public repository
+# susu609/royalarena-stats, which serves it with GitHub Pages:
+# https://susu609.github.io/royalarena-stats/
+# Only the page, its data and the card portraits leave this repository.
+#
+# Needs the secret STATS_SITE_TOKEN: a fine-grained token with
+# "Contents: Read and write" on susu609/royalarena-stats only. Without it the
+# job says so and stops without failing.
+name: stats-site
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/stats/**'
+      - 'src/main/resources/assets/royalarena/textures/gui/card/**'
+      - '.github/workflows/stats-site.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: stats-site
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE_REPO: susu609/royalarena-stats
+      TOKEN: ${{ secrets.STATS_SITE_TOKEN }}
+    steps:
+      - name: No token, nothing to publish
+        if: env.TOKEN == ''
+        run: |
+          echo "::notice::STATS_SITE_TOKEN is not set; the stats site was not published."
+
+      - name: Check out the mod
+        if: env.TOKEN != ''
+        uses: actions/checkout@v4
+
+      - name: Build the site
+        if: env.TOKEN != ''
+        run: sh docs/stats/build-site.sh _site
+
+      - name: Check out the site repository
+        if: env.TOKEN != ''
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SITE_REPO }}
+          token: ${{ env.TOKEN }}
+          path: site-repo
+
+      - name: Publish
+        if: env.TOKEN != ''
+        run: |
+          # Replace everything but the git folder with the new site.
+          find site-repo -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R _site/. site-repo/
+          cd site-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The site is already up to date."
+            exit 0
+          fi
+          git commit -m "Stats update ${GITHUB_SHA::7}"
+          git push

@@ -359,7 +359,9 @@ code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-
 (function () {
   "use strict";
   var S = window.ROYAL_STATS;
-  var PORTRAITS = "../../src/main/resources/assets/royalarena/textures/gui/card/";
+  // The public site (build-site.sh) puts the portraits next to the page.
+  var PORTRAITS = document.documentElement.getAttribute("data-portraits") ||
+    "../../src/main/resources/assets/royalarena/textures/gui/card/";
   var NF1 = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 });
   var NF2 = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 });
   var NF0 = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
