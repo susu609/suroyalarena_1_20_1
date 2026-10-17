@@ -61,11 +61,15 @@ Thẻ có nhãn ⚠ nằm ngoài dải sức mạnh, hoặc tỉ lệ thắng l�
 
 ## Trang công khai (GitHub Pages)
 
-Repo này private, nên trang được đăng qua repo public riêng
-`susu609/royalarena-stats` tại https://susu609.github.io/royalarena-stats/.
-Workflow `.github/workflows/stats-site.yml` chạy khi `docs/stats/` hoặc ảnh thẻ
-đổi trên `master` (hoặc bấm Run workflow): `build-site.sh` gom trang, số liệu
-và ảnh thẻ vào một thư mục rồi đẩy sang repo đó. Chỉ những file này được công
-khai, mã nguồn mod thì không. Workflow cần secret `STATS_SITE_TOKEN` (token
-fine-grained, quyền Contents: Read and write, chỉ cho `royalarena-stats`);
-thiếu secret thì nó báo và dừng, không lỗi.
+Trang ở **https://susu609.github.io/suroyalarena_1_20_1/**, mở được từ mọi nơi.
+
+Workflow `.github/workflows/stats-site.yml` tự đăng lại khi `docs/stats/` hoặc
+ảnh thẻ thay đổi trên `master` (hoặc vào **Actions → stats-site → Run
+workflow**). `build-site.sh` gom trang, số liệu và ảnh thẻ vào `_site`, và chỉ
+thư mục đó được đăng.
+
+Cài đặt một lần: **Settings → Pages → Build and deployment → Source: GitHub
+Actions**.
+
+Quy trình cập nhật: `gradlew statsReport` → commit `docs/stats/data/` → đưa lên
+`master`.

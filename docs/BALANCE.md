@@ -79,8 +79,9 @@ matches. It is not part of `build`; run it after a balance change.
 
 `gradlew statsReport` writes every card's numbers, the push matrix and the bot
 results to `docs/stats/data/`, keeping a history of runs; `docs/stats/index.html`
-shows them on a phone (`gradlew statsServe` on the same Wi-Fi). See
-`docs/stats/README.md`.
+shows them on a phone (`gradlew statsServe` on the same Wi-Fi), and the
+`stats-site` workflow publishes it at
+https://susu609.github.io/suroyalarena_1_20_1/. See `docs/stats/README.md`.
 
 ## Spell cost
 

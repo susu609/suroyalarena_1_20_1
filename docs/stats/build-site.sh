@@ -1,7 +1,7 @@
 #!/bin/sh
-# Assembles the public stats site into a folder (default: _site): the page,
-# its data and the card portraits, and nothing else from this repository.
-# Used by .github/workflows/stats-site.yml; runs the same way by hand.
+# Assembles the stats site into a folder (default: _site): the page, its
+# data and the card portraits. .github/workflows/stats-site.yml deploys that
+# folder with GitHub Pages; it runs the same way by hand.
 set -eu
 out="${1:-_site}"
 case "$out" in
@@ -23,14 +23,4 @@ for f in "$cards"/*.png; do
 done
 # Serve the files as they are (no Jekyll processing on GitHub Pages).
 touch "$out/.nojekyll"
-cat > "$out/README.md" <<'README'
-# Royal Arena · card stats
-
-Phone-friendly card statistics for the Su Royal Arena mod: win rates, damage,
-tankiness, matchups. Open the site at
-https://susu609.github.io/royalarena-stats/
-
-Generated: every file here is overwritten from the mod's repository by its
-`stats-site` workflow. Do not edit by hand.
-README
 echo "Stats site written to $out"

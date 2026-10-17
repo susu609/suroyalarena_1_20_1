@@ -1,11 +1,11 @@
-# Publishes the card stats page (docs/stats/) to the public repository
-# susu609/royalarena-stats, which serves it with GitHub Pages:
-# https://susu609.github.io/royalarena-stats/
-# Only the page, its data and the card portraits leave this repository.
+# Publishes the card stats page (docs/stats/) with GitHub Pages:
+# https://susu609.github.io/suroyalarena_1_20_1/
+# docs/stats/build-site.sh gathers the page, its data and the card portraits;
+# only that folder is deployed.
 #
-# Needs the secret STATS_SITE_TOKEN: a fine-grained token with
-# "Contents: Read and write" on susu609/royalarena-stats only. Without it the
-# job says so and stops without failing.
+# One-time setup: Settings > Pages > Build and deployment > Source:
+# "GitHub Actions". Runs when the page, its data or the card art change on
+# master, or by hand (Actions > stats-site > Run workflow).
 name: stats-site
 
 on:
@@ -17,55 +17,37 @@ on:
       - '.github/workflows/stats-site.yml'
   workflow_dispatch:
 
-concurrency:
-  group: stats-site
-  cancel-in-progress: true
-
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer one waits instead of cutting the
+# current one off half way.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      SITE_REPO: susu609/royalarena-stats
-      TOKEN: ${{ secrets.STATS_SITE_TOKEN }}
     steps:
-      - name: No token, nothing to publish
-        if: env.TOKEN == ''
-        run: |
-          echo "::notice::STATS_SITE_TOKEN is not set; the stats site was not published."
-
-      - name: Check out the mod
-        if: env.TOKEN != ''
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Build the site
-        if: env.TOKEN != ''
         run: sh docs/stats/build-site.sh _site
-
-      - name: Check out the site repository
-        if: env.TOKEN != ''
-        uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          repository: ${{ env.SITE_REPO }}
-          token: ${{ env.TOKEN }}
-          path: site-repo
+          path: _site
 
-      - name: Publish
-        if: env.TOKEN != ''
-        run: |
-          # Replace everything but the git folder with the new site.
-          find site-repo -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          cp -R _site/. site-repo/
-          cd site-repo
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "The site is already up to date."
-            exit 0
-          fi
-          git commit -m "Stats update ${GITHUB_SHA::7}"
-          git push
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
