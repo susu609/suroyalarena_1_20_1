@@ -146,6 +146,17 @@ public final class DomainSmokeTest {
             for (int x = p.x() - half; x < p.x() + half; x++)
                 reached |= arena.isPath(x, front);
             check(reached, "a road reaches the front of " + id);
+            for (int x = p.x() - half - 1; x <= p.x() + half; x++) {
+                for (int z = p.z() - half - 1; z <= p.z() + half; z++) {
+                    boolean ring = x < p.x() - half || x >= p.x() + half ||
+                            z < p.z() - half || z >= p.z() + half;
+                    boolean onArena = x >= arena.minX() &&
+                            x <= arena.maxX() && z >= arena.minZ() &&
+                            z <= arena.maxZ();
+                    if (ring && onArena)
+                        check(arena.isPath(x, z), "a road rings " + id);
+                }
+            }
         }
     }
 

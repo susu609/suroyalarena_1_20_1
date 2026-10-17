@@ -88,7 +88,9 @@ as in Clash Royale. On each half:
 - a 2-wide lane from each bridge up to the row in front of the Princess
   towers (it continues the bridge columns);
 - a 2-row road across the front of the towers, joining the two lanes;
-- a 2-wide approach from that road to the front of the King tower.
+- an approach from that road to the King tower, as wide as the King's ring;
+- a 1-wide ring around every tower. The rings of a Princess tower and its
+  King touch, so the road links the three towers all the way round.
 
 The road is mirrored on both axes and never lies in the river or under a
 tower (`DomainSmokeTest`). It is decoration: troops walk the same routes on

@@ -72,7 +72,9 @@ public final class ArenaLayout {
      * Whether a floor block is part of the dirt road, as in Clash Royale: on
      * each half a 2-wide lane from each bridge up to the Princess towers, a
      * 2-row road across the front of the towers joining the two lanes, and a
-     * 2-wide approach from that road to the King tower. Mirrored on both
+     * approach from that road to the King tower, and a 1-wide ring
+     * around every tower (the rings of a Princess tower and its King touch,
+     * so the road also links the towers along the back). Mirrored on both
      * axes; never in the river or under a tower.
      */
     public boolean isPath(int worldX, int worldZ) {
@@ -88,9 +90,26 @@ public final class ArenaLayout {
         boolean road = depth >= roadFront && depth <= roadBack &&
                 rx >= -LANE_OFFSET - 1 && rx <= LANE_OFFSET;
         int kingFront = KING_CENTER_Z - KING_SIZE / 2;
-        boolean approach = (rx == -1 || rx == 0) && depth >= roadFront &&
-                depth < kingFront;
-        return lane || road || approach;
+        // As wide as the King's ring, so no grass is left between them.
+        boolean approach = rx >= -KING_SIZE / 2 - 1 && rx <= KING_SIZE / 2 &&
+                depth >= roadFront && depth < kingFront;
+        return lane || road || approach || aroundTower(worldX, worldZ);
+    }
+
+    /** In the 1-block ring around a tower's footprint. */
+    private boolean aroundTower(int worldX, int worldZ) {
+        boolean ring = false;
+        for (TowerId id : TowerId.values()) {
+            ArenaPoint p = towerPoint(id);
+            int half = (int) towerHalfSize(id.kind());
+            boolean inside = worldX >= p.x() - half && worldX < p.x() + half &&
+                    worldZ >= p.z() - half && worldZ < p.z() + half;
+            if (inside)
+                return false;
+            ring |= worldX >= p.x() - half - 1 && worldX <= p.x() + half &&
+                    worldZ >= p.z() - half - 1 && worldZ <= p.z() + half;
+        }
+        return ring;
     }
 
     /** Centre of the left bridge (world -X), on the river axis. */
