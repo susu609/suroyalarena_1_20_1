@@ -19,6 +19,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.SnowGolem;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
@@ -654,6 +655,14 @@ public final class BattleField {
         }
         if (attacker instanceof Guardian) {
             beam(from, to);
+            return;
+        }
+        if (attacker instanceof SnowGolem) {
+            sendProjectile(S2CProjectilePacket.Kind.SNOWBALL, from, to,
+                    attack.flightTicks(), (float) (distance * 0.15D));
+            level.playSound(null, from[0], from[1], from[2],
+                    SoundEvents.SNOW_GOLEM_SHOOT, SoundSource.HOSTILE, 0.6F,
+                    1.0F);
             return;
         }
         double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);

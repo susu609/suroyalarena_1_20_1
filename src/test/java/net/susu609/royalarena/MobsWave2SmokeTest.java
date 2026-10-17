@@ -35,6 +35,7 @@ public final class MobsWave2SmokeTest {
         phantomGoesStraightForATower();
         everyCardHasATactic();
         libraryFiltersAndPages();
+        snowballsAreFrost();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -174,6 +175,44 @@ public final class MobsWave2SmokeTest {
             check(!card.tactics().isEmpty(), card.id() + " has a tactic");
         check(BattleCard.HEALING_POTION.tactics().contains(CardTactic.SUPPORT),
                 "a healing potion supports");
+    }
+
+    private static void snowballsAreFrost() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit golem = unit(engine, BattleCard.SNOW_GOLEM, TeamSide.BLUE,
+                0.0D, 4.0D);
+        CombatUnit blaze = engine.add(UUID.randomUUID(), TeamSide.RED,
+                BattleCard.BLAZE.stats(), 0.0D, -1.5D);
+        CombatUnit zombie = dummy(engine, TeamSide.RED, 0.0D, -1.5D);
+        TickResult.Attack shot = null;
+        for (int i = 0; i < 40 && shot == null; i++) {
+            for (TickResult.Attack a : engine.tick().landed()) {
+                if (golem.id().equals(a.attackerUnit()))
+                    shot = a;
+            }
+        }
+        check(shot != null, "the Snow Golem's snowball lands");
+        CombatUnit hit = blaze.id().equals(shot.victimUnit()) ? blaze : zombie;
+        double bite = BattleCard.SNOW_GOLEM.stats().damage();
+        double expected = hit == blaze ? 2.0D * bite : bite;
+        double max = hit == blaze ? BattleCard.BLAZE.stats().health() : 200.0D;
+        check(Math.abs(max - hit.health() - expected) < 1.0E-6D,
+                "frost does double to a Blaze only: " + (max - hit.health()));
+        check(hit.slowed(), "and slows");
+        // Make sure the Blaze case is seen: shoot it directly.
+        CombatEngine solo = new CombatEngine(battle());
+        CombatUnit g2 = unit(solo, BattleCard.SNOW_GOLEM, TeamSide.BLUE,
+                0.0D, 4.0D);
+        CombatUnit b2 = solo.add(UUID.randomUUID(), TeamSide.RED,
+                BattleCard.BLAZE.stats(), 0.0D, -1.5D);
+        boolean landed = false;
+        for (int i = 0; i < 40 && !landed; i++)
+            landed = solo.tick().landed().stream().anyMatch(
+                    a -> g2.id().equals(a.attackerUnit()));
+        check(landed, "a snowball lands on the Blaze");
+        check(BattleCard.BLAZE.stats().health() - b2.health() >=
+                2.0D * bite - 1.0E-6D, "the Blaze takes double");
     }
 
     private static void libraryFiltersAndPages() {

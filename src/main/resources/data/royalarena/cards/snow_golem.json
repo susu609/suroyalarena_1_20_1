@@ -1,0 +1,20 @@
+{
+  "id": "snow_golem",
+  "type": "troop",
+  "display_name": "Snow Golem",
+  "roles": ["defense", "support"],
+  "elixir": 2,
+  "entity": "minecraft:snow_golem",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 40,
+    "damage": 1,
+    "attack_interval_ticks": 20,
+    "range": 5.0,
+    "move_speed": 1.0,
+    "targets": "ground",
+    "slow_ticks": 30,
+    "flying": false
+  }
+}

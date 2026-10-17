@@ -51,6 +51,7 @@
         'bee': 2,
         'evoker': 4,
         'guardian': 4,
+        'snow_golem': 2,
         'arrow_storm': 3,
         'fireball': 4,
         'lightning': 6,

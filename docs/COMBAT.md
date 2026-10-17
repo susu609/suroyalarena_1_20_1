@@ -125,6 +125,8 @@ can be turned down or off.
 - **Lock-on (Guardian).** A new target (troop or tower) restarts a 2 s charge
   before the first laser (`CombatUnit.lockOn`); the laser hits at once. From
   the river rows it hits 1.5x as hard. It may be played on the river.
+- **Frost hits (Stray, Snow Golem).** A hit that slows is frost: a
+  frost-weak unit (Blaze) takes double damage from it.
 - **Sting (Bee).** Dies on its hit like the Vex, and the poison it leaves runs
   its full 3 s.
 - **Tower diver (Phantom).** Only targets towers and flies straight over the

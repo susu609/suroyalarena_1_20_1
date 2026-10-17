@@ -660,9 +660,13 @@ public final class CombatEngine {
                     blinkAway(victim, fx, fz);
                     continue;
                 }
+                // Slowing hits are frost (Stray arrows, snowballs): a
+                // frost-weak victim takes double.
                 if (victim != null)
-                    damageUnit(victim, attack.damage(), attack.side(),
-                            source);
+                    damageUnit(victim, attack.slowTicks() > 0 &&
+                                    victim.stats().traits().frostWeak() ?
+                                    attack.damage() * TroopTraits.FROST_WEAKNESS :
+                                    attack.damage(), attack.side(), source);
                 if (victim != null && victim.alive() && source != null &&
                         source.stats().traits().poisons())
                     victim.poison(source.stats().traits().poisonTicks(),

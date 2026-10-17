@@ -17,7 +17,7 @@ Done in Part 37 are ticked (their final stats are in docs/CARDS.md).
 
 - [x] Husk (`minecraft:husk`): a Zombie whose hit slows (hunger); 2 units, a little less health than Zombies. Reuses `slowing`.
 - [x] Wither Skeleton (`minecraft:wither_skeleton`, stone sword): tall, slow-swinging heavy melee whose hit withers (poison, dark particles instead of green). Reuses `poisoning`.
-- [ ] Snow Golem (`minecraft:snow_golem`): ranged snowballs for almost no damage that slow; strong against Blaze (frost). Reuses `slowing`; Blaze weakness to its snowballs is a new rule.
+- [x] Snow Golem (`minecraft:snow_golem`): ranged snowballs for almost no damage that slow; strong against Blaze (frost). Reuses `slowing`; Blaze weakness to its snowballs is a new rule.
 - [x] Piglin Brute (`minecraft:piglin_brute`, golden axe): high damage, slow axe like the Vindicator but sturdier, 4 elixir.
 - [x] Phantom (`minecraft:phantom`): fragile flyer that crosses the river anywhere and hovers; hit-and-run. Reuses `hovering`.
 - [x] Silverfish (`minecraft:silverfish`): swarm of 6 tiny fast units, 1 elixir range. Count >= 5 modifier.

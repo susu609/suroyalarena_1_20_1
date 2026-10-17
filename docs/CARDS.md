@@ -17,7 +17,7 @@ Move speed is in blocks per second.
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Elixir |
 |---|---|---|---|---|---|---|---|---|
 | Zombie | `minecraft:zombie` | 2 | 20 | 3 | 1.0 | 1.2 | 0.83 | **3** |
-| Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 6.0 | 1.0 | **2** |
+| Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 5.5 | 1.0 | **2** |
 | Spider | `minecraft:spider` | 4 | 10 | 2 | 1.0 | 1.2 | 1.5 | **3** |
 | Skeletons | `minecraft:skeleton` (bare hands) | 3 | 11 | 1.5 | 0.9 | 1.2 | 1.33 | **2** |
 | Big Slime | `minecraft:slime` | 1 | 20 | 5 | 1.4 | 1.2 | 0.85 | **3** |
@@ -197,10 +197,10 @@ health scale like the rest. Elixir comes from `CostFormula`, and the band
 | Enderman | `minecraft:enderman` | 1 | 58 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 8 s; a blow is not dodged | **4** |
 | Cave Spider | `minecraft:cave_spider` | 4 | 6 | 2 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); a new bite replaces the poison, so the cost counts the 1 a bite adds before the next | **3** |
 | Vex | `minecraft:vex` | 3 | 4 | 16 | 1.0 | 1.2 | 2.0 | dies when it strikes: one big blow and gone | **2** |
-| Ghast | `minecraft:ghast` | 1 | 27 | 22 | 3.0 | 6.0 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **5** |
+| Ghast | `minecraft:ghast` | 1 | 28 | 22 | 3.0 | 5.5 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **5** |
 | Drowned | `minecraft:drowned` | 1 | 22 | 4 | 2.0 | 5.0 | 1.0 | trident from 5 blocks; may also be played on the river | **2** |
 | Zombified Piglin | `minecraft:zombified_piglin` | 2 | 26 | 4 | 1.2 | 1.2 | 0.9 | a tougher Zombie: more health and hits harder, golden sword | **3** |
-| Blaze | `minecraft:blaze` | 1 | 30 | 8 | 2.0 | 6.5 | 1.0 | hovers 1.5 blocks up; crosses the river anywhere (no bridge); frost weakness: Freeze hits it twice as hard and freezes it twice as long; water weakness: 1.5x damage while on the river | **3** |
+| Blaze | `minecraft:blaze` | 1 | 30 | 8 | 2.0 | 6.0 | 1.0 | hovers 1.5 blocks up; crosses the river anywhere (no bridge); frost weakness: Freeze and frost hits (Stray arrows, snowballs) hurt it twice as hard, Freeze holds it twice as long; water weakness: 1.5x damage while on the river | **3** |
 
 Bot-versus-bot win rates and fixes: see "Tuning into 40-60%" below.
 
@@ -239,6 +239,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Bee | `minecraft:bee` | 5 | 4 | 3 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once, poisons 1.5 a second for 3 s, and dies | **2** |
 | Evoker | `minecraft:evoker` | 1 | 30 | 10 | 2.0 | 5.0 | 0.8 | fangs bite every enemy on a 1.2 wide line from it through its target | **4** |
 | Guardian | `minecraft:guardian` | 1 | 46 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **4** |
+| Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 
 Each cost is the formula's. New modifiers (docs/BALANCE.md): frost-proof
 x1.05, line damage x1.25, lock-on x0.85, stronger on the river x1.05; a unit
@@ -265,4 +266,9 @@ so change both). The deck screen filters by them. Current choice:
 | Attack | Spider, Big Slime, Iron Golem, Creeper, Wolves, Ravager, Hoglin, Magma Cube, Enderman, Drowned, Blaze, Wither Skeleton, Piglin Brute, Polar Bear, Phantom, Fireball, Lightning, Freeze, TNT |
 | Defense | Zombie, Skeleton Archer, Skeletons, Big Slime, Stray, Vindicator, Creeper, Witch, Pillager, Magma Cube, Cave Spider, Vex, Ghast, Zombified Piglin, Husk, Wither Skeleton, Polar Bear, Silverfish, Bee, Evoker, Guardian, Arrow Storm, Fireball, TNT |
 | Support | Skeleton Archer, Stray, Witch, Pillager, Ghast, Drowned, Blaze, Bee, Evoker, Arrow Storm, Potion of Healing, Freeze |
+
+Autopilot cycle 1 (4000 bot matches): Snow Golem added at 51%. Skeleton
+Archer range 6.0 -> 5.5 (60% -> 58%), Ghast range 6.0 -> 5.5 and HP 27 -> 28
+(59% -> 57%), Blaze range 6.5 -> 6.0 (59% -> under 55%); costs unchanged.
+Every card 42-58%.
 

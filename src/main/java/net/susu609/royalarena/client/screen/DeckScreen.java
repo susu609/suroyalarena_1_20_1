@@ -539,9 +539,11 @@ public final class DeckScreen extends Screen {
         if (s.traits().knockback() > 0)
             lines.add(line("Knocks its target back %.1f block",
                     s.traits().knockback()));
-        if (s.traits().slows())
+        if (s.traits().slows()) {
             lines.add(line("Slows what it hits for %.0f s",
                     s.traits().slowTicks() / 20.0D));
+            lines.add(line("Frost: double damage to frost-weak troops"));
+        }
         if (s.traits().buildingsOnly())
             lines.add(line("Ignores troops, walks straight to the towers"));
         if (s.traits().poisons())

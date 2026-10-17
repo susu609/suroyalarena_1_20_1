@@ -14,7 +14,7 @@ public enum BattleCard {
             new TroopStats(2, 20, 3, 20, 1.2D, 0.83D, 0.3D)),
     SKELETON_ARCHER("Skeleton Archer", 2, "minecraft:skeleton",
             "minecraft:bow", 0,
-            new TroopStats(1, 20, 4, 20, 6.0D, 1.0D, 0.3D)),
+            new TroopStats(1, 20, 4, 20, 5.5D, 1.0D, 0.3D)),
     SPIDER("Spider", 3, "minecraft:spider", null, 0,
             new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.45D)),
     SKELETONS("Skeletons", 2, "minecraft:skeleton", null, 0,
@@ -60,7 +60,7 @@ public enum BattleCard {
             new TroopStats(3, 4, 16, 20, 1.2D, 2.0D, 0.3D,
                     new TroopTraits(0.0D, true, 0.0D))),
     GHAST("Ghast", 5, "minecraft:ghast", null, 0,
-            new TroopStats(1, 27, 22, 60, 6.0D, 0.35D, 1.0D,
+            new TroopStats(1, 28, 22, 60, 5.5D, 0.35D, 1.0D,
                     new TroopTraits(1.5D, false, 0.0D))),
     DROWNED("Drowned", 2, "minecraft:drowned", "minecraft:trident", 0,
             new TroopStats(1, 22, 4, 40, 5.0D, 1.0D, 0.3D,
@@ -69,7 +69,7 @@ public enum BattleCard {
             "minecraft:golden_sword", 0,
             new TroopStats(2, 26, 4, 24, 1.2D, 0.9D, 0.3D)),
     BLAZE("Blaze", 3, "minecraft:blaze", null, 0,
-            new TroopStats(1, 30, 8, 40, 6.5D, 1.0D, 0.4D,
+            new TroopStats(1, 30, 8, 40, 6.0D, 1.0D, 0.4D,
                     TroopTraits.hovering(1.5D, true, true, true))),
     HUSK("Husk", 3, "minecraft:husk", null, 0,
             new TroopStats(2, 18, 3, 20, 1.2D, 0.83D, 0.3D,
@@ -98,6 +98,9 @@ public enum BattleCard {
     GUARDIAN("Guardian", 4, "minecraft:guardian", null, 0,
             new TroopStats(1, 46, 14, 40, 5.5D, 0.6D, 0.45D,
                     TroopTraits.laser(40, 0.6D))),
+    SNOW_GOLEM("Snow Golem", 2, "minecraft:snow_golem", null, 0,
+            new TroopStats(1, 40, 1, 20, 5.0D, 1.0D, 0.35D,
+                    TroopTraits.slowing(30))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
                     0.0D, 0.0D, 0)),
@@ -231,7 +234,7 @@ public enum BattleCard {
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
-                    ARROW_STORM ->
+                    SNOW_GOLEM, ARROW_STORM ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->

@@ -11,7 +11,7 @@
     "health": 20,
     "damage": 4,
     "attack_interval_ticks": 20,
-    "range": 6.0,
+    "range": 5.5,
     "move_speed": 1.0,
     "flying": false,
     "targets": "ground"

@@ -464,3 +464,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `server/match/MatchManager.java` (`resultDone`, Play again)
 - `ResultScreenSmokeTest`; `docs/UI.md` (Result screen)
 
+## Part 39 — Autopilot: Snow Golem
+
+- `card/BattleCard.java`, `cards/snow_golem.json`, card art: Snow Golem;
+  Skeleton Archer and Ghast range 5.5, Ghast HP 28, Blaze range 6.0
+- `combat/CombatEngine.java` (slowing hits do double to frost-weak units),
+  `client/screen/DeckScreen.java` (tooltip), `server/battle/BattleField.java`
+  (snowballs), `network/ModNetwork.java` (protocol 11)
+- `MobsWave2SmokeTest.snowballsAreFrost`; `docs/CARDS.md`, `docs/COMBAT.md`
+
