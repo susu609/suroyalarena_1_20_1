@@ -10,14 +10,17 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.susu609.royalarena.RoyalArena;
+import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.bot.BotBrain;
+import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.entity.building.TowerHitboxEntity;
 import net.susu609.royalarena.entity.building.TowerVisualType;
 import net.susu609.royalarena.match.*;
 import net.susu609.royalarena.network.ModNetwork;
+import net.susu609.royalarena.network.s2c.S2CBotDragPacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.server.arena.ArenaBuilder;
 import net.susu609.royalarena.server.arena.ArenaReservation;
@@ -40,6 +43,11 @@ public final class ServerMatchSession {
     private final BotBrain bot;
 
     private int tickCounter;
+    /** The bot's card on its way to the arena, and the ticks it still needs. */
+    private BotBrain.Play dragging;
+    private int dragTicksLeft;
+    private static final int DRAG_MIN_TICKS = 10;
+    private static final int DRAG_MAX_TICKS = 18;
     private int finishedTicks;
     private boolean complete;
 
@@ -85,13 +93,51 @@ public final class ServerMatchSession {
             sync(server);
     }
     /** The bot plays through the same rules as a player. */
-    private void botPlay() {
+    private void botPlay(MinecraftServer server) {
         if (bot == null)
             return;
+        if (dragging != null) {
+            // The bot's "hand" is still carrying the card to its spot.
+            if (--dragTicksLeft > 0)
+                return;
+            BotBrain.Play play = dragging;
+            dragging = null;
+            if (match.tryDeploy(bot.side(), play.slot(), play.x(),
+                    play.z()).accepted())
+                sync(server);
+            return;
+        }
         bot.setSettings(ArenaCommonConfig.botSettings());
         BotBrain.Play play = bot.tick(match, battle.engine());
         if (play != null)
-            match.tryDeploy(bot.side(), play.slot(), play.x(), play.z());
+            startDrag(server, play);
+    }
+
+    /**
+     * Like a player dragging a card: the clients see the card travel from
+     * the bot's King tower to its spot (a red hand with the card's ghosts),
+     * and the card is played when it arrives. Faraway spots take longer.
+     */
+    private void startDrag(MinecraftServer server, BotBrain.Play play) {
+        ArenaPoint king = match.arena().towerPoint(TowerId.king(bot.side()));
+        double fromX = king.x();
+        double fromZ = king.z() - ArenaLayout.sideSign(bot.side()) * 3.0D;
+        double toX = play.x() + 0.5D;
+        double toZ = play.z() + 0.5D;
+        double distance = Math.hypot(toX - fromX, toZ - fromZ);
+        dragging = play;
+        dragTicksLeft = Math.max(DRAG_MIN_TICKS, Math.min(DRAG_MAX_TICKS,
+                (int) Math.round(DRAG_MIN_TICKS + distance * 0.5D)));
+        BattleCard card = match.player(bot.side()).deck().cardAt(play.slot());
+        S2CBotDragPacket packet = new S2CBotDragPacket(card, bot.side(),
+                (float) fromX, (float) fromZ, (float) toX, (float) toZ,
+                dragTicksLeft);
+        for (TeamSide side : TeamSide.values()) {
+            ServerPlayer player = server.getPlayerList()
+                    .getPlayer(match.player(side).playerId());
+            if (player != null)
+                ModNetwork.sendToPlayer(player, packet);
+        }
     }
 
     /** Spawns troops whose deploy time ran out and lands arrived spells. */
@@ -196,7 +242,7 @@ public final class ServerMatchSession {
             match.tick();
             spawnReadyDeploys();
             if (match.state() == MatchState.BATTLE) {
-                botPlay();
+                botPlay(server);
                 battle.tick();
                 battle.showFlights(match.pendingDeploys());
             }

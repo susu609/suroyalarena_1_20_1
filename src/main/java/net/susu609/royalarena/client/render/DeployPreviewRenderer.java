@@ -159,55 +159,12 @@ public final class DeployPreviewRenderer {
                 new AABB(x0, fy, z0, x1, fy + 0.01D, z1), r, g, b, 1.0F);
     }
 
-    /**
-     * Translucent disc of {@code radius} blocks centred on block (x, z), with
-     * an outline: the area a spell hits.
-     */
+    /** Spell circle centred on block (x, z). */
     private static void circle(PoseStack pose, MultiBufferSource buffers,
             int x, double y, int z, double radius, int rgb, float alpha)
     {
-        if (radius <= 0.01D)
-            return;
-        float r = ((rgb >> 16) & 0xFF) / 255.0F;
-        float g = ((rgb >> 8) & 0xFF) / 255.0F;
-        float b = (rgb & 0xFF) / 255.0F;
-        float cx = x + 0.5F;
-        float cz = z + 0.5F;
-        float fy = (float) y + 0.02F;
-        int segments = 40;
-        Matrix4f m = pose.last().pose();
-        VertexConsumer fill = buffers.getBuffer(RenderType.debugQuads());
-        for (int i = 0; i < segments; i++) {
-            double a0 = Math.PI * 2.0D * i / segments;
-            double a1 = Math.PI * 2.0D * (i + 1) / segments;
-            float x0 = cx + (float) (Math.cos(a0) * radius);
-            float z0 = cz + (float) (Math.sin(a0) * radius);
-            float x1 = cx + (float) (Math.cos(a1) * radius);
-            float z1 = cz + (float) (Math.sin(a1) * radius);
-            // A fan slice as a quad with two vertices on the centre.
-            fill.vertex(m, cx, fy, cz).color(r, g, b, alpha).endVertex();
-            fill.vertex(m, x1, fy, z1).color(r, g, b, alpha).endVertex();
-            fill.vertex(m, x0, fy, z0).color(r, g, b, alpha).endVertex();
-            fill.vertex(m, cx, fy, cz).color(r, g, b, alpha).endVertex();
-        }
-        VertexConsumer lines = buffers.getBuffer(RenderType.lines());
-        for (int i = 0; i < segments; i++) {
-            double a0 = Math.PI * 2.0D * i / segments;
-            double a1 = Math.PI * 2.0D * (i + 1) / segments;
-            float x0 = cx + (float) (Math.cos(a0) * radius);
-            float z0 = cz + (float) (Math.sin(a0) * radius);
-            float x1 = cx + (float) (Math.cos(a1) * radius);
-            float z1 = cz + (float) (Math.sin(a1) * radius);
-            float nx = x1 - x0;
-            float nz = z1 - z0;
-            float length = (float) Math.sqrt(nx * nx + nz * nz);
-            nx /= length;
-            nz /= length;
-            lines.vertex(m, x0, fy, z0).color(r, g, b, 1.0F)
-                    .normal(pose.last().normal(), nx, 0.0F, nz).endVertex();
-            lines.vertex(m, x1, fy, z1).color(r, g, b, 1.0F)
-                    .normal(pose.last().normal(), nx, 0.0F, nz).endVertex();
-        }
+        WorldShapes.disc(pose, buffers, x + 0.5D, y, z + 0.5D, radius, rgb,
+                alpha, 1.0F);
     }
 
     /**
@@ -219,7 +176,24 @@ public final class DeployPreviewRenderer {
             MultiBufferSource buffers, BattleCard card, int x, double y,
             int z, TeamSide side, float partial)
     {
-        if (card.isSpell())
+        ghosts(mc, pose, buffers, card, x + 0.5D, y, z + 0.5D, side, partial);
+    }
+
+    /**
+     * Ghosts of a card's units around (cx, cz) (a block centre for a real
+     * deploy, anywhere for the bot's drag). The pose must already be
+     * translated to world space.
+     */
+    public static void ghosts(Minecraft mc, PoseStack pose,
+            MultiBufferSource buffers, BattleCard card, double cx, double y,
+            double cz, TeamSide side, float partial)
+    {
+        if (card.isSpell() || mc.level == null)
+            return;
+        if (ghostLevel != mc.level) {
+            GHOSTS.clear();
+            ghostLevel = mc.level;
+        }
             return;
         Entity entity = GHOSTS.computeIfAbsent(card,
                 c -> createGhost(mc.level, c));
@@ -232,14 +206,14 @@ public final class DeployPreviewRenderer {
         float scale = card.modelScale();
         float yaw = side == TeamSide.BLUE ? 180.0F : 0.0F;
         for (double[] offset : Formation.offsets(stats.count(), spacing)) {
-            ArenaWaypoint spot = arena.clampSpawn(x + 0.5D + offset[0],
-                    z + 0.5D + offset[1], sign);
-            double cx = spot.x();
-            double cz = spot.z();
-            entity.setPos(cx, y, cz);
-            entity.xo = entity.xOld = cx;
+            ArenaWaypoint spot = arena.clampSpawn(cx + offset[0],
+                    cz + offset[1], sign);
+            double ux = spot.x();
+            double uz = spot.z();
+            entity.setPos(ux, y, uz);
+            entity.xo = entity.xOld = ux;
             entity.yo = entity.yOld = y;
-            entity.zo = entity.zOld = cz;
+            entity.zo = entity.zOld = uz;
             entity.setYRot(yaw);
             entity.yRotO = yaw;
             if (entity instanceof LivingEntity living) {
@@ -247,7 +221,7 @@ public final class DeployPreviewRenderer {
                 living.yHeadRot = living.yHeadRotO = yaw;
             }
             pose.pushPose();
-            pose.translate(cx, y, cz);
+            pose.translate(ux, y, uz);
             pose.scale(scale, scale, scale);
             mc.getEntityRenderDispatcher().render(entity, 0.0D, 0.0D, 0.0D,
                     yaw, partial, pose, buffers, LightTexture.FULL_BRIGHT);

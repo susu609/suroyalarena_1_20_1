@@ -45,6 +45,8 @@ public final class BotBrain {
     public static final int ATTACK_MIN_TENTHS = 70;
     private static final int DEFENCE_DEPTH = 3;
     private static final int ATTACK_DEPTH = 4;
+    /** About how long the server shows the bot dragging a card. */
+    public static final int DRAG_TICKS = 14;
     /** Enemy health a spell must take off, per elixir it costs. */
     public static final double SPELL_VALUE_PER_ELIXIR = 8.0D;
 
@@ -141,9 +143,10 @@ public final class BotBrain {
             for (CombatUnit aim : engine.units()) {
                 if (aim.side() == side || !aim.alive())
                     continue;
-                // Units walk toward this side while the spell is in flight.
+                // Units walk toward this side while the card is dragged and
+                // the spell is in flight.
                 double lead = aim.stats().speed() *
-                        card.spell().castTicks() / 20.0D * 0.5D;
+                        (card.spell().castTicks() + DRAG_TICKS) / 20.0D * 0.5D;
                 int x = clamp((int) Math.floor(aim.x()), arena.minX(),
                         arena.maxX());
                 int z = clamp((int) Math.floor(aim.z() +

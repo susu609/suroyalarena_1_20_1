@@ -39,6 +39,8 @@ import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.network.ModNetwork;
+import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
+import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.tower.TowerId;
 
@@ -72,6 +74,8 @@ public final class BattleField {
     /** Ticks each troop has wanted to walk without moving (debug log). */
     private final Map<UUID, Integer> stuckTicks = new HashMap<>();
     private final TroopAnimator animator = new TroopAnimator();
+    /** Burn ticks last sent to the clients, per unit. */
+    private final Map<UUID, Integer> burnShown = new HashMap<>();
     /** Pending spells whose flight has already been shown. */
     private final Set<String> launched = new HashSet<>();
 
@@ -197,6 +201,7 @@ public final class BattleField {
             if (entity == null || !entity.isAlive()) {
                 engine.remove(unit.id());
                 animator.forget(unit.id());
+            burnShown.remove(unit.id());
                 continue;
             }
             unit.setPosition(entity.getX(), entity.getZ());
@@ -228,6 +233,7 @@ public final class BattleField {
             engine.remove(unit.id());
             stuckTicks.remove(unit.id());
             animator.forget(unit.id());
+            burnShown.remove(unit.id());
         }
     }
 
@@ -451,6 +457,7 @@ public final class BattleField {
     private void playSpell(TickResult.SpellPulse pulse) {
         double floor = arena.floorY() + 1.0D;
         double radius = pulse.card().spell().radius();
+        flash(pulse.x(), pulse.z(), radius);
         if (pulse.card() == BattleCard.FIREBALL) {
             level.sendParticles(ParticleTypes.EXPLOSION, pulse.x(), floor + 0.5D,
                     pulse.z(), 4, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
@@ -516,8 +523,17 @@ public final class BattleField {
                 1.0F);
     }
 
+    /** A red circle flashing on the floor where area damage lands. */
+    private void flash(double x, double z, double radius) {
+        double floor = arena.floorY() + 1.0D;
+        ModNetwork.sendNear(level, x, floor, z, PROJECTILE_VIEW_RANGE,
+                new S2CAoeFlashPacket((float) x, (float) floor, (float) z,
+                        (float) radius));
+    }
+
     /** A Creeper going off: blast particles over its splash circle. */
     private void explode(double[] at, double radius) {
+        flash(at[0], at[2], radius);
         double floor = arena.floorY() + 1.0D;
         level.sendParticles(ParticleTypes.EXPLOSION, at[0], floor + 0.5D,
                 at[2], 6, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
@@ -542,6 +558,7 @@ public final class BattleField {
         }
         if (attack.ranged() && attack.splash() > 0.0D) {
             // A splash potion breaking over its circle.
+            flash(attack.x(), attack.z(), attack.splash());
             double floor = arena.floorY() + 1.0D;
             level.sendParticles(ParticleTypes.WITCH, attack.x(), floor + 0.3D,
                     attack.z(), 24, attack.splash() * 0.5D, 0.2D,
@@ -589,9 +606,9 @@ public final class BattleField {
     }
 
     /**
-     * Copies engine health onto the mobs so health bars follow it, and sets
-     * burning units on fire (only the look: the mobs are invulnerable, the
-     * burn damage comes from the engine).
+     * Copies engine health onto the mobs so health bars follow it, and tells
+     * the clients when a unit starts burning (they draw embers instead of
+     * vanilla fire; the burn damage comes from the engine).
      */
     private void mirrorHealth() {
         for (CombatUnit unit : engine.units()) {
@@ -599,9 +616,18 @@ public final class BattleField {
             if (entity instanceof LivingEntity living &&
                     living.getHealth() != (float) unit.health())
                 living.setHealth((float) unit.health());
-            if (entity != null && unit.burnTicks() > 0 &&
-                    entity.getRemainingFireTicks() < unit.burnTicks())
-                entity.setRemainingFireTicks(unit.burnTicks());
+            int burn = unit.burnTicks();
+            int known = burnShown.getOrDefault(unit.id(), 0);
+            if (entity != null && burn > known) {
+                // Newly set alight or burning again: the clients draw it.
+                ModNetwork.sendNear(level, entity.getX(), entity.getY(),
+                        entity.getZ(), PROJECTILE_VIEW_RANGE,
+                        new S2CBurnPacket(entity.getId(), burn));
+            }
+            if (burn > 0)
+                burnShown.put(unit.id(), burn);
+            else
+                burnShown.remove(unit.id());
         }
     }
 
@@ -612,6 +638,7 @@ public final class BattleField {
      */
     private void removeDead(TickResult.Death death) {
         animator.forget(death.unit());
+        burnShown.remove(death.unit());
         Entity entity = level.getEntity(death.unit());
         if (entity != null) {
             level.sendParticles(ParticleTypes.POOF, entity.getX(),

@@ -16,6 +16,9 @@ import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.BattleHudOverlay;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.render.DeployPreviewRenderer;
+import net.susu609.royalarena.client.render.AoeFlashRenderer;
+import net.susu609.royalarena.client.render.BotDragRenderer;
+import net.susu609.royalarena.client.render.BurnEffects;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
 import net.susu609.royalarena.client.render.SpellTargetHighlighter;
 import net.susu609.royalarena.client.render.TroopVisuals;
@@ -44,6 +47,9 @@ public final class ClientForgeEvents {
         ClientMatchState.tick();
         ProjectileRenderer.tick();
         SpellTargetHighlighter.tick();
+        AoeFlashRenderer.tick();
+        BurnEffects.tick();
+        BotDragRenderer.tick();
 
         while (RoyalArenaKeyMappings.OPEN_MATCHING.consumeClick()) {
             if (!ClientMatchState.active() && mc.screen == null)
@@ -68,6 +74,9 @@ public final class ClientForgeEvents {
         ArenaCameraController.release();
         ProjectileRenderer.clear();
         SpellTargetHighlighter.clear();
+        AoeFlashRenderer.clear();
+        BurnEffects.clear();
+        BotDragRenderer.clear();
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
@@ -85,6 +94,8 @@ public final class ClientForgeEvents {
     public static void onRenderLevel(RenderLevelStageEvent event) {
         DeployPreviewRenderer.render(event);
         ProjectileRenderer.render(event);
+        AoeFlashRenderer.render(event);
+        BotDragRenderer.render(event);
     }
 
     /** Small troops (the three Skeletons, the four Spiders) drawn smaller. */

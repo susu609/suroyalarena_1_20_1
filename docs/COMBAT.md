@@ -77,6 +77,26 @@ Troops standing to fight turn toward their enemy or tower. Hops and tosses
 only change a mob's height, never the position the engine uses. Walking legs
 animate on their own from the movement.
 
+## Area damage, burning, the bot's hand
+
+- **Red flash.** Wherever area damage lands (a Creeper blast, a Witch
+  potion, the Fireball, each Arrow Storm volley) the clients flash a red
+  circle of the damage radius on the floor: two quick flashes fading out over
+  0.6 s (`S2CAoeFlashPacket`, `AoeFlashRenderer`).
+- **Burning.** A Fireball's burn is no longer vanilla fire around the whole
+  mob. The server tells the clients how long a troop burns
+  (`S2CBurnPacket`); they draw small flames on its body, embers popping off,
+  a little smoke, and flash it red each second as the burn bites
+  (`BurnEffects`).
+- **The bot drags its cards.** Instead of a card appearing at once, the
+  clients see a red hand carry the card's ghosts (or a spell's circle) from
+  the bot's King tower to the spot, easing in and out with a little wobble,
+  in 0.5 to 0.9 s depending on the distance; the card is played when it
+  arrives, then the usual deploy time runs (`S2CBotDragPacket`,
+  `BotDragRenderer`, `ServerMatchSession.startDrag`). Elixir is spent on
+  arrival. The bot aims spells a little further ahead to allow for it. In a
+  match between two players nothing of the other player's hand is shown.
+
 ## Not built yet
 
 Flying and building-only troops, hit knockback,

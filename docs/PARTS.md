@@ -308,3 +308,12 @@ hops and squish, spider pounce; troops turn toward what they fight. See
 - `combat/CombatEngine.java` (splash, self-destruct, melee knockback)
 - `server/battle/BattleField.java`, `server/battle/TroopAnimator.java`
 - `TraitSmokeTest`
+
+## Part 27 — AoE flashes, ember burn, the bot's hand
+
+- `network/s2c/S2CAoeFlashPacket.java`, `S2CBurnPacket.java`,
+  `S2CBotDragPacket.java` (protocol 6)
+- `client/render/AoeFlashRenderer.java`, `BurnEffects.java`,
+  `BotDragRenderer.java`, `WorldShapes.java`
+- `server/battle/BattleField.java`, `server/match/ServerMatchSession.java`,
+  `bot/BotBrain.java` (`DRAG_TICKS`)
