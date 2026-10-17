@@ -1,0 +1,20 @@
+{
+  "id": "polar_bear",
+  "type": "troop",
+  "display_name": "Polar Bear",
+  "roles": ["attack", "defense"],
+  "elixir": 4,
+  "entity": "minecraft:polar_bear",
+  "model_scale": 0.8,
+  "count": 1,
+  "unit": {
+    "health": 76,
+    "damage": 7,
+    "attack_interval_ticks": 24,
+    "range": 1.2,
+    "move_speed": 1.0,
+    "targets": "ground",
+    "frost_immune": true,
+    "flying": false
+  }
+}

@@ -111,7 +111,14 @@ library below shows every card (all cards are unlocked).
   card is picked up (gold frame); click the deck card it replaces. Right-click
   drops it.
 - Click a deck card, or its library card (marked "In deck"), to take it out.
-- Hover any card for its numbers: cost and roles, health x count, damage and
+- Above the library: tabs **All / Troops / Spells / Buildings** (no building
+  cards yet), **Sort** (library order or cheapest first), and filter buttons
+  **Attack / Defense / Support** (hand-written per card, `"roles"` in its
+  JSON) and **Tank / Swarm / Ranged / Area** (from the stats). Pressed ones
+  are yellow and all of them must match. The library shows 16 cards a page;
+  the `<` `>` arrows or the mouse wheel over the library turn the page, and
+  the line above it shows how many cards match.
+- Hover any card for its numbers: cost, roles and tactics, health x count, damage and
   interval, range and speed, split; for spells radius, flight time, damage,
   knockback, burn and the 30% tower damage.
 - The line under the deck shows the card count and the average elixir.

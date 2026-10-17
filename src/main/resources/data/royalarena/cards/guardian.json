@@ -1,0 +1,23 @@
+{
+  "id": "guardian",
+  "type": "troop",
+  "display_name": "Guardian",
+  "roles": ["defense"],
+  "elixir": 4,
+  "entity": "minecraft:guardian",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 46,
+    "damage": 14,
+    "attack_interval_ticks": 40,
+    "range": 5.5,
+    "move_speed": 0.6,
+    "targets": "ground",
+    "charge_ticks": 40,
+    "hover": 0.6,
+    "deploy_on_river": true,
+    "river_strong": true,
+    "flying": false
+  }
+}

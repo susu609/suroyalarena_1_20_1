@@ -1,6 +1,8 @@
 package net.susu609.royalarena.card;
 
+import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Troop and spell cards. Troop Stats mirror data/royalarena/cards/*.json (a test
@@ -44,7 +46,7 @@ public enum BattleCard {
             new TroopStats(1, 45, 8, 28, 1.2D, 1.6D, 0.65D,
                     TroopTraits.BUILDINGS)),
     PILLAGER("Pillager", 3, "minecraft:pillager", "minecraft:crossbow", 0,
-            new TroopStats(1, 30, 8, 40, 6.5D, 1.0D, 0.3D)),
+            new TroopStats(1, 30, 8, 40, 6.0D, 1.0D, 0.3D)),
     MAGMA_CUBE("Magma Cube", 4, "minecraft:magma_cube", null, 4,
             new TroopStats(1, 36, 7, 28, 1.2D, 0.83D, 1.0D,
                     new SplitRule(1, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
@@ -52,7 +54,7 @@ public enum BattleCard {
             new TroopStats(1, 58, 6, 24, 1.2D, 1.0D, 0.4D,
                     TroopTraits.teleporting(160))),
     CAVE_SPIDER("Cave Spider", 3, "minecraft:cave_spider", null, 0,
-            new TroopStats(4, 6, 1.5D, 20, 1.2D, 1.6D, 0.3D,
+            new TroopStats(4, 6, 2.0D, 20, 1.2D, 1.6D, 0.3D,
                     TroopTraits.poisoning(60, 1.0D))),
     VEX("Vex", 2, "minecraft:vex", "minecraft:iron_sword", 0,
             new TroopStats(3, 4, 16, 20, 1.2D, 2.0D, 0.3D,
@@ -69,6 +71,33 @@ public enum BattleCard {
     BLAZE("Blaze", 3, "minecraft:blaze", null, 0,
             new TroopStats(1, 30, 8, 40, 6.5D, 1.0D, 0.4D,
                     TroopTraits.hovering(1.5D, true, true, true))),
+    HUSK("Husk", 3, "minecraft:husk", null, 0,
+            new TroopStats(2, 18, 3, 20, 1.2D, 0.83D, 0.3D,
+                    TroopTraits.slowing(20))),
+    WITHER_SKELETON("Wither Skeleton", 3, "minecraft:wither_skeleton",
+            "minecraft:stone_sword", 0,
+            new TroopStats(1, 38, 10, 32, 1.5D, 1.0D, 0.35D,
+                    TroopTraits.poisoning(60, 1.5D))),
+    PIGLIN_BRUTE("Piglin Brute", 4, "minecraft:piglin_brute",
+            "minecraft:golden_axe", 0,
+            new TroopStats(1, 60, 14, 36, 1.2D, 1.0D, 0.3D)),
+    POLAR_BEAR("Polar Bear", 4, "minecraft:polar_bear", null, 0,
+            new TroopStats(1, 76, 7, 24, 1.2D, 1.0D, 0.7D,
+                    TroopTraits.frostProof())),
+    PHANTOM("Phantom", 3, "minecraft:phantom", null, 0,
+            new TroopStats(1, 34, 6, 20, 1.2D, 2.0D, 0.45D,
+                    TroopTraits.swooping(2.0D))),
+    SILVERFISH("Silverfish", 2, "minecraft:silverfish", null, 0,
+            new TroopStats(5, 4, 1, 16, 1.2D, 1.6D, 0.25D)),
+    BEE("Bee", 2, "minecraft:bee", null, 0,
+            new TroopStats(5, 4, 3, 20, 1.2D, 2.0D, 0.25D,
+                    TroopTraits.stinging(60, 1.5D, 1.0D))),
+    EVOKER("Evoker", 4, "minecraft:evoker", null, 0,
+            new TroopStats(1, 30, 10, 40, 5.0D, 0.8D, 0.3D,
+                    TroopTraits.line(1.2D))),
+    GUARDIAN("Guardian", 4, "minecraft:guardian", null, 0,
+            new TroopStats(1, 46, 14, 40, 5.5D, 0.6D, 0.45D,
+                    TroopTraits.laser(40, 0.6D))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
                     0.0D, 0.0D, 0)),
@@ -186,7 +215,34 @@ public enum BattleCard {
             case SPIDER -> 0.75F;
             case CAVE_SPIDER -> 0.6F;
             case VEX -> 0.8F;
+            case WITHER_SKELETON -> 0.85F;
+            case POLAR_BEAR -> 0.8F;
             default -> 1.0F;
+        };
+    }
+
+    /**
+     * How the card is meant to be played (attack, defense, support), as
+     * written in the {@code "roles"} list of its JSON.
+     */
+    public Set<CardTactic> tactics() {
+        return switch (this) {
+            case ZOMBIE, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
+                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN ->
+                    EnumSet.of(CardTactic.DEFENSE);
+            case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
+                    ARROW_STORM ->
+                    EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
+            case SPIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+                    PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
+                    EnumSet.of(CardTactic.ATTACK);
+            case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
+                    FIREBALL, TNT ->
+                    EnumSet.of(CardTactic.ATTACK, CardTactic.DEFENSE);
+            case DROWNED, BLAZE, FREEZE ->
+                    EnumSet.of(CardTactic.ATTACK, CardTactic.SUPPORT);
+            case HEALING_POTION ->
+                    EnumSet.of(CardTactic.SUPPORT);
         };
     }
 

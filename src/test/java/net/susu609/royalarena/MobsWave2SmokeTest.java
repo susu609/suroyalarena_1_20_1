@@ -1,0 +1,223 @@
+package net.susu609.royalarena;
+
+import net.susu609.royalarena.arena.ArenaLayout;
+import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.CardFilter;
+import net.susu609.royalarena.card.CardTactic;
+import net.susu609.royalarena.card.TroopStats;
+import net.susu609.royalarena.combat.CombatEngine;
+import net.susu609.royalarena.combat.CombatUnit;
+import net.susu609.royalarena.combat.TickResult;
+import net.susu609.royalarena.match.MatchInstance;
+import net.susu609.royalarena.match.TeamSide;
+import net.susu609.royalarena.tower.TowerId;
+
+import java.util.UUID;
+
+/**
+ * Pure-Java checks for the second wave of mobs: the Polar Bear shrugs off
+ * frost, Evoker fangs bite along a line, the Guardian locks on before its
+ * laser and hits harder from the river, a Bee stings once and leaves
+ * poison, the Phantom flies straight for a tower, and every card has
+ * hand-written tactics.
+ */
+public final class MobsWave2SmokeTest {
+    private MobsWave2SmokeTest() {
+    }
+
+    public static void run() {
+        polarBearIgnoresFrost();
+        evokerFangsBiteAlongALine();
+        guardianLocksOnFirst();
+        guardianHitsHarderFromTheRiver();
+        beeStingsOnceAndPoisons();
+        phantomGoesStraightForATower();
+        everyCardHasATactic();
+        libraryFiltersAndPages();
+        System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
+    }
+
+    private static MatchInstance battle() {
+        MatchInstance match = MatchInstance.create(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                ArenaLayout.standard(new ArenaPoint(0, 80, 0)));
+        match.startBattle();
+        return match;
+    }
+
+    private static CombatUnit unit(CombatEngine engine, BattleCard card,
+            TeamSide side, double x, double z)
+    {
+        return engine.add(UUID.randomUUID(), side, card.stats(), x, z);
+    }
+
+    /** A target that never hits back and stands still. */
+    private static CombatUnit dummy(CombatEngine engine, TeamSide side,
+            double x, double z)
+    {
+        return engine.add(UUID.randomUUID(), side,
+                new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void polarBearIgnoresFrost() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit bear = unit(engine, BattleCard.POLAR_BEAR, TeamSide.BLUE,
+                0.5D, 2.5D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                2.0D, 2.5D);
+        engine.castSpell(TeamSide.RED, BattleCard.FREEZE, 1.0D, 2.5D);
+        engine.tick();
+        double freezeDamage = BattleCard.FREEZE.spell().damagePerPulse();
+        near(bear.health(), BattleCard.POLAR_BEAR.stats().health() -
+                freezeDamage, "Freeze still hurts the Polar Bear");
+        check(!bear.frozen(), "but does not freeze it");
+        check(zombie.frozen(), "a Zombie next to it is frozen");
+
+        MatchInstance shot = battle();
+        CombatEngine shotEngine = new CombatEngine(shot);
+        CombatUnit target = unit(shotEngine, BattleCard.POLAR_BEAR,
+                TeamSide.BLUE, -6.0D, 6.0D);
+        unit(shotEngine, BattleCard.STRAY, TeamSide.RED, -6.0D, 1.5D);
+        boolean hit = false;
+        for (int i = 0; i < 60 && !hit; i++)
+            hit = shotEngine.tick().landed().stream().anyMatch(
+                    a -> target.id().equals(a.victimUnit()));
+        check(hit, "the Stray's arrow lands");
+        check(!target.slowed(), "and does not slow the Polar Bear");
+    }
+
+    private static void evokerFangsBiteAlongALine() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        // The Evoker on its half, three dummies in a row in front of it, one
+        // to the side. Out of every tower's reach.
+        unit(engine, BattleCard.EVOKER, TeamSide.BLUE, 0.0D, 3.0D);
+        CombatUnit first = dummy(engine, TeamSide.RED, 0.0D, 0.5D);
+        CombatUnit behind = dummy(engine, TeamSide.RED, 0.0D, -1.0D);
+        CombatUnit beside = dummy(engine, TeamSide.RED, 2.5D, 0.5D);
+        double bite = BattleCard.EVOKER.stats().damage();
+        for (int i = 0; i < 5; i++)
+            engine.tick();
+        near(first.health(), 200.0D - bite, "the target is bitten");
+        near(behind.health(), 200.0D - bite, "and so is the one behind it");
+        near(beside.health(), 200.0D, "the one beside the line is not");
+    }
+
+    private static void guardianLocksOnFirst() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit guardian = unit(engine, BattleCard.GUARDIAN, TeamSide.BLUE,
+                0.0D, 3.0D);
+        dummy(engine, TeamSide.RED, 0.0D, -0.5D);
+        int charge = BattleCard.GUARDIAN.stats().traits().chargeTicks();
+        int firstShot = -1;
+        for (int tick = 1; tick <= charge + 10 && firstShot < 0; tick++) {
+            TickResult r = engine.tick();
+            if (r.attacks().stream().anyMatch(
+                    a -> guardian.id().equals(a.attackerUnit())))
+                firstShot = tick;
+            else if (tick > 1)
+                check(guardian.charging(), "locking on (tick " + tick + ")");
+        }
+        check(firstShot >= charge, "the first laser waits for the charge: " +
+                firstShot + " >= " + charge);
+    }
+
+    private static void guardianHitsHarderFromTheRiver() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        unit(engine, BattleCard.GUARDIAN, TeamSide.BLUE, 0.5D, 0.5D);
+        CombatUnit target = dummy(engine, TeamSide.RED, 0.5D, -3.0D);
+        for (int i = 0; i < 60; i++)
+            engine.tick();
+        near(target.health(), 200.0D - 1.5D * BattleCard.GUARDIAN.stats()
+                .damage(), "one laser from the river: 1.5x damage");
+    }
+
+    private static void beeStingsOnceAndPoisons() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit bee = engine.add(UUID.randomUUID(), TeamSide.BLUE,
+                BattleCard.BEE.stats(), 0.0D, 2.6D);
+        CombatUnit target = dummy(engine, TeamSide.RED, 0.0D, 1.5D);
+        TickResult first = engine.tick();
+        check(first.attacks().stream().anyMatch(
+                a -> bee.id().equals(a.attackerUnit())), "the Bee stings");
+        check(!bee.alive(), "and dies");
+        check(target.poisoned(), "the sting poisons");
+        for (int i = 0; i < 80; i++)
+            engine.tick();
+        var traits = BattleCard.BEE.stats().traits();
+        near(200.0D - target.health(), BattleCard.BEE.stats().damage() +
+                traits.poisonTotal(), "sting plus all of the poison");
+    }
+
+    private static void phantomGoesStraightForATower() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit phantom = unit(engine, BattleCard.PHANTOM, TeamSide.BLUE,
+                0.5D, 10.0D);
+        unit(engine, BattleCard.ZOMBIE, TeamSide.RED, 0.5D, 8.5D);
+        TickResult r = engine.tick();
+        TickResult.Move move = r.moves().stream().filter(
+                m -> m.unit().equals(phantom.id())).findFirst().orElse(null);
+        check(move != null, "the Phantom flies on past the Zombie");
+        ArenaPoint tower = match.arena().towerPoint(TowerId.RED_LEFT);
+        near(move.x(), tower.x(), "straight for the tower");
+        near(move.z(), tower.z(), "over the river");
+    }
+
+    private static void everyCardHasATactic() {
+        for (BattleCard card : BattleCard.values())
+            check(!card.tactics().isEmpty(), card.id() + " has a tactic");
+        check(BattleCard.HEALING_POTION.tactics().contains(CardTactic.SUPPORT),
+                "a healing potion supports");
+    }
+
+    private static void libraryFiltersAndPages() {
+        var none = java.util.EnumSet.noneOf(CardFilter.Chip.class);
+        var all = CardFilter.shown(CardFilter.Tab.ALL, none, false);
+        check(all.size() == BattleCard.values().length, "All shows every card");
+        check(CardFilter.shown(CardFilter.Tab.SPELLS, none, false).stream()
+                .allMatch(BattleCard::isSpell), "Spells shows only spells");
+        check(CardFilter.shown(CardFilter.Tab.BUILDINGS, none, false)
+                .isEmpty(), "no building cards yet");
+        var support = CardFilter.shown(CardFilter.Tab.ALL,
+                java.util.EnumSet.of(CardFilter.Chip.SUPPORT), false);
+        check(support.contains(BattleCard.HEALING_POTION) &&
+                !support.contains(BattleCard.ZOMBIE), "the Support chip");
+        var tankAttack = CardFilter.shown(CardFilter.Tab.TROOPS,
+                java.util.EnumSet.of(CardFilter.Chip.ATTACK,
+                        CardFilter.Chip.TANK), false);
+        check(tankAttack.contains(BattleCard.RAVAGER) &&
+                !tankAttack.contains(BattleCard.SPIDER),
+                "chips must all match: " + tankAttack);
+        var cheap = CardFilter.shown(CardFilter.Tab.ALL, none, true);
+        for (int i = 1; i < cheap.size(); i++)
+            check(cheap.get(i - 1).cost() <= cheap.get(i).cost(),
+                    "sorted by elixir");
+        int pages = CardFilter.pages(all.size());
+        check(pages == (all.size() + 15) / 16, "16 cards a page");
+        int seen = 0;
+        for (int p = 0; p < pages; p++)
+            seen += CardFilter.page(all, p).size();
+        check(seen == all.size(), "the pages hold every card once");
+        check(CardFilter.page(all, 99).equals(CardFilter.page(all, pages - 1)),
+                "a page past the end shows the last");
+        check(CardFilter.pages(0) == 1 &&
+                CardFilter.page(java.util.List.of(), 0).isEmpty(),
+                "an empty filter is one empty page");
+    }
+
+    private static void near(double actual, double expected, String name) {
+        check(Math.abs(actual - expected) < 1.0E-6D,
+                name + ": " + actual + " vs " + expected);
+    }
+
+    private static void check(boolean condition, String name) {
+        if (!condition)
+            throw new AssertionError(name);
+    }
+}

@@ -2,6 +2,7 @@
   "id": "magma_cube",
   "type": "troop",
   "display_name": "Magma Cube",
+  "roles": ["attack", "defense"],
   "elixir": 4,
   "entity": "minecraft:magma_cube",
   "model_scale": 1.0,

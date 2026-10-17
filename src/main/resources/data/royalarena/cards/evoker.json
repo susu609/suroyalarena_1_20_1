@@ -1,0 +1,20 @@
+{
+  "id": "evoker",
+  "type": "troop",
+  "display_name": "Evoker",
+  "roles": ["defense", "support"],
+  "elixir": 4,
+  "entity": "minecraft:evoker",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 30,
+    "damage": 10,
+    "attack_interval_ticks": 40,
+    "range": 5.0,
+    "move_speed": 0.8,
+    "targets": "ground",
+    "line_width": 1.2,
+    "flying": false
+  }
+}

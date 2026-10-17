@@ -12,13 +12,16 @@ exist in Minecraft 1.20.1.
 
 ## Proposed by Claude
 
-- [ ] Husk (`minecraft:husk`): a Zombie whose hit slows (hunger); 2 units, a little less health than Zombies. Reuses `slowing`.
-- [ ] Wither Skeleton (`minecraft:wither_skeleton`, stone sword): tall, slow-swinging heavy melee whose hit withers (poison, dark particles instead of green). Reuses `poisoning`.
+Done in Part 37 are ticked (their final stats are in docs/CARDS.md).
+
+
+- [x] Husk (`minecraft:husk`): a Zombie whose hit slows (hunger); 2 units, a little less health than Zombies. Reuses `slowing`.
+- [x] Wither Skeleton (`minecraft:wither_skeleton`, stone sword): tall, slow-swinging heavy melee whose hit withers (poison, dark particles instead of green). Reuses `poisoning`.
 - [ ] Snow Golem (`minecraft:snow_golem`): ranged snowballs for almost no damage that slow; strong against Blaze (frost). Reuses `slowing`; Blaze weakness to its snowballs is a new rule.
-- [ ] Piglin Brute (`minecraft:piglin_brute`, golden axe): high damage, slow axe like the Vindicator but sturdier, 4 elixir.
-- [ ] Phantom (`minecraft:phantom`): fragile flyer that crosses the river anywhere and hovers; hit-and-run. Reuses `hovering`.
-- [ ] Silverfish (`minecraft:silverfish`): swarm of 6 tiny fast units, 1 elixir range. Count >= 5 modifier.
-- [ ] Polar Bear (`minecraft:polar_bear`): melee mini-tank, immune to Freeze (frost) as its rule.
-- [ ] Guardian (`minecraft:guardian`): laser beam that charges 2 s then hits hard; can be played on the river and fights better there (reverse water rule).
-- [ ] Evoker (`minecraft:evoker`): stays back and summons fangs in a line toward its target (new rule: line splash).
-- [ ] Bee (`minecraft:bee`): swarm of 5 that sting once, poison and die. Reuses `selfDestruct` + `poisoning`.
+- [x] Piglin Brute (`minecraft:piglin_brute`, golden axe): high damage, slow axe like the Vindicator but sturdier, 4 elixir.
+- [x] Phantom (`minecraft:phantom`): fragile flyer that crosses the river anywhere and hovers; hit-and-run. Reuses `hovering`.
+- [x] Silverfish (`minecraft:silverfish`): swarm of 6 tiny fast units, 1 elixir range. Count >= 5 modifier.
+- [x] Polar Bear (`minecraft:polar_bear`): melee mini-tank, immune to Freeze (frost) as its rule.
+- [x] Guardian (`minecraft:guardian`): laser beam that charges 2 s then hits hard; can be played on the river and fights better there (reverse water rule).
+- [x] Evoker (`minecraft:evoker`): stays back and summons fangs in a line toward its target (new rule: line splash).
+- [x] Bee (`minecraft:bee`): swarm of 5 that sting once, poison and die. Reuses `selfDestruct` + `poisoning`.

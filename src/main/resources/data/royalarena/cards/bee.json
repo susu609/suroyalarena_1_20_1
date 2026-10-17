@@ -1,0 +1,23 @@
+{
+  "id": "bee",
+  "type": "troop",
+  "display_name": "Bee",
+  "roles": ["defense", "support"],
+  "elixir": 2,
+  "entity": "minecraft:bee",
+  "model_scale": 1.0,
+  "count": 5,
+  "unit": {
+    "health": 4,
+    "damage": 3,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 2.0,
+    "targets": "ground",
+    "self_destruct": true,
+    "poison_ticks": 60,
+    "poison_per_second": 1.5,
+    "hover": 1.0,
+    "flying": false
+  }
+}

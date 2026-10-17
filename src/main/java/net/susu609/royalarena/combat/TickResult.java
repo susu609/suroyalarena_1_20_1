@@ -50,13 +50,16 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
      * (x, z) where the target stood when it was struck or shot at; a hit
      * with {@code splash} also hits every enemy within that many blocks of
      * the target, a melee hit with {@code knockback} pushes its victim, and
-     * one with {@code slowTicks} slows it.
+     * one with {@code slowTicks} slows it. A hit with {@code line} also
+     * hurts every enemy on the line that wide from (fromX, fromZ), where the
+     * attacker stood, through the target to {@code lineLength} blocks.
      */
     public record Attack(UUID attackerUnit, TowerId attackerTower,
                          UUID victimUnit, TowerId victimTower, double damage,
                          boolean ranged, int flightTicks, TeamSide side,
                          double x, double z, double splash, double knockback,
-                         int slowTicks)
+                         int slowTicks, double line, double lineLength,
+                         double fromX, double fromZ)
     {
         /** A plain hit: no splash, no knockback; (x, z) is the target. */
         public Attack(UUID attackerUnit, TowerId attackerTower,
@@ -65,7 +68,8 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
                 double z)
         {
             this(attackerUnit, attackerTower, victimUnit, victimTower, damage,
-                    ranged, flightTicks, side, x, z, 0.0D, 0.0D, 0);
+                    ranged, flightTicks, side, x, z, 0.0D, 0.0D, 0, 0.0D, 0.0D,
+                    x, z);
         }
     }
 

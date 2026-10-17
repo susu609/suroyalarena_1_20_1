@@ -8,7 +8,9 @@ import net.minecraft.network.chat.Component;
 import net.susu609.royalarena.bot.BotDeck;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
+import net.susu609.royalarena.card.CardFilter;
 import net.susu609.royalarena.card.CardRole;
+import net.susu609.royalarena.card.CardTactic;
 import net.susu609.royalarena.card.DeckRules;
 import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.card.TroopStats;
@@ -20,7 +22,11 @@ import net.susu609.royalarena.network.c2s.C2SSaveDeckPacket;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Locale;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -32,6 +38,10 @@ import java.util.stream.Collectors;
  * deck it is picked up, then click the deck card it should replace.</li>
  * <li>Click a deck card (or its library card) to take it out.</li>
  * <li>Right-click drops a picked-up card.</li>
+ * <li>Tabs (All, Troops, Spells, Buildings) and filter buttons (Attack,
+ * Defense, Support from the card JSON; Tank, Swarm, Ranged, Area from the
+ * stats; all pressed ones must match) choose what the library shows, 16 cards
+ * a page: the arrows or the mouse wheel turn the page.</li>
  * </ul>
  * Save sends the deck to the server, which checks it and stores it with the
  * world; the next match uses it (shuffled).
@@ -39,8 +49,13 @@ import java.util.stream.Collectors;
 public final class DeckScreen extends Screen {
     private static final int GAP = 6;
     private static final int TOP = 22;
-    /** Summary, status and library label between deck and library. */
-    private static final int TEXT_BAND = 44;
+    /** Summary and status under the deck. */
+    private static final int TEXT_BAND = 30;
+    /** Two rows of tab and filter buttons. */
+    private static final int CONTROLS = 30;
+    /** The "Card library" line with the page arrows. */
+    private static final int LABEL = 13;
+    private static final int CONTROL_H = 13;
     private static final int GOLD = 0xFFFFD84A;
     private static final int HOVER = 0xFFB8C8E8;
     private static final int EMPTY = 0x80101620;
@@ -58,6 +73,17 @@ public final class DeckScreen extends Screen {
     private int cardH;
     private Button saveButton;
 
+    private CardFilter.Tab tab = CardFilter.Tab.ALL;
+    private final Set<CardFilter.Chip> chips =
+            EnumSet.noneOf(CardFilter.Chip.class);
+    private boolean byElixir;
+    private int page;
+    private final Map<CardFilter.Tab, Button> tabButtons =
+            new EnumMap<>(CardFilter.Tab.class);
+    private final Map<CardFilter.Chip, Button> chipButtons =
+            new EnumMap<>(CardFilter.Chip.class);
+    private Button sortButton;
+
     public DeckScreen(Screen parent) {
         super(Component.literal("Deck"));
         this.parent = parent;
@@ -65,9 +91,10 @@ public final class DeckScreen extends Screen {
 
     @Override
     protected void init() {
-        // Three rows of cards (deck + two library rows), the text between
-        // them and the buttons must fit the height.
-        int byHeight = (height - deckY() - TEXT_BAND - GAP - 32) / 3;
+        // Three rows of cards (deck + two library rows), the text and
+        // filter buttons between them and the buttons must fit the height.
+        int byHeight = (height - deckY() - TEXT_BAND - CONTROLS - LABEL -
+                GAP - 32) / 3;
         int byWidth = (Math.min(width, 420) - 20) / 8 - GAP;
         cardW = Math.max(16, Math.min(byWidth, byHeight * 31 / 39));
         cardH = Math.round(cardW * 39 / 31.0F);
@@ -87,6 +114,7 @@ public final class DeckScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Back"),
                 b -> onClose())
                 .bounds(x + 3 * (w + 4), y, w, 20).build());
+        addFilterButtons();
 
         if (seenVersion < 0) {
             ModNetwork.sendToServer(new C2SDeckRequestPacket());
@@ -110,6 +138,95 @@ public final class DeckScreen extends Screen {
             }
         }
         updateButtons();
+    }
+
+    /** Tabs and sort on the first row, the filter chips on the second. */
+    private void addFilterButtons() {
+        tabButtons.clear();
+        chipButtons.clear();
+        int top = controlsTop();
+        int tabW = 50;
+        int sortW = 72;
+        CardFilter.Tab[] tabs = CardFilter.Tab.values();
+        int rowW = tabs.length * (tabW + 3) + sortW;
+        int x = width / 2 - rowW / 2;
+        for (CardFilter.Tab t : tabs) {
+            tabButtons.put(t, addRenderableWidget(Button.builder(
+                    Component.literal(t.label()), b -> {
+                        tab = t;
+                        page = 0;
+                        refreshFilterButtons();
+                    }).bounds(x, top, tabW, CONTROL_H).build()));
+            x += tabW + 3;
+        }
+        sortButton = addRenderableWidget(Button.builder(Component.empty(),
+                b -> {
+                    byElixir = !byElixir;
+                    page = 0;
+                    refreshFilterButtons();
+                }).bounds(x, top, sortW, CONTROL_H).build());
+
+        CardFilter.Chip[] all = CardFilter.Chip.values();
+        int chipW = 42;
+        x = width / 2 - (all.length * (chipW + 3) - 3) / 2;
+        for (CardFilter.Chip c : all) {
+            chipButtons.put(c, addRenderableWidget(Button.builder(
+                    Component.literal(c.label()), b -> {
+                        if (!chips.remove(c))
+                            chips.add(c);
+                        page = 0;
+                        refreshFilterButtons();
+                    }).bounds(x, top + CONTROL_H + 3, chipW, CONTROL_H)
+                    .build()));
+            x += chipW + 3;
+        }
+        int arrows = rowX(BattleDeck.DECK_SIZE) +
+                BattleDeck.DECK_SIZE * (cardW + GAP) - GAP;
+        addRenderableWidget(Button.builder(Component.literal(">"),
+                b -> turnPage(1)).bounds(arrows - 14, libraryTop() - LABEL,
+                14, CONTROL_H - 1).build());
+        addRenderableWidget(Button.builder(Component.literal("<"),
+                b -> turnPage(-1)).bounds(arrows - 70, libraryTop() - LABEL,
+                14, CONTROL_H - 1).build());
+        refreshFilterButtons();
+    }
+
+    /** Pressed tabs and chips are shown in yellow. */
+    private void refreshFilterButtons() {
+        tabButtons.forEach((t, b) -> b.setMessage(pressed(t.label(),
+                t == tab)));
+        chipButtons.forEach((c, b) -> b.setMessage(pressed(c.label(),
+                chips.contains(c))));
+        if (sortButton != null)
+            sortButton.setMessage(Component.literal(byElixir ?
+                    "Sort: elixir" : "Sort: default"));
+    }
+
+    private static Component pressed(String label, boolean on) {
+        return on ? Component.literal(label).withStyle(ChatFormatting.YELLOW)
+                : Component.literal(label);
+    }
+
+    private List<BattleCard> shown() {
+        return CardFilter.shown(tab, chips, byElixir);
+    }
+
+    private List<BattleCard> pageCards() {
+        return CardFilter.page(shown(), page);
+    }
+
+    private void turnPage(int by) {
+        int pages = CardFilter.pages(shown().size());
+        page = Math.max(0, Math.min(pages - 1, page + by));
+    }
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        if (my >= libraryTop() - LABEL) {
+            turnPage(delta < 0 ? 1 : -1);
+            return true;
+        }
+        return super.mouseScrolled(mx, my, delta);
     }
 
     private void load(List<BattleCard> cards) {
@@ -158,15 +275,18 @@ public final class DeckScreen extends Screen {
         return TOP + 4;
     }
 
-    private int libraryTop() {
+    private int controlsTop() {
         return deckY() + cardH + TEXT_BAND;
     }
 
+    private int libraryTop() {
+        return controlsTop() + CONTROLS + LABEL;
+    }
+
+    /** Where card {@code index} of the page goes; rows are left-aligned. */
     private int libraryX(int index) {
-        int perRow = BattleDeck.DECK_SIZE;
-        int row = index / perRow;
-        int inRow = Math.min(perRow, BattleCard.values().length - row * perRow);
-        return rowX(inRow) + (index % perRow) * (cardW + GAP);
+        return rowX(BattleDeck.DECK_SIZE) +
+                (index % BattleDeck.DECK_SIZE) * (cardW + GAP);
     }
 
     private int libraryY(int index) {
@@ -182,10 +302,10 @@ public final class DeckScreen extends Screen {
     }
 
     private BattleCard libraryCardAt(double mx, double my) {
-        BattleCard[] all = BattleCard.values();
-        for (int i = 0; i < all.length; i++) {
+        List<BattleCard> cards = pageCards();
+        for (int i = 0; i < cards.size(); i++) {
             if (inside(mx, my, libraryX(i), libraryY(i)))
-                return all[i];
+                return cards.get(i);
         }
         return null;
     }
@@ -303,16 +423,30 @@ public final class DeckScreen extends Screen {
             graphics.drawCenteredString(font, status, width / 2,
                     deckY() + cardH + 18, statusColor);
 
-        graphics.drawString(font, "Card library", rowX(BattleDeck.DECK_SIZE),
-                libraryTop() - 11, 0xFFCCCCCC);
-        BattleCard[] all = BattleCard.values();
-        for (int i = 0; i < all.length; i++) {
+        List<BattleCard> shown = shown();
+        int pages = CardFilter.pages(shown.size());
+        page = Math.min(page, pages - 1);
+        graphics.drawString(font, String.format(Locale.ROOT,
+                        "Card library  %d/%d cards", shown.size(),
+                        BattleCard.values().length),
+                rowX(BattleDeck.DECK_SIZE), libraryTop() - 11, 0xFFCCCCCC);
+        int arrows = rowX(BattleDeck.DECK_SIZE) +
+                BattleDeck.DECK_SIZE * (cardW + GAP) - GAP;
+        graphics.drawCenteredString(font, (page + 1) + "/" + pages,
+                arrows - 35, libraryTop() - 10, 0xFFCCCCCC);
+        List<BattleCard> all = CardFilter.page(shown, page);
+        if (all.isEmpty())
+            graphics.drawCenteredString(font, tab == CardFilter.Tab.BUILDINGS ?
+                            "No building cards yet" : "No card matches",
+                    width / 2, libraryTop() + cardH / 2, 0xFF8A94A8);
+        for (int i = 0; i < all.size(); i++) {
+            BattleCard card = all.get(i);
             int x = libraryX(i);
             int y = libraryY(i);
             boolean over = inside(mouseX, mouseY, x, y);
-            drawCard(graphics, all[i], x, y,
-                    all[i] == held ? GOLD : over ? HOVER : CardFace.EDGE);
-            if (indexInDeck(all[i]) >= 0) {
+            drawCard(graphics, card, x, y,
+                    card == held ? GOLD : over ? HOVER : CardFace.EDGE);
+            if (indexInDeck(card) >= 0) {
                 graphics.pose().pushPose();
                 graphics.pose().translate(0.0F, 0.0F, 200.0F);
                 graphics.fill(x, y, x + cardW, y + cardH, IN_DECK);
@@ -321,7 +455,7 @@ public final class DeckScreen extends Screen {
                 graphics.pose().popPose();
             }
             if (over)
-                hovered = all[i];
+                hovered = card;
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -350,6 +484,9 @@ public final class DeckScreen extends Screen {
                 .collect(Collectors.joining(", "));
         lines.add(Component.literal(card.cost() + " elixir - " + roles)
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
+        lines.add(Component.literal(card.tactics().stream()
+                .map(CardTactic::label).collect(Collectors.joining(", ")))
+                .withStyle(ChatFormatting.AQUA));
         if (card.isSpell()) {
             SpellStats s = card.spell();
             lines.add(line("Radius %.1f blocks, lands after %.1f s",
@@ -423,6 +560,15 @@ public final class DeckScreen extends Screen {
             lines.add(line("Freezing spells hit it twice as hard and freeze it twice as long"));
         if (s.traits().waterWeak())
             lines.add(line("Takes 1.5 times the damage while on the river"));
+        if (s.traits().frostImmune())
+            lines.add(line("Never frozen or slowed; frost only hurts it"));
+        if (s.traits().lines())
+            lines.add(line("Fangs bite every enemy on a line toward its target"));
+        if (s.traits().charges())
+            lines.add(line("Locks on for %.0f s before hitting a new target",
+                    s.traits().chargeTicks() / 20.0D));
+        if (s.traits().riverStrong())
+            lines.add(line("Hits 1.5 times as hard from the river"));
         return lines;
     }
 

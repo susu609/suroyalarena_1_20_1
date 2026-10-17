@@ -2,6 +2,7 @@
   "id": "blaze",
   "type": "troop",
   "display_name": "Blaze",
+  "roles": ["attack", "support"],
   "elixir": 3,
   "entity": "minecraft:blaze",
   "model_scale": 1.0,

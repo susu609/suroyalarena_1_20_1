@@ -2,6 +2,7 @@
   "id": "zombified_piglin",
   "type": "troop",
   "display_name": "Zombified Piglin",
+  "roles": ["defense"],
   "elixir": 3,
   "entity": "minecraft:zombified_piglin",
   "model_scale": 1.0,

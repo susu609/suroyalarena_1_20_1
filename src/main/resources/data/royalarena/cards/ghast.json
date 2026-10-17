@@ -2,6 +2,7 @@
   "id": "ghast",
   "type": "troop",
   "display_name": "Ghast",
+  "roles": ["defense", "support"],
   "elixir": 5,
   "entity": "minecraft:ghast",
   "model_scale": 1.0,

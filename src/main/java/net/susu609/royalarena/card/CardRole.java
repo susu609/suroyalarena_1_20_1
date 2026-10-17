@@ -48,7 +48,7 @@ public enum CardRole {
         roles.add(s.melee() ? MELEE : RANGED);
         if (s.count() >= 3)
             roles.add(SWARM);
-        if (s.traits().splash())
+        if (s.traits().splash() || s.traits().lines())
             roles.add(AREA);
         if (s.traits().buildingsOnly())
             roles.add(BUILDINGS);

@@ -256,18 +256,27 @@ public final class CombatEngine {
                     stats.speedPerTick() * speedMultiplier * slow));
             return;
         }
+        TroopTraits traits = stats.traits();
+        // A Guardian first locks on to a new target.
+        if (traits.charges() &&
+                !unit.lockOn(enemy != null ? enemy.id() : tower))
+            return;
         if (!unit.ready())
             return;
         unit.startCooldown();
         boolean ranged = !stats.melee();
-        int flight = ranged ? flightTicks(unit.x(), unit.z(), targetX,
-                targetZ) : 0;
-        TroopTraits traits = stats.traits();
+        // Laser beams and fangs hit at once; arrows and fireballs fly.
+        int flight = ranged && !traits.charges() && !traits.lines() ?
+                flightTicks(unit.x(), unit.z(), targetX, targetZ) : 0;
+        double damage = unit.damage();
+        if (traits.riverStrong() && arena.isRiver((int) Math.floor(unit.z())))
+            damage *= TroopTraits.RIVER_STRENGTH;
         attacks.add(new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
-                unit.damage(), ranged, flight, unit.side(), targetX, targetZ,
+                damage, ranged, flight, unit.side(), targetX, targetZ,
                 traits.splashRadius(), ranged ? 0.0D : traits.knockback(),
-                traits.slowTicks()));
+                traits.slowTicks(), traits.lineWidth(),
+                stats.range() + unit.radius() + 1.0D, unit.x(), unit.z()));
         if (traits.selfDestruct())
             unit.expire();
     }
@@ -547,7 +556,7 @@ public final class CombatEngine {
             if (!damageUnit(unit, damage, hit.spell().side,
                     hit.spell().card))
                 continue;
-            if (spell.freezeTicks() > 0)
+            if (spell.freezeTicks() > 0 && !unit.stats().traits().frostImmune())
                 unit.freeze(frostWeak ? spell.freezeTicks() * 2 :
                         spell.freezeTicks());
             if (spell.stunTicks() > 0)
@@ -664,6 +673,8 @@ public final class CombatEngine {
             }
             if (attack.splash() > 0.0D)
                 splash(attack, victim, destroyed, source);
+            if (attack.line() > 0.0D)
+                line(attack, victim, source);
             if (attack.slowTicks() > 0 && victim != null && victim.alive())
                 victim.slow(attack.slowTicks());
             if (attack.knockback() > 0.0D && victim != null && victim.alive()) {
@@ -735,6 +746,35 @@ public final class CombatEngine {
             if (distanceToTower(cx, cz, id) <= attack.splash() + EPSILON)
                 hitTower(id, attack.damage(), destroyed, attack.side(),
                         source);
+        }
+    }
+
+    /**
+     * Fangs along the line from where the attacker stood, through the
+     * target, to {@code lineLength}: every other enemy whose body touches
+     * the line is bitten too.
+     */
+    private void line(Attack attack, CombatUnit victim, BattleCard source) {
+        double dx = attack.x() - attack.fromX();
+        double dz = attack.z() - attack.fromZ();
+        double length = Math.hypot(dx, dz);
+        if (length < EPSILON)
+            return;
+        dx /= length;
+        dz /= length;
+        double reach = Math.max(length, attack.lineLength());
+        for (CombatUnit other : units) {
+            if (other == victim || other.side() == attack.side() ||
+                    !other.alive())
+                continue;
+            double ox = other.x() - attack.fromX();
+            double oz = other.z() - attack.fromZ();
+            double along = ox * dx + oz * dz;
+            if (along < 0.0D || along > reach)
+                continue;
+            double across = Math.abs(ox * dz - oz * dx);
+            if (across <= attack.line() / 2.0D + other.radius() + EPSILON)
+                damageUnit(other, attack.damage(), attack.side(), source);
         }
     }
 

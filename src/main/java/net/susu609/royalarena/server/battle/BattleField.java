@@ -17,6 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -25,6 +26,7 @@ import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Guardian;
 import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Ravager;
@@ -86,6 +88,9 @@ public final class BattleField {
     /** Pale green, for poison damage. */
     private static final DustParticleOptions POISON_DUST =
             new DustParticleOptions(new Vector3f(0.55F, 1.0F, 0.5F), 0.9F);
+    /** Near black, for a Wither Skeleton's wither. */
+    private static final DustParticleOptions WITHER_DUST =
+            new DustParticleOptions(new Vector3f(0.15F, 0.12F, 0.15F), 1.0F);
     /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
     private static final int VOLLEY_ARROWS = 5;
     /** Fewest ticks between two red hurt flashes of one troop. */
@@ -636,8 +641,21 @@ public final class BattleField {
             explode(from, attack.splash());
             return;
         }
+        if (attacker instanceof Bee) {
+            level.playSound(null, from[0], from[1], from[2],
+                    SoundEvents.BEE_STING, SoundSource.HOSTILE, 0.6F, 1.0F);
+            return;
+        }
         if (!attack.ranged())
             return;
+        if (attack.line() > 0.0D) {
+            fangs(attack);
+            return;
+        }
+        if (attacker instanceof Guardian) {
+            beam(from, to);
+            return;
+        }
         double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
         if (attacker instanceof Ghast || attacker instanceof Blaze) {
             sendProjectile(S2CProjectilePacket.Kind.FIREBALL, from, to,
@@ -669,6 +687,50 @@ public final class BattleField {
                         SoundEvents.CROSSBOW_SHOOT :
                         SoundEvents.ARROW_SHOOT, SoundSource.HOSTILE, 0.6F,
                 1.0F);
+    }
+
+    /**
+     * Evoker fangs: bites rising along the line from the Evoker through its
+     * target (the damage is the engine's).
+     */
+    private void fangs(TickResult.Attack attack) {
+        double dx = attack.x() - attack.fromX();
+        double dz = attack.z() - attack.fromZ();
+        double length = Math.hypot(dx, dz);
+        if (length < 1.0E-3D)
+            return;
+        double reach = Math.max(length, attack.lineLength());
+        double floor = arena.floorY() + 1.0D;
+        for (double d = 1.0D; d <= reach; d += 0.8D) {
+            double x = attack.fromX() + dx / length * d;
+            double z = attack.fromZ() + dz / length * d;
+            level.sendParticles(ParticleTypes.ENCHANTED_HIT, x, floor + 0.3D,
+                    z, 3, 0.15D, 0.2D, 0.15D, 0.0D);
+            level.sendParticles(ParticleTypes.CRIT, x, floor + 0.1D, z, 1,
+                    0.1D, 0.0D, 0.1D, 0.0D);
+        }
+        level.playSound(null, attack.fromX(), floor, attack.fromZ(),
+                SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 0.6F, 1.0F);
+        level.playSound(null, attack.x(), floor, attack.z(),
+                SoundEvents.EVOKER_FANGS_ATTACK, SoundSource.HOSTILE, 0.7F,
+                1.0F);
+    }
+
+    /** A Guardian laser: a straight line of light to the target. */
+    private void beam(double[] from, double[] to) {
+        double length = Math.sqrt(Math.pow(to[0] - from[0], 2) +
+                Math.pow(to[1] - from[1], 2) + Math.pow(to[2] - from[2], 2));
+        int steps = Math.max(2, (int) (length / 0.4D));
+        for (int i = 0; i <= steps; i++) {
+            double t = i / (double) steps;
+            level.sendParticles(ParticleTypes.END_ROD,
+                    from[0] + (to[0] - from[0]) * t,
+                    from[1] + (to[1] - from[1]) * t,
+                    from[2] + (to[2] - from[2]) * t, 1, 0.0D, 0.0D, 0.0D,
+                    0.0D);
+        }
+        level.playSound(null, from[0], from[1], from[2],
+                SoundEvents.GUARDIAN_ATTACK, SoundSource.HOSTILE, 0.6F, 1.0F);
     }
 
     /** Shakes the camera of the players watching (S2CShakePacket). */
@@ -854,7 +916,10 @@ public final class BattleField {
                 SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 1.0F);
     }
 
-    /** Pale green drips over a poisoned troop (Cave Spider's bite). */
+    /**
+     * Pale green drips over a poisoned troop (Cave Spider, Bee); near black
+     * for a Wither Skeleton's wither.
+     */
     private void showPoison() {
         if (level.getGameTime() % 10 != 0)
             return;
@@ -862,7 +927,9 @@ public final class BattleField {
             Entity entity = level.getEntity(unit.id());
             if (entity == null || !unit.poisoned())
                 continue;
-            level.sendParticles(POISON_DUST, entity.getX(),
+            level.sendParticles(unit.poisonSource() ==
+                            BattleCard.WITHER_SKELETON ? WITHER_DUST : POISON_DUST,
+                    entity.getX(),
                     entity.getY() + entity.getBbHeight() * 0.7D,
                     entity.getZ(), 4, 0.2D, 0.2D, 0.2D, 0.0D);
         }

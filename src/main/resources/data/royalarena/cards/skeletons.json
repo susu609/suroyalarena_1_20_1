@@ -2,6 +2,7 @@
   "id": "skeletons",
   "type": "troop",
   "display_name": "Skeletons",
+  "roles": ["defense"],
   "elixir": 2,
   "entity": "minecraft:skeleton",
   "model_scale": 0.9,

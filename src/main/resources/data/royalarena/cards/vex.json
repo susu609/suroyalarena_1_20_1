@@ -2,6 +2,7 @@
   "id": "vex",
   "type": "troop",
   "display_name": "Vex",
+  "roles": ["defense"],
   "elixir": 2,
   "entity": "minecraft:vex",
   "model_scale": 0.8,

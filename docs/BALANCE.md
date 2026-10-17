@@ -26,7 +26,8 @@ elixir = round(P / cost_divisor)          cost_divisor = 5.4
 - `totalDPS` = damage / interval x count. Poison counts as damage, but only
   what one hit's poison deals before the next hit replaces it: poison per
   second x min(poison time, interval). A Cave Spider (1 a second for 3 s,
-  biting every 1 s) adds 1 per bite, not 3.
+  biting every 1 s) adds 1 per bite, not 3. A unit that dies on its hit (Bee)
+  counts all of its poison.
 
 Modifiers multiply together:
 
@@ -42,6 +43,14 @@ Modifiers multiply together:
 | Targets towers only | x0.85 |
 | Knockback | x1.1 |
 | Slows what it hits | x1.15 |
+| Teleports out of shots and spells | x1.2 |
+| Crosses the river anywhere | x1.15 |
+| May be played on the river | x1.05 |
+| Frost or water weakness (each) | x0.9 |
+| Frost-proof (Polar Bear) | x1.05 |
+| Line damage (Evoker) | x1.25 |
+| Locks on before each new target (Guardian) | x0.85 |
+| Hits harder from the river (Guardian) | x1.05 |
 
 `cost_divisor` is a tuning knob. At 5.4 the starter set averages under 3
 elixir. Lowering it makes every troop more expensive. Decide after playtests.

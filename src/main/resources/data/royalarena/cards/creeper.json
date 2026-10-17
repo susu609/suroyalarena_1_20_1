@@ -2,6 +2,7 @@
   "id": "creeper",
   "type": "troop",
   "display_name": "Creeper",
+  "roles": ["attack", "defense"],
   "elixir": 3,
   "entity": "minecraft:creeper",
   "model_scale": 1.0,

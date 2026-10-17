@@ -117,6 +117,19 @@ can be turned down or off.
   river rows, in addition to its own half (`ArenaLayout.canPlay`).
 - **Dies on the strike (Vex).** Like the Creeper, without the blast.
 
+- **Frost-proof (Polar Bear).** Freezing spells still hurt it but never
+  freeze it, and slowing arrows do not slow it (`CombatUnit.slow`).
+- **Line (Evoker).** Its hit also lands on every other enemy whose body
+  touches a 1.2 wide line from where the Evoker stood, through its target, to
+  its range + 1 (`CombatEngine.line`). Fangs hit at once (no flight).
+- **Lock-on (Guardian).** A new target (troop or tower) restarts a 2 s charge
+  before the first laser (`CombatUnit.lockOn`); the laser hits at once. From
+  the river rows it hits 1.5x as hard. It may be played on the river.
+- **Sting (Bee).** Dies on its hit like the Vex, and the poison it leaves runs
+  its full 3 s.
+- **Tower diver (Phantom).** Only targets towers and flies straight over the
+  river.
+
 Hover, the river and the frost/water rules are in the engine, so they count in
 the 1-versus-1 measures; the look (the floating mob, the portal burst) is
 client-side only and has not been seen in the game yet.

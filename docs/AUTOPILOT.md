@@ -38,6 +38,8 @@ Edit this file to change what the cycles do; the next cycle reads it fresh.
    - `card/BattleCard.java` (append before the spells; cost from the formula),
      `data/royalarena/cards/<id>.json` (same numbers, `model_scale`),
      `model_sources/card_art/royalarena_card_art.js` (CARDS: id and cost)
+   - tactics: `"roles"` in the JSON (`attack`, `defense`, `support`) and the
+     same in `BattleCard.tactics()`
    - a new rule: `card/TroopTraits.java` (+ formula modifier with a reason),
      `combat/CombatEngine.java`, `client/screen/DeckScreen.java` (tooltip),
      `server/battle/BattleField.java` (visuals), JSON trait key in

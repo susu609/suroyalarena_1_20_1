@@ -37,6 +37,8 @@ public final class CombatUnit {
     private int poisonTicks;
     private double poisonPerTick;
     private BattleCard poisonSource;
+    /** Enemy id or tower a charging unit (Guardian) has locked on to. */
+    private Object lockedOn;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -178,7 +180,7 @@ public final class CombatUnit {
     }
 
     /** The card whose poison is on the unit, or null. */
-    BattleCard poisonSource() {
+    public BattleCard poisonSource() {
         return poisonSource;
     }
 
@@ -200,12 +202,30 @@ public final class CombatUnit {
 
     /** Slows the unit's walk for {@code ticks}; a longer slow wins. */
     void slow(int ticks) {
-        slowTicks = Math.max(slowTicks, ticks);
+        if (!stats.traits().frostImmune())
+            slowTicks = Math.max(slowTicks, ticks);
     }
 
     /** Stops the unit for {@code ticks}; a longer freeze wins. */
     void freeze(int ticks) {
         frozenTicks = Math.max(frozenTicks, ticks);
+    }
+
+    /**
+     * A charging unit facing {@code target} (an enemy id or a tower): a new
+     * target restarts the charge. Returns whether it is ready to hit.
+     */
+    boolean lockOn(Object target) {
+        if (!target.equals(lockedOn)) {
+            lockedOn = target;
+            cooldown = Math.max(cooldown, stats.traits().chargeTicks());
+        }
+        return cooldown <= 0;
+    }
+
+    /** Whether a charging unit is still locking on to its target. */
+    public boolean charging() {
+        return stats.traits().charges() && lockedOn != null && cooldown > 0;
     }
 
     /** Stops the unit for {@code ticks} and restarts its attack. */

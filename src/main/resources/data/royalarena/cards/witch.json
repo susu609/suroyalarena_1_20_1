@@ -2,6 +2,7 @@
   "id": "witch",
   "type": "troop",
   "display_name": "Witch",
+  "roles": ["defense", "support"],
   "elixir": 4,
   "entity": "minecraft:witch",
   "model_scale": 1.0,

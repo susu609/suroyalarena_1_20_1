@@ -2,6 +2,7 @@
   "id": "tnt",
   "type": "spell",
   "display_name": "TNT",
+  "roles": ["attack", "defense"],
   "elixir": 5,
   "radius": 3.0,
   "travel_ticks": 30,

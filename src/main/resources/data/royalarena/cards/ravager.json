@@ -2,6 +2,7 @@
   "id": "ravager",
   "type": "troop",
   "display_name": "Ravager",
+  "roles": ["attack"],
   "elixir": 5,
   "entity": "minecraft:ravager",
   "model_scale": 1.0,

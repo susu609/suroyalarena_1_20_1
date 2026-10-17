@@ -2,6 +2,7 @@
   "id": "enderman",
   "type": "troop",
   "display_name": "Enderman",
+  "roles": ["attack"],
   "elixir": 4,
   "entity": "minecraft:enderman",
   "model_scale": 1.0,

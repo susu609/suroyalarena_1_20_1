@@ -2,6 +2,7 @@
   "id": "iron_golem",
   "type": "troop",
   "display_name": "Iron Golem",
+  "roles": ["attack"],
   "elixir": 5,
   "entity": "minecraft:iron_golem",
   "model_scale": 1.0,

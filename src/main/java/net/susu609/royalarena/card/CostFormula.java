@@ -29,6 +29,14 @@ public final class CostFormula {
     public static final double DEPLOY_ON_RIVER = 1.05D;
     /** Takes extra damage from frost or water (Blaze). */
     public static final double WEAKNESS = 0.9D;
+    /** Never frozen or slowed (Polar Bear). */
+    public static final double FROST_IMMUNE = 1.05D;
+    /** Hits every enemy on a line toward its target (Evoker). */
+    public static final double LINE_DAMAGE = 1.25D;
+    /** Locks on before hitting each new target (Guardian). */
+    public static final double CHARGE = 0.85D;
+    /** Hits harder from the river (Guardian). */
+    public static final double RIVER_STRONG = 1.05D;
 
     private CostFormula() {
     }
@@ -38,9 +46,12 @@ public final class CostFormula {
         int generations = 1 + (s.split() == null ? 0 : s.split().generations());
         double totalHealth = s.health() * s.count() * generations;
         // Poison lands with every hit, so it counts as part of the damage;
-        // the next hit replaces it, so only what runs until then counts.
-        double perHit = s.damage() + s.traits().poisonPerSecond() *
-                Math.min(s.traits().poisonTicks(), s.attackTicks()) / 20.0D;
+        // the next hit replaces it, so only what runs until then counts (all
+        // of it for a unit that dies on its hit, like a Bee).
+        int poisonTicks = s.traits().selfDestruct() ? s.traits().poisonTicks() :
+                Math.min(s.traits().poisonTicks(), s.attackTicks());
+        double perHit = s.damage() +
+                s.traits().poisonPerSecond() * poisonTicks / 20.0D;
         double dps = perHit / (s.attackTicks() / 20.0D) * s.count();
         double modifier = 1.0D;
         if (s.range() >= 4.0D)
@@ -71,6 +82,14 @@ public final class CostFormula {
             modifier *= WEAKNESS;
         if (s.traits().waterWeak())
             modifier *= WEAKNESS;
+        if (s.traits().frostImmune())
+            modifier *= FROST_IMMUNE;
+        if (s.traits().lines())
+            modifier *= LINE_DAMAGE;
+        if (s.traits().charges())
+            modifier *= CHARGE;
+        if (s.traits().riverStrong())
+            modifier *= RIVER_STRONG;
         return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
     }
 

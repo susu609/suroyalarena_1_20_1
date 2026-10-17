@@ -2,6 +2,7 @@
   "id": "fireball",
   "type": "spell",
   "display_name": "Fireball",
+  "roles": ["attack", "defense"],
   "elixir": 4,
   "radius": 2.5,
   "travel_ticks": 20,

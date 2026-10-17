@@ -1,0 +1,20 @@
+{
+  "id": "piglin_brute",
+  "type": "troop",
+  "display_name": "Piglin Brute",
+  "roles": ["attack"],
+  "elixir": 4,
+  "entity": "minecraft:piglin_brute",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 60,
+    "damage": 14,
+    "attack_interval_ticks": 36,
+    "range": 1.2,
+    "move_speed": 1.0,
+    "targets": "ground",
+    "flying": false
+  },
+  "held_item": "minecraft:golden_axe"
+}

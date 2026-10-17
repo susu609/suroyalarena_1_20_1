@@ -2,6 +2,7 @@
   "id": "lightning",
   "type": "spell",
   "display_name": "Lightning",
+  "roles": ["attack"],
   "elixir": 6,
   "radius": 3.5,
   "travel_ticks": 15,

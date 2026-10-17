@@ -2,6 +2,7 @@
   "id": "skeleton_archer",
   "type": "troop",
   "display_name": "Skeleton Archer",
+  "roles": ["defense", "support"],
   "elixir": 2,
   "entity": "minecraft:skeleton",
   "model_scale": 1.0,

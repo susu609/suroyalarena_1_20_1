@@ -195,7 +195,7 @@ health scale like the rest. Elixir comes from `CostFormula`, and the band
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
 | Enderman | `minecraft:enderman` | 1 | 58 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 8 s; a blow is not dodged | **4** |
-| Cave Spider | `minecraft:cave_spider` | 4 | 6 | 1.5 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); a new bite replaces the poison, so the cost counts the 1 a bite adds before the next | **3** |
+| Cave Spider | `minecraft:cave_spider` | 4 | 6 | 2 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); a new bite replaces the poison, so the cost counts the 1 a bite adds before the next | **3** |
 | Vex | `minecraft:vex` | 3 | 4 | 16 | 1.0 | 1.2 | 2.0 | dies when it strikes: one big blow and gone | **2** |
 | Ghast | `minecraft:ghast` | 1 | 27 | 22 | 3.0 | 6.0 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **5** |
 | Drowned | `minecraft:drowned` | 1 | 22 | 4 | 2.0 | 5.0 | 1.0 | trident from 5 blocks; may also be played on the river | **2** |
@@ -221,6 +221,48 @@ formula, and was measured over 2000-4000 matches.
 | Creeper | speed 1.33 -> 1.6 (still 3) | Already counted as fast in the formula; reaching its target sooner is free. HP did nothing. | 45% -> 43% |
 
 After (4000 matches): Skeleton Archer 58% is the highest, Cave Spider and
-Creeper 43% the lowest. 2000 matches give each card about +/-3%, 4000 about
+Creeper 43% the lowest. With the second wave (below) Pillager went back to
+61%: range 6.5 -> 6.0 (still 3) brought it to 56%; Cave Spider's bite went
+1.5 -> 2 (still 3). 2000 matches give each card about +/-3%, 4000 about
 +/-2%.
+
+## Second wave: Husk, Wither Skeleton, Piglin Brute, Polar Bear, Phantom, Silverfish, Bee, Evoker, Guardian
+
+| Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
+|---|---|---|---|---|---|---|---|---|---|
+| Husk | `minecraft:husk` | 2 | 18 | 3 | 1.0 | 1.2 | 0.83 | its hit slows for 1 s (hunger) | **3** |
+| Wither Skeleton | `minecraft:wither_skeleton` | 1 | 38 | 10 | 1.6 | 1.5 | 1.0 | stone sword; withers: 1.5 a second for 3 s (black dust) | **3** |
+| Piglin Brute | `minecraft:piglin_brute` | 1 | 60 | 14 | 1.8 | 1.2 | 1.0 | golden axe: big, slow blows | **4** |
+| Polar Bear | `minecraft:polar_bear` | 1 | 76 | 7 | 1.2 | 1.2 | 1.0 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **4** |
+| Phantom | `minecraft:phantom` | 1 | 34 | 6 | 1.0 | 1.2 | 2.0 | flies 2 blocks up straight over the river and only goes for towers | **3** |
+| Silverfish | `minecraft:silverfish` | 5 | 4 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
+| Bee | `minecraft:bee` | 5 | 4 | 3 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once, poisons 1.5 a second for 3 s, and dies | **2** |
+| Evoker | `minecraft:evoker` | 1 | 30 | 10 | 2.0 | 5.0 | 0.8 | fangs bite every enemy on a 1.2 wide line from it through its target | **4** |
+| Guardian | `minecraft:guardian` | 1 | 46 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **4** |
+
+Each cost is the formula's. New modifiers (docs/BALANCE.md): frost-proof
+x1.05, line damage x1.25, lock-on x0.85, stronger on the river x1.05; a unit
+that dies on its hit counts all of its poison.
+
+Tuning (bot matches, 4000): Polar Bear HP 85 -> 76 (63% -> 57%), Wither
+Skeleton HP 44 -> 38 (61% -> 56%), Silverfish 6 -> 5 bodies (60% -> 53%),
+Guardian HP 40 -> 46 (42% -> 46%). Phantom started as a pair of 4-elixir
+fighters at 38%; as one 3-elixir flyer that only hits towers it is at 44%,
+and it passes the tower-only band (`PowerCreepTest`). Bee is at the low edge
+(41%): its cost is at the top of 2 elixir, so a buff would make it 3.
+
+After (4000 matches, 37 cards): every card between 41% and 58%; Polar Bear
+and Skeleton Archer the highest, Bee the lowest.
+
+## Tactics (Attack, Defense, Support)
+
+Each card's JSON has a hand-written `"roles"` list of `attack`, `defense`,
+`support`; `BattleCard.tactics()` holds the same (a test checks they match,
+so change both). The deck screen filters by them. Current choice:
+
+| Tactic | Cards |
+|---|---|
+| Attack | Spider, Big Slime, Iron Golem, Creeper, Wolves, Ravager, Hoglin, Magma Cube, Enderman, Drowned, Blaze, Wither Skeleton, Piglin Brute, Polar Bear, Phantom, Fireball, Lightning, Freeze, TNT |
+| Defense | Zombie, Skeleton Archer, Skeletons, Big Slime, Stray, Vindicator, Creeper, Witch, Pillager, Magma Cube, Cave Spider, Vex, Ghast, Zombified Piglin, Husk, Wither Skeleton, Polar Bear, Silverfish, Bee, Evoker, Guardian, Arrow Storm, Fireball, TNT |
+| Support | Skeleton Archer, Stray, Witch, Pillager, Ghast, Drowned, Blaze, Bee, Evoker, Arrow Storm, Potion of Healing, Freeze |
 

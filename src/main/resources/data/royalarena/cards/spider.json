@@ -2,6 +2,7 @@
   "id": "spider",
   "type": "troop",
   "display_name": "Spider",
+  "roles": ["attack"],
   "elixir": 3,
   "entity": "minecraft:spider",
   "model_scale": 0.75,

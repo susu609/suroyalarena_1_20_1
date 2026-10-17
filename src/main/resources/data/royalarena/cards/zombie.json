@@ -2,6 +2,7 @@
   "id": "zombie",
   "type": "troop",
   "display_name": "Zombie",
+  "roles": ["defense"],
   "elixir": 3,
   "entity": "minecraft:zombie",
   "model_scale": 1.0,

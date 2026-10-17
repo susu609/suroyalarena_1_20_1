@@ -2,6 +2,7 @@
   "id": "stray",
   "type": "troop",
   "display_name": "Stray",
+  "roles": ["defense", "support"],
   "elixir": 2,
   "entity": "minecraft:stray",
   "model_scale": 1.0,

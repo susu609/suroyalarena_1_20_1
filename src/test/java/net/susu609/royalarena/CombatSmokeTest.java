@@ -4,6 +4,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.CardTactic;
 import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.card.CostFormula;
 import net.susu609.royalarena.combat.ChildSpawn;
@@ -156,6 +157,9 @@ public final class CombatSmokeTest {
                 throw new AssertionError(e);
             }
             near(number(json, "elixir"), card.cost(), card.id() + " elixir");
+            check(roles(json).equals(card.tactics()), card.id() +
+                    " roles in the JSON " + roles(json) + " vs the code " +
+                    card.tactics());
             if (card.isSpell()) {
                 spellJsonMatches(card, json);
                 continue;
@@ -189,7 +193,29 @@ public final class CombatSmokeTest {
             flag(json, "deploy_on_river", t.deployOnRiver(), card.id());
             flag(json, "frost_weak", t.frostWeak(), card.id());
             flag(json, "water_weak", t.waterWeak(), card.id());
+            flag(json, "frost_immune", t.frostImmune(), card.id());
+            flag(json, "river_strong", t.riverStrong(), card.id());
+            near(numberOr(json, "line_width", 0.0D), t.lineWidth(),
+                    card.id() + " line width");
+            near(numberOr(json, "charge_ticks", 0.0D), t.chargeTicks(),
+                    card.id() + " charge");
+            check(json.contains("\"targets\": \"buildings\"") ==
+                    t.buildingsOnly(), card.id() + " targets buildings");
         }
+    }
+
+    /** The {@code "roles"} list of a card JSON as tactics. */
+    private static java.util.Set<CardTactic> roles(String json) {
+        java.util.Set<CardTactic> set = java.util.EnumSet.noneOf(
+                CardTactic.class);
+        java.util.regex.Matcher list = Pattern.compile(
+                "\"roles\"\\s*:\\s*\\[([^\\]]*)\\]").matcher(json);
+        check(list.find(), "card json has a roles list");
+        for (CardTactic tactic : CardTactic.values()) {
+            if (list.group(1).contains("\"" + tactic.id() + "\""))
+                set.add(tactic);
+        }
+        return set;
     }
 
     private static double numberOr(String json, String key, double fallback) {

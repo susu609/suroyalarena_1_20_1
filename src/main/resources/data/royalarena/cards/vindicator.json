@@ -2,6 +2,7 @@
   "id": "vindicator",
   "type": "troop",
   "display_name": "Vindicator",
+  "roles": ["defense"],
   "elixir": 2,
   "entity": "minecraft:vindicator",
   "model_scale": 1.0,

@@ -2,6 +2,7 @@
   "id": "hoglin",
   "type": "troop",
   "display_name": "Hoglin",
+  "roles": ["attack"],
   "elixir": 3,
   "entity": "minecraft:hoglin",
   "model_scale": 1.0,

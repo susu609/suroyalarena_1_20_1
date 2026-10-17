@@ -2,6 +2,7 @@
   "id": "big_slime",
   "type": "troop",
   "display_name": "Big Slime",
+  "roles": ["attack", "defense"],
   "elixir": 3,
   "entity": "minecraft:slime",
   "model_scale": 1.0,

@@ -25,6 +25,15 @@ package net.susu609.royalarena.card;
  * @param frostWeak           spells that freeze deal double damage and freeze for
  *                            twice as long (Blaze)
  * @param waterWeak           the unit takes 1.5x damage while on the river (Blaze)
+ * @param frostImmune         freezing spells and frost arrows only hurt it: it
+ *                            is never frozen or slowed (Polar Bear)
+ * @param lineWidth           the hit runs in a line from the unit to its
+ *                            target and on to its full range, this wide, and
+ *                            hurts every enemy on it (Evoker fangs); 0 = no line
+ * @param chargeTicks         a new target first takes this long to lock on
+ *                            before the first hit (Guardian laser); 0 = none
+ * @param riverStrong         hits {@link #RIVER_STRENGTH} times as hard while
+ *                            standing on the river (Guardian)
  */
 public record TroopTraits(double splashRadius, boolean selfDestruct,
                           double knockback, boolean buildingsOnly,
@@ -32,7 +41,9 @@ public record TroopTraits(double splashRadius, boolean selfDestruct,
                           double poisonPerSecond, int teleportCooldownTicks,
                           double hover, boolean crossesRiver,
                           boolean deployOnRiver, boolean frostWeak,
-                          boolean waterWeak)
+                          boolean waterWeak, boolean frostImmune,
+                          double lineWidth, int chargeTicks,
+                          boolean riverStrong)
 {
     /** Walking speed left to a slowed troop. */
     public static final double SLOW_SPEED = 0.6D;
@@ -40,35 +51,40 @@ public record TroopTraits(double splashRadius, boolean selfDestruct,
     public static final double WATER_WEAKNESS = 1.5D;
     /** Damage taken from a freezing spell by a frost-weak troop. */
     public static final double FROST_WEAKNESS = 2.0D;
+    /** Damage dealt from the river by a river-strong troop. */
+    public static final double RIVER_STRENGTH = 1.5D;
 
     public static final TroopTraits NONE = new TroopTraits(0.0D, false, 0.0D,
-            false, 0, 0, 0.0D, 0, 0.0D, false, false, false, false);
+            false, 0, 0, 0.0D, 0, 0.0D, false, false, false, false, false,
+            0.0D, 0, false);
     public static final TroopTraits BUILDINGS = new TroopTraits(0.0D, false,
-            0.0D, true, 0, 0, 0.0D, 0, 0.0D, false, false, false, false);
+            0.0D, true, 0, 0, 0.0D, 0, 0.0D, false, false, false, false, false,
+            0.0D, 0, false);
 
     public TroopTraits(double splashRadius, boolean selfDestruct,
             double knockback)
     {
         this(splashRadius, selfDestruct, knockback, false, 0, 0, 0.0D, 0,
-                0.0D, false, false, false, false);
+                0.0D, false, false, false, false, false, 0.0D, 0, false);
     }
 
     /** Only slows what it hits. */
     public static TroopTraits slowing(int ticks) {
         return new TroopTraits(0.0D, false, 0.0D, false, ticks, 0, 0.0D, 0,
-                0.0D, false, false, false, false);
+                0.0D, false, false, false, false, false, 0.0D, 0, false);
     }
 
     /** Poisons what it hits: {@code perSecond} damage a second for {@code ticks}. */
     public static TroopTraits poisoning(int ticks, double perSecond) {
         return new TroopTraits(0.0D, false, 0.0D, false, 0, ticks, perSecond,
-                0, 0.0D, false, false, false, false);
+                0, 0.0D, false, false, false, false, false, 0.0D, 0, false);
     }
 
     /** Teleports away from ranged shots and spells, once per cooldown. */
     public static TroopTraits teleporting(int cooldownTicks) {
         return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D,
-                cooldownTicks, 0.0D, false, false, false, false);
+                cooldownTicks, 0.0D, false, false, false, false, false, 0.0D,
+                0, false);
     }
 
     /** Floats {@code height} blocks up; the three flags as documented. */
@@ -76,13 +92,62 @@ public record TroopTraits(double splashRadius, boolean selfDestruct,
             boolean frostWeak, boolean waterWeak)
     {
         return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0,
-                height, crossesRiver, false, frostWeak, waterWeak);
+                height, crossesRiver, false, frostWeak, waterWeak, false, 0.0D,
+                0, false);
+    }
+
+    /**
+     * Flies {@code height} blocks up straight over the river and only goes
+     * for the towers (Phantom).
+     */
+    public static TroopTraits swooping(double height) {
+        return new TroopTraits(0.0D, false, 0.0D, true, 0, 0, 0.0D, 0, height,
+                true, false, false, false, false, 0.0D, 0, false);
     }
 
     /** Can be played on the river as well as on its own half. */
     public static TroopTraits riverDeploy() {
         return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0, 0.0D,
-                false, true, false, false);
+                false, true, false, false, false, 0.0D, 0, false);
+    }
+
+    /** Dies on its first sting and leaves poison (Bee). */
+    public static TroopTraits stinging(int poisonTicks, double perSecond,
+            double hover)
+    {
+        return new TroopTraits(0.0D, true, 0.0D, false, 0, poisonTicks,
+                perSecond, 0, hover, false, false, false, false, false, 0.0D,
+                0, false);
+    }
+
+    /** Never frozen or slowed (Polar Bear). */
+    public static TroopTraits frostProof() {
+        return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0, 0.0D,
+                false, false, false, false, true, 0.0D, 0, false);
+    }
+
+    /** Hits everything on a line this wide toward its target (Evoker). */
+    public static TroopTraits line(double width) {
+        return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0, 0.0D,
+                false, false, false, false, false, width, 0, false);
+    }
+
+    /**
+     * Locks on for {@code chargeTicks} before hitting a new target, may be
+     * played on the river and hits harder from there (Guardian). It swims
+     * {@code hover} blocks up: a vanilla Guardian flops about on the ground.
+     */
+    public static TroopTraits laser(int chargeTicks, double hover) {
+        return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0, hover,
+                false, true, false, false, false, 0.0D, chargeTicks, true);
+    }
+
+    public boolean lines() {
+        return lineWidth > 0.0D;
+    }
+
+    public boolean charges() {
+        return chargeTicks > 0;
     }
 
     public boolean splash() {

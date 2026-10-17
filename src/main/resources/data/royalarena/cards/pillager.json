@@ -2,6 +2,7 @@
   "id": "pillager",
   "type": "troop",
   "display_name": "Pillager",
+  "roles": ["defense", "support"],
   "elixir": 3,
   "entity": "minecraft:pillager",
   "model_scale": 1.0,
@@ -10,7 +11,7 @@
     "health": 30,
     "damage": 8,
     "attack_interval_ticks": 40,
-    "range": 6.5,
+    "range": 6.0,
     "move_speed": 1.0,
     "flying": false,
     "targets": "ground"

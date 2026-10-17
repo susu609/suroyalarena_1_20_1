@@ -428,3 +428,24 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - SpellSmokeTest, NewMobsSmokeTest (new numbers)
 - `docs/CARDS.md` ("Tuning into 40-60%"), `docs/BALANCE.md`, `docs/BOT.md`,
   `docs/BALANCE_REPORT.md`
+
+## Part 37 — Deck library filters and the second wave of mobs
+
+- `card/CardTactic.java` (Attack, Defense, Support; `BattleCard.tactics()`,
+  `"roles"` in every card JSON), `card/CardFilter.java` (tabs, chips, sort,
+  16-card pages), `client/screen/DeckScreen.java` (the buttons, paging, mouse
+  wheel, tactics and new rules in the tooltip)
+- `card/BattleCard.java`, `card/*` JSON, `model_sources/card_art`: Husk,
+  Wither Skeleton, Piglin Brute, Polar Bear, Phantom, Silverfish, Bee, Evoker,
+  Guardian; Pillager range 6.0, Cave Spider bite 2
+- `card/TroopTraits.java` (frost-proof, line, lock-on, river strength;
+  `stinging`, `swooping`, `laser`), `card/CostFormula.java` (their modifiers,
+  full poison for self-destruct), `card/CardRole.java` (line is area)
+- `combat/CombatEngine.java` (line hits, lock-on, river strength,
+  frost-proof), `combat/CombatUnit.java`, `combat/TickResult.java`
+  (`Attack.line`, `lineLength`, `fromX`, `fromZ`)
+- `server/battle/BattleField.java` (fangs, laser beam, bee sting, wither
+  dust), `network/ModNetwork.java` (protocol 9)
+- `MobsWave2SmokeTest`, CombatSmokeTest (roles and the new JSON keys)
+- `docs/CARDS.md`, `docs/COMBAT.md`, `docs/BALANCE.md`, `docs/UI.md`
+

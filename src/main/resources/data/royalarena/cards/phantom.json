@@ -1,0 +1,21 @@
+{
+  "id": "phantom",
+  "type": "troop",
+  "display_name": "Phantom",
+  "roles": ["attack"],
+  "elixir": 3,
+  "entity": "minecraft:phantom",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 34,
+    "damage": 6,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 2.0,
+    "targets": "buildings",
+    "hover": 2.0,
+    "crosses_river": true,
+    "flying": false
+  }
+}

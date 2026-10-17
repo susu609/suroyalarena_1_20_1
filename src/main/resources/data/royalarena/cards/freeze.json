@@ -2,6 +2,7 @@
   "id": "freeze",
   "type": "spell",
   "display_name": "Freeze",
+  "roles": ["attack", "support"],
   "elixir": 3,
   "radius": 3.0,
   "travel_ticks": 10,

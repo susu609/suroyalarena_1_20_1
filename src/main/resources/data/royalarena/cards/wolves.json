@@ -2,6 +2,7 @@
   "id": "wolves",
   "type": "troop",
   "display_name": "Wolves",
+  "roles": ["attack"],
   "elixir": 3,
   "entity": "minecraft:wolf",
   "model_scale": 1.0,

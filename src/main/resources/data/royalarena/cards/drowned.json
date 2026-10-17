@@ -2,6 +2,7 @@
   "id": "drowned",
   "type": "troop",
   "display_name": "Drowned",
+  "roles": ["attack", "support"],
   "elixir": 2,
   "entity": "minecraft:drowned",
   "model_scale": 1.0,
