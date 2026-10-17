@@ -24,7 +24,8 @@ Cards show a small key number (1-4) and their art: a portrait PNG if one
 exists, otherwise the mob's spawn egg. Portraits are optional and live at
 `assets/royalarena/textures/gui/card/<card id>.png` in this mod or any
 resource pack (ids: `zombie`, `skeleton_archer`, `spider`, `skeletons`,
-`big_slime`, `stray`, `vindicator`, `iron_golem`, `arrow_storm`, `fireball`).
+`big_slime`, `stray`, `vindicator`, `iron_golem`; a new card's id is its
+lower-case enum name).
 Any size works, the image is stretched over the card face (31:39, so 124x156 or
 248x312 is a good size); press F3+T after adding one. See `CardArt`. Cards that
 cost more than the current elixir are greyed out. A hovered card rises 3 units
