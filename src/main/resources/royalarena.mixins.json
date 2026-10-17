@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "royalarena.refmap.json",
   "mixins": [
+    "MobDespawnMixin",
     "MobSunBurnMixin"
   ],
   "client": [],

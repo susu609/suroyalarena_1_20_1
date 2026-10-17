@@ -4,14 +4,19 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.arena.ArenaScenery;
 
 /**
  * Builds a fresh arena for every match and removes it afterwards. Blocks are
  * placed with UPDATE_CLIENTS only, so river water never schedules flow ticks
- * and nothing next to the arena reacts while it is built or cleared.
+ * and nothing next to the arena reacts while it is built or cleared. In the
+ * arena dimension the arena also gets hills and forest around it
+ * ({@link ArenaScenery}); in the overworld fallback it does not, so nothing of
+ * the world is overwritten.
  */
 public final class ArenaBuilder {
     private static final int FLAGS = Block.UPDATE_CLIENTS;
@@ -21,6 +26,8 @@ public final class ArenaBuilder {
     }
 
     public static void build(ServerLevel level, ArenaLayout arena) {
+        if (ArenaDimension.is(level))
+            buildScenery(level, new ArenaScenery(arena), arena.floorY());
         int y = arena.floorY();
         for (int x = arena.minX(); x <= arena.maxX(); x++) {
             for (int z = arena.minZ(); z <= arena.maxZ(); z++) {
@@ -66,18 +73,129 @@ public final class ArenaBuilder {
         }
     }
 
+    private static void buildScenery(ServerLevel level, ArenaScenery scenery,
+            int floor)
+    {
+        for (int x = scenery.minX(); x <= scenery.maxX(); x++) {
+            for (int z = scenery.minZ(); z <= scenery.maxZ(); z++) {
+                if (!scenery.contains(x, z))
+                    continue;
+                int top = floor + scenery.height(x, z);
+                ArenaScenery.Surface surface = scenery.surface(x, z);
+                for (int y = floor - ArenaScenery.DEPTH; y <= top; y++) {
+                    BlockState block;
+                    if (y == top) {
+                        block = switch (surface) {
+                            case GRASS -> Blocks.GRASS_BLOCK.defaultBlockState();
+                            case ROCK -> Blocks.STONE.defaultBlockState();
+                            case SNOW -> Blocks.SNOW_BLOCK.defaultBlockState();
+                        };
+                    } else if (y >= top - 2 && surface == ArenaScenery.Surface.GRASS) {
+                        block = Blocks.DIRT.defaultBlockState();
+                    } else {
+                        block = Blocks.STONE.defaultBlockState();
+                    }
+                    set(level, x, y, z, block);
+                }
+                ArenaScenery.Tree tree = scenery.tree(x, z);
+                if (tree != null) {
+                    growTree(level, tree, x, top + 1, z,
+                            scenery.trunkHeight(x, z));
+                    continue;
+                }
+                int plant = scenery.plant(x, z);
+                if (plant == 1)
+                    set(level, x, top + 1, z, Blocks.GRASS.defaultBlockState());
+                else if (plant == 2)
+                    set(level, x, top + 1, z, (x + z) % 2 == 0 ?
+                            Blocks.POPPY.defaultBlockState() :
+                            Blocks.DANDELION.defaultBlockState());
+            }
+        }
+    }
+
+    /**
+     * A simple tree: a trunk and a blob of persistent leaves (they never
+     * decay, and nothing ticks them).
+     */
+    private static void growTree(ServerLevel level, ArenaScenery.Tree tree,
+            int x, int y, int z, int trunk)
+    {
+        BlockState log = switch (tree) {
+            case OAK -> Blocks.OAK_LOG.defaultBlockState();
+            case BIRCH -> Blocks.BIRCH_LOG.defaultBlockState();
+            case SPRUCE -> Blocks.SPRUCE_LOG.defaultBlockState();
+        };
+        BlockState leaves = (switch (tree) {
+            case OAK -> Blocks.OAK_LEAVES;
+            case BIRCH -> Blocks.BIRCH_LEAVES;
+            case SPRUCE -> Blocks.SPRUCE_LEAVES;
+        }).defaultBlockState().setValue(LeavesBlock.PERSISTENT, true);
+        int topY = y + trunk;
+        if (tree == ArenaScenery.Tree.SPRUCE) {
+            // A cone: wide at the bottom, a point on top.
+            for (int dy = 2; dy <= trunk + 1; dy++) {
+                int r = dy >= trunk ? (dy == trunk + 1 ? 0 : 1) :
+                        (trunk - dy) % 2 == 0 ? 1 : 2;
+                leafLayer(level, leaves, x, y + dy, z, r);
+            }
+        } else {
+            leafLayer(level, leaves, x, topY - 2, z, 2);
+            leafLayer(level, leaves, x, topY - 1, z, 2);
+            leafLayer(level, leaves, x, topY, z, 1);
+            leafLayer(level, leaves, x, topY + 1, z, 1);
+        }
+        for (int dy = 0; dy < trunk; dy++)
+            set(level, x, y + dy, z, log);
+    }
+
+    private static void leafLayer(ServerLevel level, BlockState leaves, int x,
+            int y, int z, int radius)
+    {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                // Round the corners off the bigger layers.
+                if (radius >= 2 && Math.abs(dx) == radius &&
+                        Math.abs(dz) == radius)
+                    continue;
+                set(level, x + dx, y, z + dz, leaves);
+            }
+        }
+    }
+
     public static void markTowerDestroyed(ServerLevel level, ArenaPoint point) {
         set(level, point.x(), point.y() - 1, point.z(),
                 Blocks.CRACKED_STONE_BRICKS.defaultBlockState());
     }
 
     public static void clear(ServerLevel level, ArenaLayout arena) {
+        if (ArenaDimension.is(level))
+            clearScenery(level, new ArenaScenery(arena), arena.floorY());
         int minY = arena.floorY() - 1;
         int maxY = arena.floorY() + AIR_HEIGHT;
         for (int x = arena.minX() - 1; x <= arena.maxX() + 1; x++) {
             for (int z = arena.minZ() - 1; z <= arena.maxZ() + 1; z++) {
                 for (int y = minY; y <= maxY; y++)
                     set(level, x, y, z, Blocks.AIR.defaultBlockState());
+            }
+        }
+    }
+
+    /** Air over the whole landscape box, trees and leaves included. */
+    private static void clearScenery(ServerLevel level, ArenaScenery scenery,
+            int floor)
+    {
+        BlockState air = Blocks.AIR.defaultBlockState();
+        // Leaves stick out up to two blocks past the outermost trunk.
+        for (int x = scenery.minX() - 2; x <= scenery.maxX() + 2; x++) {
+            for (int z = scenery.minZ() - 2; z <= scenery.maxZ() + 2; z++) {
+                if (!scenery.contains(x, z) && scenery.distance(x, z) == 0)
+                    continue;
+                for (int y = floor - ArenaScenery.DEPTH;
+                        y <= floor + ArenaScenery.MAX_HEIGHT; y++) {
+                    if (!level.getBlockState(new BlockPos(x, y, z)).isAir())
+                        set(level, x, y, z, air);
+                }
             }
         }
     }
