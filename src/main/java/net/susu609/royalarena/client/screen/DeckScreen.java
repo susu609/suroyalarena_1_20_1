@@ -407,6 +407,22 @@ public final class DeckScreen extends Screen {
                     s.traits().slowTicks() / 20.0D));
         if (s.traits().buildingsOnly())
             lines.add(line("Ignores troops, walks straight to the towers"));
+        if (s.traits().poisons())
+            lines.add(line("Poisons what it hits: %.0f a second for %.0f s",
+                    s.traits().poisonPerSecond(), s.traits().poisonTicks() / 20.0D));
+        if (s.traits().teleports())
+            lines.add(line("Teleports out of a ranged shot or a spell, every %.0f s",
+                    s.traits().teleportCooldownTicks() / 20.0D));
+        if (s.traits().hovers())
+            lines.add(line("Floats above the ground"));
+        if (s.traits().crossesRiver())
+            lines.add(line("Crosses the river anywhere, not only the bridges"));
+        if (s.traits().deployOnRiver())
+            lines.add(line("Can also be played on the river"));
+        if (s.traits().frostWeak())
+            lines.add(line("Freezing spells hit it twice as hard and freeze it twice as long"));
+        if (s.traits().waterWeak())
+            lines.add(line("Takes 1.5 times the damage while on the river"));
         return lines;
     }
 

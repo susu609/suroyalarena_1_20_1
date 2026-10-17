@@ -48,6 +48,27 @@ public enum BattleCard {
     MAGMA_CUBE("Magma Cube", 4, "minecraft:magma_cube", null, 4,
             new TroopStats(1, 36, 7, 28, 1.2D, 0.83D, 1.0D,
                     new SplitRule(1, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
+    ENDERMAN("Enderman", 4, "minecraft:enderman", null, 0,
+            new TroopStats(1, 50, 6, 24, 1.2D, 1.0D, 0.4D,
+                    TroopTraits.teleporting(160))),
+    CAVE_SPIDER("Cave Spider", 3, "minecraft:cave_spider", null, 0,
+            new TroopStats(4, 5, 1.0D, 20, 1.2D, 1.6D, 0.3D,
+                    TroopTraits.poisoning(60, 1.0D))),
+    VEX("Vex", 2, "minecraft:vex", "minecraft:iron_sword", 0,
+            new TroopStats(3, 4, 16, 20, 1.2D, 2.0D, 0.3D,
+                    new TroopTraits(0.0D, true, 0.0D))),
+    GHAST("Ghast", 5, "minecraft:ghast", null, 0,
+            new TroopStats(1, 26, 22, 60, 6.5D, 0.35D, 1.0D,
+                    new TroopTraits(2.5D, false, 0.0D))),
+    DROWNED("Drowned", 2, "minecraft:drowned", "minecraft:trident", 0,
+            new TroopStats(1, 22, 4, 40, 5.0D, 1.0D, 0.3D,
+                    TroopTraits.riverDeploy())),
+    ZOMBIFIED_PIGLIN("Zombified Piglin", 3, "minecraft:zombified_piglin",
+            "minecraft:golden_sword", 0,
+            new TroopStats(2, 26, 4, 24, 1.2D, 0.9D, 0.3D)),
+    BLAZE("Blaze", 3, "minecraft:blaze", null, 0,
+            new TroopStats(1, 30, 8, 40, 6.5D, 1.0D, 0.4D,
+                    TroopTraits.hovering(1.5D, true, true, true))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
                     0.0D, 0.0D, 0)),
@@ -163,6 +184,8 @@ public enum BattleCard {
         return switch (this) {
             case SKELETONS -> 0.9F;
             case SPIDER -> 0.75F;
+            case CAVE_SPIDER -> 0.6F;
+            case VEX -> 0.8F;
             default -> 1.0F;
         };
     }

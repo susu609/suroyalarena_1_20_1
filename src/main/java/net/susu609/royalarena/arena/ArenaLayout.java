@@ -205,11 +205,19 @@ public final class ArenaLayout {
      * Where a card may be played: a troop on the player's own deploy area, a
      * spell anywhere on the arena.
      */
+    /**
+     * Spells land anywhere on the arena; troops on their own half, and the
+     * ones that may (Drowned) also on the river.
+     */
     public boolean canPlay(TeamSide side, BattleCard card, int worldX,
             int worldZ)
     {
-        return card.isSpell() ? contains(worldX, worldZ) :
-                canDeploy(side, worldX, worldZ);
+        if (card.isSpell())
+            return contains(worldX, worldZ);
+        if (canDeploy(side, worldX, worldZ))
+            return true;
+        return card.stats().traits().deployOnRiver() &&
+                contains(worldX, worldZ) && isRiver(worldZ);
     }
 
     public ArenaBox deployArea(TeamSide side) {

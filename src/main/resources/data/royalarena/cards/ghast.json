@@ -1,0 +1,19 @@
+{
+  "id": "ghast",
+  "type": "troop",
+  "display_name": "Ghast",
+  "elixir": 5,
+  "entity": "minecraft:ghast",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 26,
+    "damage": 22,
+    "attack_interval_ticks": 60,
+    "range": 6.5,
+    "move_speed": 0.35,
+    "targets": "ground",
+    "splash_radius": 2.5,
+    "flying": false
+  }
+}

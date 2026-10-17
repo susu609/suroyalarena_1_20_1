@@ -172,7 +172,36 @@ public final class CombatSmokeTest {
             near(number(json, "move_speed"), s.speed(), card.id() + " speed");
             near(json.contains("\"slow_ticks\"") ? number(json, "slow_ticks")
                     : 0.0D, s.traits().slowTicks(), card.id() + " slow");
+            var t = s.traits();
+            near(numberOr(json, "splash_radius", 0.0D), t.splashRadius(),
+                    card.id() + " splash");
+            near(numberOr(json, "knockback", 0.0D), t.knockback(),
+                    card.id() + " knockback");
+            near(numberOr(json, "poison_ticks", 0.0D), t.poisonTicks(),
+                    card.id() + " poison ticks");
+            near(numberOr(json, "poison_per_second", 0.0D), t.poisonPerSecond(),
+                    card.id() + " poison per second");
+            near(numberOr(json, "teleport_cooldown_ticks", 0.0D),
+                    t.teleportCooldownTicks(), card.id() + " teleport cooldown");
+            near(numberOr(json, "hover", 0.0D), t.hover(), card.id() + " hover");
+            flag(json, "self_destruct", t.selfDestruct(), card.id());
+            flag(json, "crosses_river", t.crossesRiver(), card.id());
+            flag(json, "deploy_on_river", t.deployOnRiver(), card.id());
+            flag(json, "frost_weak", t.frostWeak(), card.id());
+            flag(json, "water_weak", t.waterWeak(), card.id());
         }
+    }
+
+    private static double numberOr(String json, String key, double fallback) {
+        return json.contains("\"" + key + "\"") ? number(json, key) : fallback;
+    }
+
+    private static void flag(String json, String key, boolean expected,
+            String card)
+    {
+        boolean found = Pattern.compile("\"" + Pattern.quote(key) +
+                "\"\\s*:\\s*true").matcher(json).find();
+        check(found == expected, card + " " + key + " is " + expected);
     }
 
     private static void spellJsonMatches(BattleCard card, String json) {

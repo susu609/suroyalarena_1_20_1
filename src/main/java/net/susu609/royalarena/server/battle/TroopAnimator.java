@@ -154,9 +154,10 @@ final class TroopAnimator {
         groundTicks.remove(id);
     }
 
-    /** A bow or a crossbow: both are drawn while the mob takes aim. */
+    /** A bow, a crossbow or a trident: all are drawn while the mob takes aim. */
     private static boolean holdsBow(Mob mob) {
         return mob.getMainHandItem().is(Items.BOW) ||
-                mob.getMainHandItem().is(Items.CROSSBOW);
+                mob.getMainHandItem().is(Items.CROSSBOW) ||
+                mob.getMainHandItem().is(Items.TRIDENT);
     }
 }

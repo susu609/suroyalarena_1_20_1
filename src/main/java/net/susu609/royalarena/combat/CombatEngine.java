@@ -46,6 +46,8 @@ public final class CombatEngine {
     public static final double PROJECTILE_SPEED = 0.8D;
     public static final int MIN_FLIGHT_TICKS = 2;
     public static final int MAX_FLIGHT_TICKS = 15;
+    /** How far an Enderman steps when it teleports, in blocks. */
+    public static final double BLINK_DISTANCE = 4.5D;
 
     private final MatchInstance match;
     private final ArenaLayout arena;
@@ -61,6 +63,8 @@ public final class CombatEngine {
     /** The card every unit came from (split children included). */
     private final Map<UUID, BattleCard> cardOf = new HashMap<>();
     private final CombatStats stats = new CombatStats();
+    /** Teleports made during the tick being computed. */
+    private final List<TickResult.Teleport> teleports = new ArrayList<>();
     /** Shots in the air, with the ticks until they land. */
     private final List<InFlight> flying = new ArrayList<>();
     private double speedMultiplier = 1.0D;
@@ -168,6 +172,7 @@ public final class CombatEngine {
     }
 
     public TickResult tick() {
+        teleports.clear();
         List<Move> moves = new ArrayList<>();
         List<Attack> attacks = new ArrayList<>();
         for (CombatUnit unit : units) {
@@ -200,7 +205,7 @@ public final class CombatEngine {
         applySpellHits(hits, destroyed, pushes);
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
-                pushes, landed);
+                pushes, landed, List.copyOf(teleports));
     }
 
     /** Whether a King tower may shoot: it was hit, or a Princess tower fell. */
@@ -241,8 +246,11 @@ public final class CombatEngine {
         }
 
         if (!inRange) {
-            ArenaWaypoint waypoint = arena.route(
-                    unit.x(), unit.z(), targetX, targetZ);
+            // Crossing units (Blaze) go straight over the water; the rest
+            // use the bridges.
+            ArenaWaypoint waypoint = stats.traits().crossesRiver() ?
+                    new ArenaWaypoint(targetX, targetZ) :
+                    arena.route(unit.x(), unit.z(), targetX, targetZ);
             double slow = unit.slowed() ? TroopTraits.SLOW_SPEED : 1.0D;
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
                     stats.speedPerTick() * speedMultiplier * slow));
@@ -527,11 +535,21 @@ public final class CombatEngine {
                         unit.health() - before);
                 continue;
             }
-            if (!damageUnit(unit, hit.damage(), hit.spell().side,
+            if (unit.canTeleport()) {
+                // Out of the circle before it reaches the unit.
+                blinkAway(unit, hit.spell().x, hit.spell().z);
+                continue;
+            }
+            boolean frostWeak = spell.freezeTicks() > 0 &&
+                    unit.stats().traits().frostWeak();
+            double damage = frostWeak ? hit.damage() *
+                    TroopTraits.FROST_WEAKNESS : hit.damage();
+            if (!damageUnit(unit, damage, hit.spell().side,
                     hit.spell().card))
                 continue;
             if (spell.freezeTicks() > 0)
-                unit.freeze(spell.freezeTicks());
+                unit.freeze(frostWeak ? spell.freezeTicks() * 2 :
+                        spell.freezeTicks());
             if (spell.stunTicks() > 0)
                 unit.stun(spell.stunTicks());
             unit.ignite(spell.burnTicks(), spell.burnPerSecond(),
@@ -573,7 +591,34 @@ public final class CombatEngine {
             if (burn > 0.0D)
                 damageUnit(unit, burn, unit.side().opponent(),
                         unit.burnSource());
+            double poison = unit.poisonStep();
+            if (poison > 0.0D)
+                damageUnit(unit, poison, unit.side().opponent(),
+                        unit.poisonSource());
         }
+    }
+
+    /**
+     * Moves a unit {@link #BLINK_DISTANCE} blocks straight away from (fx, fz),
+     * kept on land, and starts its cooldown. A unit right on that point goes
+     * toward its own side.
+     */
+    private void blinkAway(CombatUnit unit, double fx, double fz) {
+        double dx = unit.x() - fx;
+        double dz = unit.z() - fz;
+        double length = Math.hypot(dx, dz);
+        if (length < 1.0E-3D) {
+            dx = 0.0D;
+            dz = ArenaLayout.sideSign(unit.side());
+            length = 1.0D;
+        }
+        ArenaWaypoint spot = arena.clampSpawn(
+                unit.x() + dx / length * BLINK_DISTANCE,
+                unit.z() + dz / length * BLINK_DISTANCE,
+                ArenaLayout.sideSign(unit.side()));
+        unit.setPosition(spot.x(), spot.z());
+        unit.startTeleportCooldown();
+        teleports.add(new TickResult.Teleport(unit.id(), spot.x(), spot.z()));
     }
 
     /** Distance from a point to the nearest edge of a tower's footprint. */
@@ -593,9 +638,26 @@ public final class CombatEngine {
             CombatUnit victim = null;
             if (attack.victimUnit() != null) {
                 victim = unit(attack.victimUnit());
+                if (victim != null && attack.ranged() && victim.canTeleport()) {
+                    // The shot lands on the spot it left: step out of the way.
+                    ArenaPoint from = attack.attackerTower() != null ?
+                            arena.towerPoint(attack.attackerTower()) : null;
+                    CombatUnit shooter = attack.attackerUnit() == null ? null :
+                            unit(attack.attackerUnit());
+                    double fx = from != null ? from.x() :
+                            shooter != null ? shooter.x() : attack.x();
+                    double fz = from != null ? from.z() :
+                            shooter != null ? shooter.z() : attack.z();
+                    blinkAway(victim, fx, fz);
+                    continue;
+                }
                 if (victim != null)
                     damageUnit(victim, attack.damage(), attack.side(),
                             source);
+                if (victim != null && victim.alive() && source != null &&
+                        source.stats().traits().poisons())
+                    victim.poison(source.stats().traits().poisonTicks(),
+                            source.stats().traits().poisonPerSecond(), source);
             } else {
                 hitTower(attack.victimTower(), attack.damage(), destroyed,
                         attack.side(), source);
@@ -618,11 +680,15 @@ public final class CombatEngine {
 
     /**
      * Hurts a unit and credits {@code source} of side {@code by} (null: the
-     * towers of that side) with the health really taken off.
+     * towers of that side) with the health really taken off. A water-weak
+     * unit on the river takes extra.
      */
     private boolean damageUnit(CombatUnit victim, double amount, TeamSide by,
             BattleCard source)
     {
+        if (victim.stats().traits().waterWeak() &&
+                arena.isRiver((int) Math.floor(victim.z())))
+            amount *= TroopTraits.WATER_WEAKNESS;
         double before = victim.health();
         if (!victim.hurt(amount))
             return false;

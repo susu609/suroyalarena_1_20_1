@@ -33,6 +33,10 @@ public final class CombatUnit {
     private BattleCard burnSource;
     private int frozenTicks;
     private int slowTicks;
+    private int teleportCooldown;
+    private int poisonTicks;
+    private double poisonPerTick;
+    private BattleCard poisonSource;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -133,11 +137,57 @@ public final class CombatUnit {
             invulnerableTicks--;
         if (slowTicks > 0)
             slowTicks--;
+        if (teleportCooldown > 0)
+            teleportCooldown--;
         // A frozen unit's attack does not charge.
         if (frozenTicks > 0)
             frozenTicks--;
         else if (cooldown > 0)
             cooldown--;
+    }
+
+    /** Whether it may teleport away now (an Enderman, off cooldown). */
+    boolean canTeleport() {
+        return stats.traits().teleports() && teleportCooldown <= 0;
+    }
+
+    void startTeleportCooldown() {
+        teleportCooldown = stats.traits().teleportCooldownTicks();
+    }
+
+    /** Ticks until it may teleport again (0 when ready). */
+    public int teleportCooldown() {
+        return teleportCooldown;
+    }
+
+    /**
+     * Poisons the unit for {@code ticks}, {@code perSecond} damage a second,
+     * credited to {@code source}; a new poison replaces an old one.
+     */
+    void poison(int ticks, double perSecond, BattleCard source) {
+        if (ticks <= 0 || perSecond <= 0.0D)
+            return;
+        poisonTicks = ticks;
+        poisonPerTick = perSecond / 20.0D;
+        poisonSource = source;
+    }
+
+    /** Whether poison is on the unit now. */
+    public boolean poisoned() {
+        return poisonTicks > 0;
+    }
+
+    /** The card whose poison is on the unit, or null. */
+    BattleCard poisonSource() {
+        return poisonSource;
+    }
+
+    /** Poison damage this tick (0 when not poisoned). */
+    double poisonStep() {
+        if (poisonTicks <= 0)
+            return 0.0D;
+        poisonTicks--;
+        return poisonPerTick;
     }
 
     /** Heals up to the unit's starting health. */

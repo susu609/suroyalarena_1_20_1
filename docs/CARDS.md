@@ -185,3 +185,38 @@ The three Skeletons are drawn at 90% and the four Spiders at 75%
 | Starting elixir | 5 (`ElixirMeter.START_TENTHS`) | 6 |
 | Elixir regeneration | done: 2.8 s, 1.4 s in the last minute, 0.95 s after the first minute of overtime | |
 | Match length | done: 180 s; level crowns go to 120 s of sudden-death overtime | |
+
+## Mobs with their own rules (Enderman, Cave Spider, Vex, Ghast, Drowned, Zombified Piglin, Blaze)
+
+Each brings one rule of its own (`TroopTraits`); the stats are on the vanilla
+health scale like the rest. Elixir comes from `CostFormula`, and the band
+(`PowerCreepTest`) and the bot report (`BalanceReport`) check every card.
+
+| Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
+|---|---|---|---|---|---|---|---|---|---|
+| Enderman | `minecraft:enderman` | 1 | 50 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 8 s; a blow is not dodged | **4** |
+| Cave Spider | `minecraft:cave_spider` | 4 | 5 | 1 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); the poison counts as damage in the cost | **3** |
+| Vex | `minecraft:vex` | 3 | 4 | 16 | 1.0 | 1.2 | 2.0 | dies when it strikes: one big blow and gone | **2** |
+| Ghast | `minecraft:ghast` | 1 | 26 | 22 | 3.0 | 6.5 | 0.35 | slow, long-ranged fireball with a 2.5 blast; range stays under the Princess tower (7) | **5** |
+| Drowned | `minecraft:drowned` | 1 | 22 | 4 | 2.0 | 5.0 | 1.0 | trident from 5 blocks; may also be played on the river | **2** |
+| Zombified Piglin | `minecraft:zombified_piglin` | 2 | 26 | 4 | 1.2 | 1.2 | 0.9 | a tougher Zombie: more health and hits harder, golden sword | **3** |
+| Blaze | `minecraft:blaze` | 1 | 30 | 8 | 2.0 | 6.5 | 1.0 | hovers 1.5 blocks up; crosses the river anywhere (no bridge); frost weakness: Freeze hits it twice as hard and freezes it twice as long; water weakness: 1.5x damage while on the river | **3** |
+
+Bot-versus-bot win rates over 500 matches (random balanced decks, both sides
+swapped): Ghast 67% (strong), Blaze 54%, Vex 50%, Zombified Piglin 47%,
+Drowned 47%, Cave Spider 46%, Enderman 43%. The 1-versus-1 push score
+(elixir ahead per fight): Cave Spider -1.14 (weakest, near the band's edge),
+Enderman -0.96, Vex +0.26, Ghast +0.77, Drowned +0.13, Zombified Piglin +0.07,
+Blaze +0.76.
+
+Open points, from the numbers above:
+
+- **Ghast is strong in bot games.** Its blast hits every enemy in the circle
+  and it keeps firing as long as it lives. Options: a bigger cost factor for
+  large splash radii, or a shorter splash.
+- **Cave Spider** is the weakest card in the push measure. The poison pays
+  only while the spider lives, and it dies to the first tower shot. More
+  poison also makes the card dearer, because poison counts in the cost.
+- **Enderman** dodges only the shots that would land on it, and only once
+  every 8 s; in a push it loses most fights. It is safe from being overpowered.
+

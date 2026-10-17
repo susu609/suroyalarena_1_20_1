@@ -1,0 +1,20 @@
+{
+  "id": "cave_spider",
+  "type": "troop",
+  "display_name": "Cave Spider",
+  "elixir": 3,
+  "entity": "minecraft:cave_spider",
+  "model_scale": 0.6,
+  "count": 4,
+  "unit": {
+    "health": 5,
+    "damage": 1.0,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 1.6,
+    "targets": "ground",
+    "poison_ticks": 60,
+    "poison_per_second": 1.0,
+    "flying": false
+  }
+}

@@ -21,6 +21,14 @@ public final class CostFormula {
     public static final double KNOCKBACK = 1.1D;
     /** Slowing what it hits. */
     public static final double SLOW = 1.15D;
+    /** Dodging ranged shots and spells by teleporting (Enderman). */
+    public static final double TELEPORT = 1.2D;
+    /** Crossing the river anywhere (Blaze). */
+    public static final double CROSSES_RIVER = 1.15D;
+    /** Playable on the river too (Drowned). */
+    public static final double DEPLOY_ON_RIVER = 1.05D;
+    /** Takes extra damage from frost or water (Blaze). */
+    public static final double WEAKNESS = 0.9D;
 
     private CostFormula() {
     }
@@ -29,7 +37,9 @@ public final class CostFormula {
     public static double raw(TroopStats s) {
         int generations = 1 + (s.split() == null ? 0 : s.split().generations());
         double totalHealth = s.health() * s.count() * generations;
-        double dps = s.damage() / (s.attackTicks() / 20.0D) * s.count();
+        // Poison lands with every hit, so it counts as part of the damage.
+        double perHit = s.damage() + s.traits().poisonTotal();
+        double dps = perHit / (s.attackTicks() / 20.0D) * s.count();
         double modifier = 1.0D;
         if (s.range() >= 4.0D)
             modifier *= RANGED * (1.0D + RANGE_STEP * (s.range() - 4.0D));
@@ -49,6 +59,16 @@ public final class CostFormula {
             modifier *= KNOCKBACK;
         if (s.traits().slows())
             modifier *= SLOW;
+        if (s.traits().teleports())
+            modifier *= TELEPORT;
+        if (s.traits().crossesRiver())
+            modifier *= CROSSES_RIVER;
+        if (s.traits().deployOnRiver())
+            modifier *= DEPLOY_ON_RIVER;
+        if (s.traits().frostWeak())
+            modifier *= WEAKNESS;
+        if (s.traits().waterWeak())
+            modifier *= WEAKNESS;
         return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
     }
 

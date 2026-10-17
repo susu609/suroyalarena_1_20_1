@@ -1,0 +1,20 @@
+{
+  "id": "vex",
+  "type": "troop",
+  "display_name": "Vex",
+  "elixir": 2,
+  "entity": "minecraft:vex",
+  "model_scale": 0.8,
+  "count": 3,
+  "unit": {
+    "health": 4,
+    "damage": 16,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 2.0,
+    "targets": "ground",
+    "self_destruct": true,
+    "flying": false
+  },
+  "held_item": "minecraft:iron_sword"
+}

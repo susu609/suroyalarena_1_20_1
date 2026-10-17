@@ -1,0 +1,19 @@
+{
+  "id": "enderman",
+  "type": "troop",
+  "display_name": "Enderman",
+  "elixir": 4,
+  "entity": "minecraft:enderman",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 50,
+    "damage": 6,
+    "attack_interval_ticks": 24,
+    "range": 1.2,
+    "move_speed": 1.0,
+    "targets": "ground",
+    "teleport_cooldown_ticks": 160,
+    "flying": false
+  }
+}

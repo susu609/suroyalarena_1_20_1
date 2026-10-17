@@ -16,7 +16,7 @@ import java.util.UUID;
 public record TickResult(List<Move> moves, List<Attack> attacks,
                          List<Death> deaths, List<TowerId> destroyedTowers,
                          List<SpellPulse> spellPulses, List<Push> pushes,
-                         List<Attack> landed)
+                         List<Attack> landed, List<Teleport> teleports)
 {
     /**
      * A spell struck at (x, z) this tick: pulse {@code index} of
@@ -67,6 +67,13 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
             this(attackerUnit, attackerTower, victimUnit, victimTower, damage,
                     ranged, flightTicks, side, x, z, 0.0D, 0.0D, 0);
         }
+    }
+
+    /**
+     * A unit that teleported this tick to (x, z); the engine already moved
+     * it, the world only has to move the mob.
+     */
+    public record Teleport(UUID unit, double x, double z) {
     }
 
     /** A unit that died this tick, with the children it splits into. */

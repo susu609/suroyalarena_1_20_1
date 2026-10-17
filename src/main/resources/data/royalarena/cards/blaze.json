@@ -1,0 +1,22 @@
+{
+  "id": "blaze",
+  "type": "troop",
+  "display_name": "Blaze",
+  "elixir": 3,
+  "entity": "minecraft:blaze",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 30,
+    "damage": 8,
+    "attack_interval_ticks": 40,
+    "range": 6.5,
+    "move_speed": 1.0,
+    "targets": "ground",
+    "hover": 1.5,
+    "crosses_river": true,
+    "frost_weak": true,
+    "water_weak": true,
+    "flying": false
+  }
+}

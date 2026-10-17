@@ -1,0 +1,20 @@
+{
+  "id": "drowned",
+  "type": "troop",
+  "display_name": "Drowned",
+  "elixir": 2,
+  "entity": "minecraft:drowned",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 22,
+    "damage": 4,
+    "attack_interval_ticks": 40,
+    "range": 5.0,
+    "move_speed": 1.0,
+    "targets": "ground",
+    "deploy_on_river": true,
+    "flying": false
+  },
+  "held_item": "minecraft:trident"
+}

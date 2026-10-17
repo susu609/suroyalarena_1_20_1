@@ -95,6 +95,32 @@ can be turned down or off.
 | Final seconds | the last 10 s counted down big in the middle, the clock turns red; "x2 ELIXIR!", "x3 ELIXIR!", "OVERTIME!" banners; an "x2" tag on the elixir bar | `BattleHudOverlay` |
 | Footstep dust | Iron Golem, Ravager and Hoglin kick up the ground they walk on | `TroopEffects` |
 
+## Mobs with their own rules
+
+- **Teleport (Enderman).** A ranged shot still in flight that would land on
+  an Enderman, or a spell whose circle reaches it, makes it step 4.5 blocks
+  straight away from the shooter (or the spell's centre) instead. It then
+  waits 8 s. A melee blow is not dodged. Clients see portal particles at both
+  ends and the teleport sound (`TickResult.Teleport`, `BattleField.teleportMob`).
+- **Poison (Cave Spider).** Every hit that lands poisons the victim for 3 s at
+  1 damage a second; a new bite replaces the poison. The damage is credited to
+  the Cave Spider. Poisoned troops show pale green drips every half second.
+- **Hover (Blaze).** The mob floats 1.5 blocks up and keeps its height
+  (`setNoGravity`); the engine does not change.
+- **Crossing the river (Blaze).** Its route goes straight to the target, over
+  the water, instead of to a bridge (`CombatEngine.planUnit`).
+- **Frost weakness (Blaze).** A freezing spell does 2x damage to it and
+  freezes it for twice as long.
+- **Water weakness (Blaze).** It takes 1.5x damage while its centre is in the
+  river rows (`CombatEngine.damageUnit`).
+- **Deploy on the river (Drowned).** The card may be played anywhere on the
+  river rows, in addition to its own half (`ArenaLayout.canPlay`).
+- **Dies on the strike (Vex).** Like the Creeper, without the blast.
+
+Hover, the river and the frost/water rules are in the engine, so they count in
+the 1-versus-1 measures; the look (the floating mob, the portal burst) is
+client-side only and has not been seen in the game yet.
+
 ## Area damage, burning, the bot's hand
 
 - **Hurt flash.** Every troop that loses health, from any source (blows,

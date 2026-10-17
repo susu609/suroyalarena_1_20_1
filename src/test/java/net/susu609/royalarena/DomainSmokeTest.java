@@ -42,6 +42,7 @@ public final class DomainSmokeTest {
         TraitSmokeTest.run();
         PowerCreepTest.run();
         MatchLogSmokeTest.run();
+        NewMobsSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

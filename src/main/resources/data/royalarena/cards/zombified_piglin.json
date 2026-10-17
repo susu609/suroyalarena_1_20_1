@@ -1,0 +1,19 @@
+{
+  "id": "zombified_piglin",
+  "type": "troop",
+  "display_name": "Zombified Piglin",
+  "elixir": 3,
+  "entity": "minecraft:zombified_piglin",
+  "model_scale": 1.0,
+  "count": 2,
+  "unit": {
+    "health": 26,
+    "damage": 4,
+    "attack_interval_ticks": 24,
+    "range": 1.2,
+    "move_speed": 0.9,
+    "targets": "ground",
+    "flying": false
+  },
+  "held_item": "minecraft:golden_sword"
+}

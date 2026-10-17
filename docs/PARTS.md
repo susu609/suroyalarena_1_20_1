@@ -400,3 +400,19 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `server/stats/MatchLogWriter.java`, `server/match/ServerMatchSession.java`,
   `config/ArenaCommonConfig.java` (`[stats] recordMatches`)
 - `MatchLogSmokeTest`, `MiniJson` (tests); see `docs/MATCH_LOG.md`
+
+## Part 35 — Seven mobs with their own rules
+
+- `card/TroopTraits.java` (poison, teleport, hover, crosses river, deploy on
+  river, frost and water weakness), `card/CostFormula.java`,
+  `card/BattleCard.java` (the seven cards), `card/*` JSON files
+- `combat/CombatEngine.java` (teleport and dodge, poison, river and frost
+  rules, Blaze route), `combat/CombatUnit.java`, `combat/TickResult.java`
+  (`Teleport`)
+- `arena/ArenaLayout.java` (`canPlay`: Drowned on the river)
+- `server/battle/BattleField.java` (hover, teleport, poison drips, fireballs,
+  trident), `server/battle/TroopAnimator.java` (trident draw)
+- `client/screen/DeckScreen.java` (rules in the tooltip)
+- `NewMobsSmokeTest` (teleport, poison, Blaze, Drowned, Vex), CombatSmokeTest
+  (the JSON trait keys)
+- `docs/CARDS.md` (table and open points), `docs/COMBAT.md` (rules)

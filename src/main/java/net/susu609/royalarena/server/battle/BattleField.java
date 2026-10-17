@@ -1,6 +1,7 @@
 package net.susu609.royalarena.server.battle;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -20,7 +21,10 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Drowned;
+import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Ravager;
@@ -58,6 +62,7 @@ import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +83,9 @@ import java.util.function.Consumer;
 public final class BattleField {
     /** Players this close to a shot see its arrow. */
     private static final double PROJECTILE_VIEW_RANGE = 96.0D;
+    /** Pale green, for poison damage. */
+    private static final DustParticleOptions POISON_DUST =
+            new DustParticleOptions(new Vector3f(0.55F, 1.0F, 0.5F), 0.9F);
     /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
     private static final int VOLLEY_ARROWS = 5;
     /** Fewest ticks between two red hurt flashes of one troop. */
@@ -173,7 +181,9 @@ public final class BattleField {
                     card.id(), card.entityId());
             return null;
         }
-        entity.moveTo(x, arena.floorY() + 1.0D, z,
+        double hover = card.stats().traits().hover();
+        entity.setNoGravity(hover > 0.0D);
+        entity.moveTo(x, arena.floorY() + 1.0D + hover, z,
                 side == TeamSide.BLUE ? 180.0F : 0.0F, 0.0F);
         entity.setCustomName(Component.literal(card.displayName()).withStyle(
                 side == TeamSide.BLUE ? ChatFormatting.BLUE :
@@ -231,6 +241,8 @@ public final class BattleField {
         }
 
         TickResult result = engine.tick();
+        for (TickResult.Teleport teleport : result.teleports())
+            teleportMob(teleport);
         for (TickResult.Push push : result.pushes())
             knockBack(push);
         moveUnits(result.moves());
@@ -241,6 +253,7 @@ public final class BattleField {
         for (TickResult.Attack attack : result.landed())
             playHit(attack);
         mirrorHealth();
+        showPoison();
         showFrozenTowers();
         for (TickResult.Death death : result.deaths())
             removeDead(death);
@@ -397,7 +410,8 @@ public final class BattleField {
     private static void step(Entity entity, double dx, double dz,
             double lift)
     {
-        double fall = lift > 0.0D ? lift : entity.onGround() ? -0.1D :
+        double fall = lift > 0.0D ? lift : entity.isNoGravity() ? 0.0D :
+                entity.onGround() ? -0.1D :
                 Math.max(entity.getDeltaMovement().y - 0.08D, -1.5D);
         entity.move(MoverType.SELF, new Vec3(dx, fall, dz));
         entity.setDeltaMovement(0.0D, entity.onGround() ? 0.0D : fall, 0.0D);
@@ -625,6 +639,22 @@ public final class BattleField {
         if (!attack.ranged())
             return;
         double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
+        if (attacker instanceof Ghast || attacker instanceof Blaze) {
+            sendProjectile(S2CProjectilePacket.Kind.FIREBALL, from, to,
+                    attack.flightTicks(), (float) (distance * 0.2D));
+            level.playSound(null, from[0], from[1], from[2],
+                    attacker instanceof Ghast ? SoundEvents.GHAST_SHOOT :
+                            SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.6F,
+                    1.0F);
+            return;
+        }
+        if (attacker instanceof Drowned) {
+            sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
+                    attack.flightTicks(), (float) (distance * 0.12D));
+            level.playSound(null, from[0], from[1], from[2],
+                    SoundEvents.TRIDENT_THROW, SoundSource.HOSTILE, 0.6F, 1.0F);
+            return;
+        }
         if (attacker instanceof Witch) {
             sendProjectile(S2CProjectilePacket.Kind.POTION, from, to,
                     attack.flightTicks(), (float) (distance * 0.3D));
@@ -687,9 +717,21 @@ public final class BattleField {
             }
         }
         if (attack.ranged() && attack.splash() > 0.0D) {
-            // A splash potion breaking over its circle.
             flash(attack.x(), attack.z(), attack.splash());
             double floor = arena.floorY() + 1.0D;
+            Entity shooter = attack.attackerUnit() == null ? null :
+                    level.getEntity(attack.attackerUnit());
+            if (shooter instanceof Ghast) {
+                // A fireball exploding over its circle.
+                level.sendParticles(ParticleTypes.EXPLOSION, attack.x(),
+                        floor + 0.3D, attack.z(), 3, attack.splash() * 0.3D,
+                        0.2D, attack.splash() * 0.3D, 0.0D);
+                level.playSound(null, attack.x(), floor, attack.z(),
+                        SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 0.8F,
+                        1.0F);
+                return;
+            }
+            // A splash potion breaking over its circle.
             level.sendParticles(ParticleTypes.WITCH, attack.x(), floor + 0.3D,
                     attack.z(), 24, attack.splash() * 0.5D, 0.2D,
                     attack.splash() * 0.5D, 0.05D);
@@ -792,6 +834,38 @@ public final class BattleField {
         flashedHealth.put(unit.id(), unit.health());
         flashedAt.put(unit.id(), now);
         level.broadcastDamageEvent(entity, level.damageSources().generic());
+    }
+
+    /**
+     * An Enderman stepping out of the way: the mob moves to the spot the
+     * engine chose, with a burst of portal particles at both ends.
+     */
+    private void teleportMob(TickResult.Teleport teleport) {
+        Entity entity = level.getEntity(teleport.unit());
+        if (entity == null)
+            return;
+        double y = entity.getY();
+        level.sendParticles(ParticleTypes.PORTAL, entity.getX(), y + 1.0D,
+                entity.getZ(), 24, 0.4D, 0.8D, 0.4D, 0.3D);
+        entity.moveTo(teleport.x(), y, teleport.z());
+        level.sendParticles(ParticleTypes.PORTAL, teleport.x(), y + 1.0D,
+                teleport.z(), 24, 0.4D, 0.8D, 0.4D, 0.3D);
+        level.playSound(null, teleport.x(), y, teleport.z(),
+                SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 1.0F);
+    }
+
+    /** Pale green drips over a poisoned troop (Cave Spider's bite). */
+    private void showPoison() {
+        if (level.getGameTime() % 10 != 0)
+            return;
+        for (CombatUnit unit : engine.units()) {
+            Entity entity = level.getEntity(unit.id());
+            if (entity == null || !unit.poisoned())
+                continue;
+            level.sendParticles(POISON_DUST, entity.getX(),
+                    entity.getY() + entity.getBbHeight() * 0.7D,
+                    entity.getZ(), 4, 0.2D, 0.2D, 0.2D, 0.0D);
+        }
     }
 
     /** Snowflakes drifting around a frozen tower. */
