@@ -20,8 +20,8 @@ is centred horizontally. All positions live in `client/hud/HudLayout.java`
 
 At 1080 px height `u` is about 3.03, so a card is 94 x 118 px.
 
-Cards show their cost on the top-left corner, a small key number (1-4) in the
-bottom-right corner and their art: a portrait PNG if one
+Cards show only their art and their cost on the top-left corner (no troop
+count, no key number; the keys 1-4 still pick the cards). The art is a portrait PNG if one
 exists, otherwise the mob's spawn egg (an arrow for Arrow Storm, a fire
 charge for Fireball). Portraits are optional and live at
 `assets/royalarena/textures/gui/card/<card id>.png` in this mod or any
@@ -36,7 +36,7 @@ format from a mob model. Cards that
 cost more than the current elixir are greyed out. A hovered card rises 3 units
 with a light frame and tint; the selected card rises 8 units with a gold frame
 and glow. The rise is animated (eases out over about 45 ms,
-`HudLayout.approachLift`), and the frame, art, tint, cost badge and key number
+`HudLayout.approachLift`), and the frame, art, tint and cost badge
 all follow the same lift, so the whole card moves as one piece. The cost
 badge is drawn above the grey "can't afford" overlay so the cost stays
 readable. The click area includes the space a card rises into.

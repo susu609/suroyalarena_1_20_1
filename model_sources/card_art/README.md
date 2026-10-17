@@ -47,3 +47,18 @@ Blockbench and render it the same way, or draw the PNG by hand.
 The plugin remembers the last settings while Blockbench is open. Its card
 list must match `BattleCard` (ids and costs); `DomainSmokeTest` fails when
 they drift apart, so add a new card to both.
+
+## From a picture instead of a model
+
+`picture_to_card.py` turns a picture with a transparent background (a render,
+a screenshot with the background removed) into the same card style:
+
+```
+python3 model_sources/card_art/picture_to_card.py zombies.png \
+    src/main/resources/assets/royalarena/textures/gui/card/zombie.png \
+    preview.png 3
+```
+
+The mob is fitted to about 90% of the card height, nudged right to keep the
+top-left corner free for the cost badge, and stands on a soft shadow.
+`preview.png` shows the card in the hand with the cost given last.

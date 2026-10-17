@@ -115,7 +115,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
             boolean affordable = card.cost() * 10 <= elixir;
             float target = selected ? HudLayout.SELECT_LIFT :
                     hover ? HudLayout.HOVER_LIFT : 0.0F;
-            // Everything on the card (frame, art, tint, badge, key) follows
+            // Everything on the card (frame, art, tint, cost badge) follows
             // this one animated lift, so it all rises and falls together.
             float lift = LIFTS[slot] =
                     HudLayout.approachLift(LIFTS[slot], target, elapsed);
@@ -131,11 +131,6 @@ public final class BattleHudOverlay implements IGuiOverlay {
                 overlay(graphics, r, CARD_DISABLED);
             else if (hover || selected)
                 overlay(graphics, r, CARD_HOVER_TINT);
-
-            float u = layout.u();
-            text(graphics, font, Integer.toString(slot + 1),
-                    r.right() - 3.5F * u, r.bottom() - 4.0F * u,
-                    textScale(layout, 6.0F), 0xFFFFFFFF);
 
             Rect cost = layout.cardCost(slot, lift);
             drawDrop(graphics, cost, affordable ? ELIXIR : ELIXIR_DIM);
