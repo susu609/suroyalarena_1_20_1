@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -147,6 +148,13 @@ public final class BattleHudOverlay implements IGuiOverlay {
         graphics.fill(r.x(), r.y(), r.right(), r.bottom(), edgeColor);
         graphics.fill(r.x() + edge, r.y() + edge, r.right() - edge,
                 r.bottom() - edge, CARD_FILL);
+        ResourceLocation art = CardArt.textureOf(card);
+        if (art != null) {
+            graphics.blit(art, r.x() + edge, r.y() + edge,
+                    r.w() - 2 * edge, r.h() - 2 * edge, 0.0F, 0.0F, 1, 1, 1,
+                    1);
+            return;
+        }
         float size = Math.min(r.w(), r.h()) * 0.75F;
         item(graphics, icon(card), r.centerX(),
                 r.y() + r.h() * 0.45F, size);

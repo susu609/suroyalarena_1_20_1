@@ -20,7 +20,13 @@ is centred horizontally. All positions live in `client/hud/HudLayout.java`
 
 At 1080 px height `u` is about 3.03, so a card is 94 x 118 px.
 
-Cards show the mob's spawn egg as art and a small key number (1-4). Cards that
+Cards show a small key number (1-4) and their art: a portrait PNG if one
+exists, otherwise the mob's spawn egg. Portraits are optional and live at
+`assets/royalarena/textures/gui/card/<card id>.png` in this mod or any
+resource pack (ids: `zombie`, `skeleton_archer`, `spider`, `skeletons`,
+`big_slime`, `stray`, `vindicator`, `iron_golem`, `arrow_storm`, `fireball`).
+Any size works, the image is stretched over the card face (31:39, so 124x156 or
+248x312 is a good size); press F3+T after adding one. See `CardArt`. Cards that
 cost more than the current elixir are greyed out. A hovered card rises 3 units
 with a light frame; the selected card rises 8 units with a gold frame and glow.
 The click area includes the space a card rises into.

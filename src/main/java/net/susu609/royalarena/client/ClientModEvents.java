@@ -1,14 +1,17 @@
 package net.susu609.royalarena.client;
 
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.hud.BattleHudOverlay;
+import net.susu609.royalarena.client.hud.CardArt;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.model.CrownTowerModel;
 import net.susu609.royalarena.client.model.KingTowerModel;
@@ -56,5 +59,14 @@ public final class ClientModEvents {
     @SubscribeEvent
     public static void registerOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAboveAll("battle_hud", BattleHudOverlay.INSTANCE);
+    }
+
+    /** Forget which card portraits exist whenever resources reload. */
+    @SubscribeEvent
+    public static void registerReloadListeners(
+            RegisterClientReloadListenersEvent event)
+    {
+        event.registerReloadListener(
+                (ResourceManagerReloadListener) manager -> CardArt.clear());
     }
 }
