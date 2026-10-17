@@ -146,7 +146,8 @@ public enum BattleCard {
     }
     /**
      * How big the mob is drawn, relative to vanilla: the three Skeletons and
-     * the four Spiders are a small swarm.
+     * the four Spiders are a small swarm. Mirrors {@code model_scale} in the
+     * card's JSON.
      */
     public float modelScale() {
         return switch (this) {

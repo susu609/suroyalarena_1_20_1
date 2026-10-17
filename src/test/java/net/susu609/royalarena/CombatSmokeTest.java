@@ -162,6 +162,8 @@ public final class CombatSmokeTest {
             }
             var s = card.stats();
             near(number(json, "count"), s.count(), card.id() + " count");
+            near(number(json, "model_scale"), card.modelScale(),
+                    card.id() + " model scale");
             near(number(json, "health"), s.health(), card.id() + " health");
             near(number(json, "damage"), s.damage(), card.id() + " damage");
             near(number(json, "attack_interval_ticks"), s.attackTicks(),

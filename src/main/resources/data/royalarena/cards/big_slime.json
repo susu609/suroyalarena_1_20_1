@@ -4,6 +4,7 @@
   "display_name": "Big Slime",
   "elixir": 3,
   "entity": "minecraft:slime",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 20,

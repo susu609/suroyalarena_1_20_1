@@ -4,6 +4,7 @@
   "display_name": "Hoglin",
   "elixir": 3,
   "entity": "minecraft:hoglin",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 45,

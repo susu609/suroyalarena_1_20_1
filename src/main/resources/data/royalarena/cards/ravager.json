@@ -4,6 +4,7 @@
   "display_name": "Ravager",
   "elixir": 5,
   "entity": "minecraft:ravager",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 130,

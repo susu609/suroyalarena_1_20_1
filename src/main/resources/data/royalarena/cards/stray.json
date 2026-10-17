@@ -4,6 +4,7 @@
   "display_name": "Stray",
   "elixir": 2,
   "entity": "minecraft:stray",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 20,

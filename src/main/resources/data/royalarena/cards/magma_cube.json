@@ -4,6 +4,7 @@
   "display_name": "Magma Cube",
   "elixir": 4,
   "entity": "minecraft:magma_cube",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 36,

@@ -4,6 +4,7 @@
   "display_name": "Wolves",
   "elixir": 3,
   "entity": "minecraft:wolf",
+  "model_scale": 1.0,
   "count": 3,
   "unit": {
     "health": 8,

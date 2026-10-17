@@ -4,6 +4,7 @@
   "display_name": "Zombie",
   "elixir": 3,
   "entity": "minecraft:zombie",
+  "model_scale": 1.0,
   "count": 2,
   "unit": {
     "health": 20,

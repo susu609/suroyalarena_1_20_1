@@ -4,6 +4,7 @@
   "display_name": "Iron Golem",
   "elixir": 5,
   "entity": "minecraft:iron_golem",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 160,

@@ -4,6 +4,7 @@
   "display_name": "Vindicator",
   "elixir": 2,
   "entity": "minecraft:vindicator",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 24,

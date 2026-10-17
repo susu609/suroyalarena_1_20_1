@@ -4,6 +4,7 @@
   "display_name": "Spider",
   "elixir": 3,
   "entity": "minecraft:spider",
+  "model_scale": 0.75,
   "count": 4,
   "unit": {
     "health": 10,

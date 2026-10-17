@@ -4,6 +4,7 @@
   "display_name": "Creeper",
   "elixir": 3,
   "entity": "minecraft:creeper",
+  "model_scale": 1.0,
   "count": 1,
   "unit": {
     "health": 20,

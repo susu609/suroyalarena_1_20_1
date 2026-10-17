@@ -4,6 +4,7 @@
   "display_name": "Skeletons",
   "elixir": 2,
   "entity": "minecraft:skeleton",
+  "model_scale": 0.8,
   "count": 3,
   "unit": {
     "health": 10,
