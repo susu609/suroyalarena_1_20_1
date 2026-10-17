@@ -83,3 +83,23 @@ filled and empty segments side by side so they never overlap.
 - Ghosts are invisible client-only entities. Vanilla draws invisible mobs
   translucent for spectators, and arena players are spectators.
 
+## Deck screen
+
+Press `M` and choose **Deck**. The top row holds the 8 deck slots, the card
+library below shows every card (all cards are unlocked).
+
+- Click a library card to put it in the first empty slot. With a full deck the
+  card is picked up (gold frame); click the deck card it replaces. Right-click
+  drops it.
+- Click a deck card, or its library card (marked "In deck"), to take it out.
+- Hover any card for its numbers: cost and roles, health x count, damage and
+  interval, range and speed, split; for spells radius, flight time, damage,
+  knockback, burn and the 30% tower damage.
+- The line under the deck shows the card count and the average elixir.
+- **Save** (only for 8 different cards) sends the deck to the server, which
+  checks it again and stores it with the world
+  (`data/royalarena_decks.dat`). **Random** fills a balanced random deck,
+  **Starter** the starter deck; neither is saved until you press Save.
+
+Every match starts from a shuffle of the saved deck. A player who never saved
+a deck plays the starter deck.

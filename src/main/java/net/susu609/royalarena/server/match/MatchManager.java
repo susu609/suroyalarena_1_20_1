@@ -5,14 +5,18 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.susu609.royalarena.bot.BotBrain;
+import net.susu609.royalarena.bot.BotDeck;
+import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.server.arena.ArenaAllocator;
 import net.susu609.royalarena.server.arena.ArenaReservation;
+import net.susu609.royalarena.server.deck.DeckStorage;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public final class MatchManager {
@@ -60,9 +64,17 @@ public final class MatchManager {
         ServerLevel level = server.overworld();
         ArenaReservation reservation = ArenaAllocator.INSTANCE.allocate(level);
         UUID matchId = UUID.randomUUID();
+        // Saved decks, shuffled for this match; the bot draws a random
+        // balanced deck.
+        Random random = new Random(matchId.getMostSignificantBits());
+        DeckStorage decks = DeckStorage.get(server);
+        BattleDeck blueDeck =
+                new BattleDeck(decks.deckOf(blueId)).shuffled(random);
+        BattleDeck redDeck = botForRed ? BotDeck.random(random) :
+                new BattleDeck(decks.deckOf(redId)).shuffled(random);
         MatchInstance match =
-                MatchInstance.create(
-                        matchId, blueId, redId, reservation.layout());
+                MatchInstance.create(matchId, blueId, redId,
+                        reservation.layout(), blueDeck, redDeck);
         BotBrain bot = botForRed ?
                 new BotBrain(TeamSide.RED, matchId.getLeastSignificantBits()) :
                 null;

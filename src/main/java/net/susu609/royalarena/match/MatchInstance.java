@@ -2,6 +2,7 @@ package net.susu609.royalarena.match;
 
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
 import net.susu609.royalarena.tower.TowerState;
@@ -31,24 +32,33 @@ public final class MatchInstance {
     private TeamSide winner;
 
     private MatchInstance(UUID matchId, UUID blueId, UUID redId,
-            ArenaLayout arena)
+            ArenaLayout arena, BattleDeck blueDeck, BattleDeck redDeck)
     {
         this.matchId = matchId;
         this.arena = arena;
-        this.blue = new MatchPlayer(blueId, TeamSide.BLUE);
-        this.red = new MatchPlayer(redId, TeamSide.RED);
+        this.blue = new MatchPlayer(blueId, TeamSide.BLUE, blueDeck);
+        this.red = new MatchPlayer(redId, TeamSide.RED, redDeck);
         for (TowerId id : TowerId.values()) {
             towers.put(id, new TowerState(id, id.kind().maxHealth()));
         }
     }
 
+    /** A match where both players use the starter deck, unshuffled. */
     public static MatchInstance create(UUID matchId, UUID blueId, UUID redId,
             ArenaLayout arena)
+    {
+        return create(matchId, blueId, redId, arena, BattleDeck.starter(),
+                BattleDeck.starter());
+    }
+
+    public static MatchInstance create(UUID matchId, UUID blueId, UUID redId,
+            ArenaLayout arena, BattleDeck blueDeck, BattleDeck redDeck)
     {
         if (blueId.equals(redId))
             throw new IllegalArgumentException(
                     "A match needs two distinct players");
-        return new MatchInstance(matchId, blueId, redId, arena);
+        return new MatchInstance(matchId, blueId, redId, arena, blueDeck,
+                redDeck);
     }
 
     public TowerId chooseTowerTarget(TeamSide attacker, double worldX) {

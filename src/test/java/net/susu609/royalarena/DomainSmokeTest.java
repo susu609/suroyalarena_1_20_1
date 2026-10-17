@@ -35,6 +35,7 @@ public final class DomainSmokeTest {
         CombatSmokeTest.run();
         BotSmokeTest.run();
         SpellSmokeTest.run();
+        DeckSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

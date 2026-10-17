@@ -7,15 +7,18 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
+import net.susu609.royalarena.network.c2s.C2SDeckRequestPacket;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
 import net.susu609.royalarena.network.c2s.C2SJoinQueuePacket;
 import net.susu609.royalarena.network.c2s.C2SLeaveQueuePacket;
+import net.susu609.royalarena.network.c2s.C2SSaveDeckPacket;
 import net.susu609.royalarena.network.c2s.C2SStartPracticePacket;
+import net.susu609.royalarena.network.s2c.S2CDeckPacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.network.s2c.S2CQueueStatusPacket;
 
 public final class ModNetwork {
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "4";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
                     RL.of(RoyalArena.MOD_ID, "main"),
@@ -62,11 +65,29 @@ public final class ModNetwork {
                 .decoder(S2CMatchSnapshotPacket::decode)
                 .consumerMainThread(S2CMatchSnapshotPacket::handle).add();
         CHANNEL.messageBuilder(
-                        C2SStartPracticePacket.class, id,
+                        C2SStartPracticePacket.class, id++,
                         NetworkDirection.PLAY_TO_SERVER)
                 .encoder(C2SStartPracticePacket::encode)
                 .decoder(C2SStartPracticePacket::decode)
                 .consumerMainThread(C2SStartPracticePacket::handle).add();
+        CHANNEL.messageBuilder(
+                        C2SDeckRequestPacket.class, id++,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SDeckRequestPacket::encode)
+                .decoder(C2SDeckRequestPacket::decode)
+                .consumerMainThread(C2SDeckRequestPacket::handle).add();
+        CHANNEL.messageBuilder(
+                        C2SSaveDeckPacket.class, id++,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SSaveDeckPacket::encode)
+                .decoder(C2SSaveDeckPacket::decode)
+                .consumerMainThread(C2SSaveDeckPacket::handle).add();
+        CHANNEL.messageBuilder(
+                        S2CDeckPacket.class, id,
+                        NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(S2CDeckPacket::encode)
+                .decoder(S2CDeckPacket::decode)
+                .consumerMainThread(S2CDeckPacket::handle).add();
     }
 
     public static void sendToServer(Object packet) {

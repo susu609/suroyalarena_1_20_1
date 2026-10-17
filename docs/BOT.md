@@ -10,6 +10,13 @@ the hand cycle, deploy areas and the one-second deploy delay all apply to it.
   `/royalarena practice`). You play BLUE; the bot plays RED.
 - Two players can still match with **Find Match** or `/royalarena debug_start`.
 
+## Its deck
+
+Each match the bot draws a random deck (`BotDeck`): 8 different cards with at
+least one spell, one tank (one body with 50+ health, split children
+included: Iron Golem, Big Slime) and one ranged troop, averaging 2.8 to 3.6
+elixir, in a random order. The seed comes from the match id.
+
 ## What it does
 
 It thinks every 10 ticks and never plays twice within 40 ticks.

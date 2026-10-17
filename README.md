@@ -61,6 +61,9 @@ if it still fails, delete `~/.gradle/caches/forge_gradle/bundled_deobf_repo`.
 Solo: press `M` and choose **Play vs Bot** (or `/royalarena bot`) to play BLUE
 against a bot on RED; see `docs/BOT.md`.
 
+Deck: press `M` and choose **Deck** to build and save your 8-card deck from
+the card library (see `docs/UI.md`).
+
 Settings (camera angle, troop speed, bot difficulty, debug): see
 `docs/CONFIG.md`.
 

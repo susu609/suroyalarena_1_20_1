@@ -11,9 +11,13 @@ public final class MatchPlayer {
     private final ElixirMeter elixir;
 
     public MatchPlayer(UUID playerId, TeamSide side) {
+        this(playerId, side, BattleDeck.starter());
+    }
+
+    public MatchPlayer(UUID playerId, TeamSide side, BattleDeck deck) {
         this.playerId = playerId;
         this.side = side;
-        this.deck = BattleDeck.starter();
+        this.deck = deck;
         this.elixir = new ElixirMeter();
     }
 

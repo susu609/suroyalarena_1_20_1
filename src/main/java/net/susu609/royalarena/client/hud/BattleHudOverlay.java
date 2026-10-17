@@ -5,16 +5,8 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SpawnEggItem;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.HudLayout.Rect;
@@ -23,9 +15,7 @@ import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Battle HUD laid out in {@link HudLayout} reference units: a wooden panel
@@ -43,18 +33,13 @@ public final class BattleHudOverlay implements IGuiOverlay {
     private static final int CARD_GLOW = 0x80FFE680;
     private static final int CARD_HOVER = 0xFFB8C8E8;
     private static final int CARD_HOVER_TINT = 0x20FFFFFF;
-    private static final int CARD_FILL = 0xFF3B5B8C;
     private static final int CARD_DISABLED = 0x99606060;
     private static final int ELIXIR = 0xFFD05CFF;
     private static final int ELIXIR_DARK = 0xFF3A2140;
-    /** Cost badge of a card the player cannot afford yet. */
-    private static final int ELIXIR_DIM = 0xFF7A4A88;
     private static final int ELIXIR_EDGE = 0xFF1A0E1F;
     private static final int BLUE = 0xFF2F6FD6;
     private static final int RED = 0xFFC8352E;
 
-    private static final Map<BattleCard, ItemStack> ICONS =
-            new EnumMap<>(BattleCard.class);
     /** Animated lift of each hand slot, in reference units. */
     private static final float[] LIFTS = new float[4];
     private static long lastFrameMillis;
@@ -133,10 +118,8 @@ public final class BattleHudOverlay implements IGuiOverlay {
                 overlay(graphics, r, CARD_HOVER_TINT);
 
             Rect cost = layout.cardCost(slot, lift);
-            drawDrop(graphics, cost, affordable ? ELIXIR : ELIXIR_DIM);
-            text(graphics, font, Integer.toString(card.cost()),
-                    cost.centerX(), cost.centerY(), textScale(layout, 8.0F),
-                    0xFFFFFFFF);
+            CardFace.costBadge(graphics, font, card.cost(), r.x(), r.y(),
+                    cost.w(), r.x() - cost.x(), affordable);
         }
     }
 
@@ -156,19 +139,8 @@ public final class BattleHudOverlay implements IGuiOverlay {
             BattleCard card, Rect r, int edgeColor)
     {
         int edge = Math.max(1, Math.round(layout.u() * 1.5F));
-        graphics.fill(r.x(), r.y(), r.right(), r.bottom(), edgeColor);
-        graphics.fill(r.x() + edge, r.y() + edge, r.right() - edge,
-                r.bottom() - edge, CARD_FILL);
-        ResourceLocation art = CardArt.textureOf(card);
-        if (art != null) {
-            graphics.blit(art, r.x() + edge, r.y() + edge,
-                    r.w() - 2 * edge, r.h() - 2 * edge, 0.0F, 0.0F, 1, 1, 1,
-                    1);
-            return;
-        }
-        float size = Math.min(r.w(), r.h()) * 0.75F;
-        item(graphics, icon(card), r.centerX(),
-                r.y() + r.h() * 0.45F, size);
+        CardFace.draw(graphics, card, r.x(), r.y(), r.w(), r.h(), edgeColor,
+                edge);
     }
 
     private static void drawElixir(GuiGraphics graphics, Font font,
@@ -263,17 +235,12 @@ public final class BattleHudOverlay implements IGuiOverlay {
     }
 
     private static void drawDrop(GuiGraphics graphics, Rect r) {
-        drawDrop(graphics, r, ELIXIR);
-    }
-
-    /** Elixir drop above items and card overlays, so it never greys out. */
-    private static void drawDrop(GuiGraphics graphics, Rect r, int fill) {
         PoseStack pose = graphics.pose();
         pose.pushPose();
         pose.translate(0.0F, 0.0F, 220.0F);
         graphics.fill(r.x(), r.y(), r.right(), r.bottom(), ELIXIR_EDGE);
         graphics.fill(r.x() + 1, r.y() + 1, r.right() - 1, r.bottom() - 1,
-                fill);
+                ELIXIR);
         pose.popPose();
     }
 
@@ -301,35 +268,5 @@ public final class BattleHudOverlay implements IGuiOverlay {
         pose.scale(scale, scale, 1.0F);
         graphics.drawString(font, s, -font.width(s) / 2, -4, color, true);
         pose.popPose();
-    }
-
-    private static void item(GuiGraphics graphics, ItemStack stack,
-            float centerX, float centerY, float size)
-    {
-        PoseStack pose = graphics.pose();
-        pose.pushPose();
-        pose.translate(centerX - size / 2.0F, centerY - size / 2.0F, 0.0F);
-        float scale = size / 16.0F;
-        pose.scale(scale, scale, 1.0F);
-        graphics.renderItem(stack, 0, 0);
-        pose.popPose();
-    }
-
-    /**
-     * Fallback card art: the spawn egg of a troop's mob, or a spell's icon
-     * item.
-     */
-    private static ItemStack icon(BattleCard card) {
-        return ICONS.computeIfAbsent(card, c -> {
-            if (c.isSpell()) {
-                Item item = ForgeRegistries.ITEMS.getValue(
-                        RL.require(c.iconItemId()));
-                return new ItemStack(item == null ? Items.PAPER : item);
-            }
-            EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                    RL.require(c.entityId()));
-            SpawnEggItem egg = type == null ? null : SpawnEggItem.byId(type);
-            return new ItemStack(egg == null ? Items.PAPER : egg);
-        });
     }
 }

@@ -258,3 +258,15 @@ Renders the open model as a 31:39 card portrait with the same framing and
 background on every card, previews it with the in-game card edge and cost
 badge, and saves `<card id>.png`. `DomainSmokeTest` checks that the plugin's
 card list matches `BattleCard`.
+
+## Part 22 — Deck editor, card library, bot decks
+
+- `card/DeckRules.java`, `card/CardRole.java`, `bot/BotDeck.java`,
+  `card/BattleDeck.java` (`shuffled`, `cards`)
+- `server/deck/DeckStorage.java` (saved per player with the world)
+- `network/c2s/C2SDeckRequestPacket.java`, `C2SSaveDeckPacket.java`,
+  `network/s2c/S2CDeckPacket.java` (protocol 4)
+- `client/screen/DeckScreen.java`, `client/state/ClientDeckState.java`,
+  `client/hud/CardFace.java` (card drawing shared with the HUD)
+- `server/match/MatchManager.java` (saved decks, shuffled; random bot deck)
+- `DeckSmokeTest`
