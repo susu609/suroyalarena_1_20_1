@@ -45,9 +45,9 @@ public final class DeckSmokeTest {
                 "unknown ids are rejected");
         check(DeckRules.parse(DeckRules.ids(starter)).equals(starter),
                 "ids round-trip");
-        check(Math.abs(DeckRules.averageElixir(starter) - 24 / 8.0D) < 1e-9,
+        check(Math.abs(DeckRules.averageElixir(starter) - 25 / 8.0D) < 1e-9,
                 "average elixir of the starter deck");
-        check(Math.abs(DeckRules.averageElixir(hole) - 22 / 7.0D) < 1e-9,
+        check(Math.abs(DeckRules.averageElixir(hole) - 23 / 7.0D) < 1e-9,
                 "average skips empty slots");
         boolean threw = false;
         try {

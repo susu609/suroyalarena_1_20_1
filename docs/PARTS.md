@@ -317,3 +317,17 @@ hops and squish, spider pounce; troops turn toward what they fight. See
   `BotDragRenderer.java`, `WorldShapes.java`
 - `server/battle/BattleField.java`, `server/match/ServerMatchSession.java`,
   `bot/BotBrain.java` (`DRAG_TICKS`)
+
+## Part 28 — Rebalance for tanks, tower-only troops, Hoglin, Pillager, Magma Cube
+
+- `card/TroopTraits.java` (`buildingsOnly`), `card/CostFormula.java`
+  (x0.85), `card/CardRole.java` (`BUILDINGS`), `card/BattleCard.java`
+- `combat/CombatEngine.java` (tower-only troops ignore troops),
+  `tower/TowerKind.java` (Princess 3 damage, range 7.0)
+- `bot/BotBrain.java` (no tower-only defenders),
+  `server/battle/TroopAnimator.java`, `server/battle/BattleField.java`
+  (Hoglin swing, Pillager crossbow)
+- `client/screen/DeckScreen.java` (tooltip line)
+- `CombatSmokeTest.tanksReachTheTowerHealthy`, `TraitSmokeTest`
+
+See `docs/CARDS.md` (Rebalance) for the before/after numbers.

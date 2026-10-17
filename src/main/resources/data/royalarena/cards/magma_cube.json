@@ -1,0 +1,25 @@
+{
+  "id": "magma_cube",
+  "type": "troop",
+  "display_name": "Magma Cube",
+  "elixir": 4,
+  "entity": "minecraft:magma_cube",
+  "count": 1,
+  "unit": {
+    "health": 36,
+    "damage": 7,
+    "attack_interval_ticks": 28,
+    "range": 1.2,
+    "move_speed": 0.83,
+    "flying": false,
+    "targets": "ground"
+  },
+  "split": {
+    "generations": 1,
+    "children": 2,
+    "health_factor": 0.5,
+    "damage_factor": 0.5,
+    "spread": 1.0,
+    "invulnerable_ticks": 6
+  }
+}

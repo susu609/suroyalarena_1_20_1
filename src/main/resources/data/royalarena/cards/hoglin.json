@@ -1,0 +1,17 @@
+{
+  "id": "hoglin",
+  "type": "troop",
+  "display_name": "Hoglin",
+  "elixir": 3,
+  "entity": "minecraft:hoglin",
+  "count": 1,
+  "unit": {
+    "health": 45,
+    "damage": 8,
+    "attack_interval_ticks": 28,
+    "range": 1.2,
+    "move_speed": 1.6,
+    "flying": false,
+    "targets": "buildings"
+  }
+}

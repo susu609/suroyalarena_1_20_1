@@ -15,6 +15,7 @@ import net.susu609.royalarena.combat.TickResult;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
+import net.susu609.royalarena.tower.TowerKind;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +47,7 @@ public final class CombatSmokeTest {
         troopsMarchOverTheBridgeToTheirTower();
         speedMultiplierScalesWalking();
         crowdedUnitsStillGetThroughTheBridge();
+        tanksReachTheTowerHealthy();
         towersShootTheNearestEnemyOnTheirInterval();
         kingTowerSleepsUntilHitOrPrincessFalls();
         troopsDestroyTowersAndRetargetKing();
@@ -463,6 +465,38 @@ public final class CombatSmokeTest {
         check(golem.z() < -6.0D, "it stopped at the tower, deep in RED's half");
     }
 
+    /**
+     * Played at the bridge with nobody defending, a tank reaches its tower
+     * with most of its health, and an Iron Golem takes the tower alone.
+     */
+    private static void tanksReachTheTowerHealthy() {
+        for (BattleCard card : new BattleCard[] {BattleCard.IRON_GOLEM,
+                BattleCard.RAVAGER, BattleCard.HOGLIN})
+        {
+            MatchInstance match = battle();
+            CombatEngine engine = new CombatEngine(match);
+            CombatUnit tank = spawn(engine, card, TeamSide.BLUE, -6.0D, 2.0D);
+            int tick = 0;
+            while (tick < 600 && tank.alive() && match.tower(
+                    TowerId.RED_RIGHT).health() == TowerKind.PRINCESS
+                    .maxHealth())
+            {
+                step(engine, match.arena());
+                tick++;
+            }
+            check(tick < 240, card.id() + " hits the tower within 12 s: " +
+                    tick / 20.0D);
+            check(tank.health() >= card.stats().health() * 0.6D,
+                    card.id() + " arrives with 60% health: " + tank.health());
+            if (card != BattleCard.IRON_GOLEM)
+                continue;
+            for (int i = 0; i < 1200 && tank.alive(); i++)
+                step(engine, match.arena());
+            check(match.tower(TowerId.RED_RIGHT).isDestroyed(),
+                    "an undefended Iron Golem takes the tower");
+        }
+    }
+
     private static void towersShootTheNearestEnemyOnTheirInterval() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
@@ -473,6 +507,7 @@ public final class CombatSmokeTest {
                 a -> TowerId.BLUE_LEFT.equals(a.attackerTower())),
                 "Princess tower fires at an enemy in range");
         int flight = first.attacks().get(0).flightTicks();
+        double shot1 = 20.0D - TowerKind.PRINCESS.damage();
         near(red.health(), 20.0D, "the arrow is still in the air");
         // Shot on tick 1 lands on tick 1 + flight; the next shot on tick 17.
         int tick = 1;
@@ -480,14 +515,15 @@ public final class CombatSmokeTest {
             hold(engine);
             tick++;
         }
-        near(red.health(), 16.0D, "tower shot does 4 damage on landing");
+        near(red.health(), shot1, "a tower shot does its damage on landing");
         while (tick < 16 + flight) {
             hold(engine);
             tick++;
         }
-        near(red.health(), 16.0D, "no second shot before 16 ticks");
+        near(red.health(), shot1, "no second shot before 16 ticks");
         hold(engine);
-        near(red.health(), 12.0D, "second shot fired on tick 17 lands");
+        near(red.health(), shot1 - TowerKind.PRINCESS.damage(),
+                "second shot fired on tick 17 lands");
 
         CombatUnit out = spawn(engine, BattleCard.ZOMBIE, TeamSide.RED,
                 -6.0D, 0.5D);
@@ -504,7 +540,7 @@ public final class CombatSmokeTest {
         TickResult shot = hold(duelEngine);
         for (int i = 0; i < shot.attacks().get(0).flightTicks(); i++)
             hold(duelEngine);
-        near(zombie.health(), 16.0D,
+        near(zombie.health(), shot1,
                 "tower picks the nearest enemy when several are in range");
         near(archer.health(), 20.0D, "farther enemy is untouched");
     }

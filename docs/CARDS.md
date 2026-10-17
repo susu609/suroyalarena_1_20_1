@@ -20,7 +20,7 @@ Move speed is in blocks per second.
 | Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 6.0 | 1.0 | **2** |
 | Spider | `minecraft:spider` | 4 | 10 | 2 | 1.0 | 1.2 | 1.5 | **3** |
 | Skeletons | `minecraft:skeleton` (melee) | 3 | 10 | 2 | 1.2 | 1.2 | 1.33 | **2** |
-| Big Slime | `minecraft:slime` | 1 | 20 | 5 | 1.4 | 1.2 | 0.67 | **3** |
+| Big Slime | `minecraft:slime` | 1 | 20 | 5 | 1.4 | 1.2 | 0.85 | **3** |
 
 Zombie and Skeleton Archer keep vanilla health. Swarm units are thinner than
 vanilla on purpose: Spider x4 at vanilla 16 HP would cost 4.81 elixir, and
@@ -90,7 +90,9 @@ the same formula:
 |---|---|---|---|---|---|---|---|---|
 | Stray | `minecraft:stray` (bow) | 1 | 20 | 3 | 1.2 | 6.0 | 1.0 | **2** |
 | Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 7 | 1.4 | 1.2 | 1.1 | **2** |
-| Iron Golem | `minecraft:iron_golem` | 1 | 100 | 8 | 1.6 | 1.5 | 0.67 | **4** |
+| Iron Golem | `minecraft:iron_golem` | 1 | 160 | 12 | 1.6 | 1.5 | 0.9 | **5** |
+
+The Iron Golem only targets towers (see "Tower-only troops" below).
 
 ## Library cards: Creeper, Witch, Wolves, Ravager
 
@@ -100,14 +102,56 @@ self-destruct x0.5 (`CostFormula`, balance.json).
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
-| Creeper | `minecraft:creeper` | 1 | 20 | 30 | 1.0 | 0.5 | 1.0 | explodes on its first hit, splash 2.5 (towers too), then dies | **3** |
+| Creeper | `minecraft:creeper` | 1 | 20 | 30 | 1.0 | 0.5 | 1.33 | explodes on its first hit, splash 2.5 (towers too), then dies | **3** |
 | Witch | `minecraft:witch` | 1 | 26 | 8 | 1.5 | 5.0 | 0.8 | thrown splash potion, splash 1.5 | **4** |
 | Wolves | `minecraft:wolf` | 3 | 8 | 3 | 0.8 | 1.2 | 1.6 | fast pack | **3** |
-| Ravager | `minecraft:ravager` | 1 | 100 | 10 | 1.6 | 1.5 | 0.75 | knocks its target back 1 block | **5** |
+| Ravager | `minecraft:ravager` | 1 | 130 | 10 | 1.6 | 1.5 | 1.0 | knocks its target back 1 block | **5** |
 
 Splash hits every other enemy whose body touches the circle around the
 target, and enemy towers whose footprint does (`TroopTraits`,
 `CombatEngine.splash`).
+
+## Library cards: Hoglin, Pillager, Magma Cube
+
+| Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
+|---|---|---|---|---|---|---|---|---|---|
+| Hoglin | `minecraft:hoglin` | 1 | 45 | 8 | 1.4 | 1.2 | 1.6 | charges the towers, ignores troops | **3** |
+| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 7 | 1.4 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
+| Magma Cube | `minecraft:magma_cube` | 1 | 36 | 7 | 1.4 | 1.2 | 0.83 | splits once into 2 (18 HP, 3.5 damage) | **4** |
+
+NoAI Hoglins never turn into Zoglins, so the arena dimension does not need to
+be piglin-safe.
+
+## Tower-only troops
+
+Iron Golem and Hoglin (`TroopTraits.buildingsOnly`, role "Targets towers")
+ignore every enemy troop and walk straight to their lane tower, like a Clash
+Royale Giant or Hog Rider. Enemy troops and towers still hit them. They cannot
+defend, so the cost formula gives them x0.85 and the bot never plays them to
+defend.
+
+## Rebalance: tanks reach the towers
+
+Measured with the combat engine: one card played at its own bridge, nobody
+defending, until it dies (before -> after).
+
+| Card | Time to the tower | Health left on arrival | Damage to the tower (of 110) |
+|---|---|---|---|
+| Iron Golem | 13.2 s -> 9.8 s | 56% -> 85% | 56 -> 110 (tower falls at 24 s) |
+| Ravager | 11.5 s -> 8.6 s | 60% -> 84% | 80 -> 110 |
+| Big Slime | 13.9 s -> 11.1 s | 75% -> 55% (splits on the way) | 7 -> 28 |
+| Zombie x2 | dies on the way | 35% | 0 -> 12 |
+| Creeper | dies on the way | explodes on the tower | 0 -> 30 |
+
+What changed:
+
+- **Princess tower** 4 -> **3** damage per 0.8 s, range 7.5 -> **7.0**:
+  troops come under fire about one block later, and lose a quarter less on
+  the walk. The 110 HP stays.
+- **Iron Golem** 4 -> **5** elixir: 160 HP (was 100), 12 damage (was 8),
+  speed 0.9 (was 0.67), targets towers only.
+- **Ravager** 130 HP (was 100), speed 1.0 (was 0.75), still 5 elixir.
+- **Big Slime** speed 0.85 (was 0.67). **Creeper** speed 1.33 (was 1.0).
 
 ## Model size
 

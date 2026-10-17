@@ -26,7 +26,8 @@ exists, otherwise the mob's spawn egg (an arrow for Arrow Storm, a fire
 charge for Fireball). Portraits are optional and live at
 `assets/royalarena/textures/gui/card/<card id>.png` in this mod or any
 resource pack (ids: `zombie`, `skeleton_archer`, `spider`, `skeletons`,
-`big_slime`, `stray`, `vindicator`, `iron_golem`, `arrow_storm`,
+`big_slime`, `stray`, `vindicator`, `iron_golem`, `creeper`, `witch`,
+`wolves`, `ravager`, `hoglin`, `pillager`, `magma_cube`, `arrow_storm`,
 `fireball`; a new card's id is its
 lower-case enum name).
 Any size works, the image is stretched over the card face (31:39, so 124x156 or

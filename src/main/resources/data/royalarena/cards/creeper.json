@@ -10,7 +10,7 @@
     "damage": 30,
     "attack_interval_ticks": 20,
     "range": 0.5,
-    "move_speed": 1.0,
+    "move_speed": 1.33,
     "flying": false,
     "targets": "ground",
     "splash_radius": 2.5,

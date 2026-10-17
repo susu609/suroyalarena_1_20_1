@@ -249,9 +249,12 @@ public final class CombatEngine {
     /**
      * Enemy to chase: the one already chased while it stays within the
      * leash, otherwise the nearest one in sight. Melee units ignore enemies
-     * across the river unless those stand on the bridges.
+     * across the river unless those stand on the bridges, and a unit that
+     * only targets buildings ignores every troop.
      */
     private CombatUnit pickEnemy(CombatUnit unit) {
+        if (unit.stats().traits().buildingsOnly())
+            return null;
         double sight = unit.stats().sight();
         CombatUnit current = unit.target() == null ? null :
                 unit(unit.target());
@@ -354,7 +357,7 @@ public final class CombatEngine {
     /**
      * Keeps shooting the same enemy while in range, else the nearest. Tower
      * range is measured from the tower's edge to the unit's edge, like the
-     * ranges of units, so a tower (7.5) always outranges an archer (6).
+     * ranges of units, so a Princess tower (7.0) outranges every troop.
      */
     private CombatUnit pickTowerTarget(TowerId id) {
         double range = id.kind().range();

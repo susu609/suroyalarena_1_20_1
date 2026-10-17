@@ -2,16 +2,16 @@
   "id": "iron_golem",
   "type": "troop",
   "display_name": "Iron Golem",
-  "elixir": 4,
+  "elixir": 5,
   "entity": "minecraft:iron_golem",
   "count": 1,
   "unit": {
-    "health": 100,
-    "damage": 8,
+    "health": 160,
+    "damage": 12,
     "attack_interval_ticks": 32,
     "range": 1.5,
-    "move_speed": 0.67,
+    "move_speed": 0.9,
     "flying": false,
-    "targets": "ground"
+    "targets": "buildings"
   }
 }

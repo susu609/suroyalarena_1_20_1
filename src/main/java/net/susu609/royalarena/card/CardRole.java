@@ -18,6 +18,8 @@ public enum CardRole {
     SWARM("Swarm"),
     /** Hits everything around its target. */
     AREA("Area damage"),
+    /** Ignores troops and walks straight to the towers. */
+    BUILDINGS("Targets towers"),
     /** Fights up close. */
     MELEE("Melee");
 
@@ -48,6 +50,8 @@ public enum CardRole {
             roles.add(SWARM);
         if (s.traits().splash())
             roles.add(AREA);
+        if (s.traits().buildingsOnly())
+            roles.add(BUILDINGS);
         return roles;
     }
 

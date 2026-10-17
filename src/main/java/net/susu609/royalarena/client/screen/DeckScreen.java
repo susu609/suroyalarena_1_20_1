@@ -378,7 +378,9 @@ public final class DeckScreen extends Screen {
         lines.add(line("Range %.1f, speed %.2f blocks/s", s.range(),
                 s.speed()));
         if (s.split() != null)
-            lines.add(line("Splits in %d when it dies, %d times",
+            lines.add(line(s.split().generations() == 1 ?
+                            "Splits in %d when it dies" :
+                            "Splits in %d when it dies, %d times",
                     s.split().children(), s.split().generations()));
         if (s.traits().splash())
             lines.add(line("Hits everything within %.1f blocks of its target",
@@ -388,6 +390,8 @@ public final class DeckScreen extends Screen {
         if (s.traits().knockback() > 0)
             lines.add(line("Knocks its target back %.1f block",
                     s.traits().knockback()));
+        if (s.traits().buildingsOnly())
+            lines.add(line("Ignores troops, walks straight to the towers"));
         return lines;
     }
 

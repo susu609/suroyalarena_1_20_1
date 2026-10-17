@@ -6,9 +6,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.monster.CrossbowAttackMob;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.monster.hoglin.Hoglin;
 import net.minecraft.world.item.Items;
 
 import java.util.HashMap;
@@ -23,11 +25,13 @@ import java.util.UUID;
  * <li>attack poses (Zombie arms up, Vindicator axe, sword Skeletons) and the
  * bow aiming pose come from {@link Mob#setAggressive};</li>
  * <li>the bow draw is "using the bow item": started when a Skeleton or Stray
- * takes aim, released when its arrow flies;</li>
- * <li>the Iron Golem and Ravager swings are entity event 4 (they ignore
- * {@code swing}), and a golem hit tosses the victim up a little;</li>
+ * takes aim, released when its arrow flies; a Pillager charges its
+ * crossbow the same way;</li>
+ * <li>the Iron Golem, Ravager and Hoglin swings are entity event 4 (they
+ * ignore {@code swing}), and a golem hit tosses the victim up a little;</li>
  * <li>a Slime only squishes when it leaves and lands on the ground, so it
- * moves in hops; it also hops when it attacks; Spiders and Wolves pounce.</li>
+ * moves in hops (Magma Cubes too); it also hops when it attacks; Spiders
+ * and Wolves pounce.</li>
  * </ul>
  * Hops and tosses only change the height of a mob, never the position the
  * engine works with.
@@ -104,15 +108,28 @@ final class TroopAnimator {
         if (!holdsBow(mob))
             return;
         if (aggressive && !mob.isUsingItem())
-            mob.startUsingItem(InteractionHand.MAIN_HAND);
+            draw(mob);
         else if (!aggressive && mob.isUsingItem())
-            mob.stopUsingItem();
+            release(mob);
+    }
+
+    private static void draw(Mob mob) {
+        mob.startUsingItem(InteractionHand.MAIN_HAND);
+        if (mob instanceof CrossbowAttackMob crossbow)
+            crossbow.setChargingCrossbow(true);
+    }
+
+    private static void release(Mob mob) {
+        mob.stopUsingItem();
+        if (mob instanceof CrossbowAttackMob crossbow)
+            crossbow.setChargingCrossbow(false);
     }
 
     /** The attacker strikes or shoots. */
     void onAttack(Entity attacker) {
-        if (attacker instanceof IronGolem || attacker instanceof Ravager) {
-            // Both play their attack swing (and sound) on entity event 4.
+        if (attacker instanceof IronGolem || attacker instanceof Ravager ||
+                attacker instanceof Hoglin) {
+            // They play their attack swing (and sound) on entity event 4.
             attacker.level().broadcastEntityEvent(attacker, (byte) 4);
         } else if (attacker instanceof Slime) {
             hop(attacker, SQUISH_HOP);
@@ -120,7 +137,7 @@ final class TroopAnimator {
             hop(attacker, POUNCE);
         } else if (attacker instanceof Mob mob && holdsBow(mob)) {
             // Let go of the string; the draw starts again next tick.
-            mob.stopUsingItem();
+            release(mob);
         } else if (attacker instanceof LivingEntity living) {
             living.swing(InteractionHand.MAIN_HAND);
         }
@@ -137,7 +154,9 @@ final class TroopAnimator {
         groundTicks.remove(id);
     }
 
+    /** A bow or a crossbow: both are drawn while the mob takes aim. */
     private static boolean holdsBow(Mob mob) {
-        return mob.getMainHandItem().is(Items.BOW);
+        return mob.getMainHandItem().is(Items.BOW) ||
+                mob.getMainHandItem().is(Items.CROSSBOW);
     }
 }

@@ -237,12 +237,17 @@ public final class BotBrain {
         return slots.isEmpty() ? -1 : slots.get(random.nextInt(slots.size()));
     }
 
-    /** Most total health on the board for the elixir; first slot on ties. */
+    /**
+     * Most total health on the board for the elixir; first slot on ties.
+     * Troops that only hit towers cannot defend, so they are left out.
+     */
     private int sturdiestAffordable(MatchPlayer me) {
         int best = -1;
         double bestHealth = -1.0D;
         for (int slot : affordableSlots(me)) {
             var stats = me.deck().hand().get(slot).stats();
+            if (stats.traits().buildingsOnly())
+                continue;
             double health = stats.health() * stats.count();
             if (health > bestHealth) {
                 best = slot;

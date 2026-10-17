@@ -2,7 +2,7 @@ package net.susu609.royalarena.tower;
 
 /** Tower stats on the vanilla health scale (docs/BALANCE.md). */
 public enum TowerKind {
-    PRINCESS(110, 4, 16, 7.5D), KING(185, 4, 20, 7.0D);
+    PRINCESS(110, 3, 16, 7.0D), KING(185, 4, 20, 7.0D);
 
     private final int maxHealth;
     private final double damage;

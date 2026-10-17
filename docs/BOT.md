@@ -14,7 +14,7 @@ the hand cycle, deploy areas and the one-second deploy delay all apply to it.
 
 Each match the bot draws a random deck (`BotDeck`): 8 different cards with at
 least one spell, one tank (one body with 50+ health, split children
-included: Iron Golem, Big Slime) and one ranged troop, averaging 2.8 to 3.6
+included: Iron Golem, Big Slime, Ravager, Magma Cube) and one ranged troop, averaging 2.8 to 3.6
 elixir, in a random order. The seed comes from the match id.
 
 ## What it does
@@ -26,7 +26,8 @@ It thinks every 10 ticks and never plays twice within 40 ticks.
   Fireball), it casts it where it hits most, a little ahead of where the units
   walk. It never wastes a spell on a single unit.
 - **Defend.** If an enemy unit stands on its bank of the river, it plays the
-  sturdiest troop card it can afford (most total health) three blocks behind that
+  sturdiest troop card it can afford (most total health; troops that only
+  target towers, Iron Golem and Hoglin, are never used to defend) three blocks behind that
   unit, in the same lane.
 - **Attack.** Otherwise, once it has 7 elixir, it plays a random affordable
   troop card near the back of the lane whose enemy Princess tower is weaker (or the

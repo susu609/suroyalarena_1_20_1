@@ -64,8 +64,8 @@ Reference: the Clash Royale wiki gives an 18 x 32 tile arena, a 4x4 King
 tower 1 tile from the back, 3x3 Princess towers and 2-tile bridges in most
 arenas. The mod stretches the Princess model to 4x4 to keep everything even,
 and uses an 8-row gap so the lanes feel open. Tower range is measured from the tower's edge, so a
-Princess tower (7.5) covers the ground up to the bank of the river: troops
-are shot as soon as they step off a bridge, not while they are on it.
+Princess tower (7.0) covers the ground up to a block past the river: troops
+are shot right after they step off a bridge, not while they are on it.
 
 ## Troop route
 

@@ -11,14 +11,15 @@
     "swarm_3_4": 0.93,
     "swarm_5_plus": 0.85,
     "area_damage": 1.3,
-    "self_destruct": 0.5
+    "self_destruct": 0.5,
+    "buildings_only": 0.85
   },
   "towers": {
     "princess": {
       "health": 110,
-      "damage": 4,
+      "damage": 3,
       "attack_interval_ticks": 16,
-      "range": 7.5
+      "range": 7.0
     },
     "king": {
       "health": 185,

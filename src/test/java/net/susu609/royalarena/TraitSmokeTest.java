@@ -10,12 +10,13 @@ import net.susu609.royalarena.combat.TickResult;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
+import net.susu609.royalarena.tower.TowerKind;
 
 import java.util.UUID;
 
 /**
  * Pure-Java checks for troop traits: Creeper self-destruct splash, Witch
- * splash, Ravager knockback. Units stand around the river, out of tower
+ * splash, Ravager knockback, tower-only targeting. Units stand around the river, out of tower
  * range, and the harness never moves them.
  */
 public final class TraitSmokeTest {
@@ -28,6 +29,7 @@ public final class TraitSmokeTest {
         creeperHurtsTheTowerItReaches();
         witchSplashesAroundItsTarget();
         ravagerKnocksItsVictimBack();
+        buildingTargetersIgnoreTroops();
         System.out.println("RoyalArena trait smoke tests: PASS");
     }
 
@@ -55,6 +57,19 @@ public final class TraitSmokeTest {
                 "Creeper is area damage");
         check(CardRole.of(BattleCard.WOLVES).contains(CardRole.SWARM),
                 "Wolves are a swarm");
+        check(CardRole.of(BattleCard.IRON_GOLEM).contains(CardRole.BUILDINGS) &&
+                CardRole.of(BattleCard.HOGLIN).contains(CardRole.BUILDINGS) &&
+                !CardRole.of(BattleCard.RAVAGER).contains(CardRole.BUILDINGS),
+                "Iron Golem and Hoglin target towers, the Ravager fights");
+        check(CardRole.of(BattleCard.PILLAGER).contains(CardRole.RANGED),
+                "the Pillager is ranged");
+        check(CardRole.of(BattleCard.MAGMA_CUBE).contains(CardRole.TANK) &&
+                BattleCard.MAGMA_CUBE.stats().split().generations() == 1,
+                "the Magma Cube is a tank that splits once");
+        for (BattleCard card : BattleCard.values())
+            check(card.isSpell() || card.stats().range() <
+                    TowerKind.PRINCESS.range(), card.id() +
+                    " is outranged by a Princess tower");
         check(BattleCard.SKELETONS.modelScale() < 1.0F &&
                 BattleCard.SPIDER.modelScale() < 1.0F &&
                 BattleCard.ZOMBIE.modelScale() == 1.0F,
@@ -143,6 +158,28 @@ public final class TraitSmokeTest {
         near(zombie.z(), -1.5D, "pushed straight away, kept on land");
         near(zombie.x(), 0.5D, "straight away from the Ravager");
         near(ravager.z(), 2.5D, "the Ravager stays put");
+    }
+
+    private static void buildingTargetersIgnoreTroops() {
+        for (BattleCard card : new BattleCard[] {BattleCard.IRON_GOLEM,
+                BattleCard.HOGLIN})
+        {
+            MatchInstance match = battle();
+            CombatEngine engine = new CombatEngine(match);
+            CombatUnit tank = unit(engine, card, TeamSide.BLUE, -6.0D, -2.0D);
+            CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                    -6.0D, -3.5D);
+            TickResult result = engine.tick();
+            check(tank.target() == null, card.id() + " ignores the Zombie");
+            check(result.moves().stream().anyMatch(
+                    m -> m.unit().equals(tank.id())),
+                    card.id() + " keeps walking to its tower");
+            check(result.attacks().stream().noneMatch(
+                    a -> tank.id().equals(a.attackerUnit())),
+                    card.id() + " does not hit the Zombie");
+            check(tank.id().equals(zombie.target()),
+                    "the Zombie still fights the " + card.id());
+        }
     }
 
     private static void near(double actual, double expected, String name) {

@@ -1,0 +1,18 @@
+{
+  "id": "pillager",
+  "type": "troop",
+  "display_name": "Pillager",
+  "elixir": 3,
+  "entity": "minecraft:pillager",
+  "count": 1,
+  "unit": {
+    "health": 30,
+    "damage": 7,
+    "attack_interval_ticks": 28,
+    "range": 6.5,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground"
+  },
+  "held_item": "minecraft:crossbow"
+}

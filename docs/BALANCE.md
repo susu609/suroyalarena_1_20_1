@@ -35,6 +35,8 @@ Modifiers multiply together:
 | Count 3-4 | x0.93 |
 | Count >= 5 | x0.85 |
 | Area damage | x1.3 |
+| Self-destruct (dies on its first hit) | x0.5 |
+| Targets towers only | x0.85 |
 
 `cost_divisor` is a tuning knob. At 5.4 the starter set averages under 3
 elixir. Lowering it makes every troop more expensive. Decide after playtests.
@@ -48,6 +50,7 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 | Spider x4 | 40 | 8.0 | count 4, speed | 3.39 | 3 |
 | Skeletons x3 | 30 | 5.0 | count 3, speed | 2.32 | 2 |
 | Big Slime x1 | 60 | 3.57 | - | 2.71 | 3 |
+| Iron Golem x1 | 160 | 7.5 | towers only | 5.45 | 5 |
 
 ## Spell cost
 
@@ -70,13 +73,13 @@ All spells deal 30% damage to towers (`spell_tower_damage_multiplier`).
 
 | Tower | HP | Damage | Interval | Range |
 |---|---|---|---|---|
-| Princess | 110 | 4 | 0.8 s (16 ticks) | 7.5 |
+| Princess | 110 | 3 | 0.8 s (16 ticks) | 7.0 |
 | King | 185 | 4 | 1.0 s (20 ticks) | 7.0 |
 
 The King tower is asleep until it is damaged or one of its Princess towers is
 destroyed. Tower range is measured from the tower's edge (its 4x4 footprint) to
-the target's edge, like unit ranges, so a Princess tower (7.5) always outranges
-an archer (6).
+the target's edge, like unit ranges, so a Princess tower (7.0) always outranges
+an archer (6) and a Pillager (6.5).
 
 ## Elixir and match time
 

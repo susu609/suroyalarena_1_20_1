@@ -138,7 +138,7 @@ public final class SpellSmokeTest {
         check(first.deaths().stream().anyMatch(
                 d -> d.unit().equals(zombie.id())),
                 "Fireball kills a Zombie outright");
-        near(golem.health(), 75.0D, "25 damage on the Iron Golem");
+        near(golem.health(), 135.0D, "25 damage on the Iron Golem");
         check(first.pushes().size() == 1 &&
                 first.pushes().get(0).unit().equals(golem.id()),
                 "the survivor is knocked back");
@@ -146,7 +146,7 @@ public final class SpellSmokeTest {
         check(golem.burnTicks() > 0, "the Iron Golem is burning");
         for (int i = 0; i < 80; i++)
             engine.tick();
-        near(golem.health(), 72.0D, "the burn deals 1 per second for 3 s");
+        near(golem.health(), 132.0D, "the burn deals 1 per second for 3 s");
         check(golem.burnTicks() == 0, "the burn ends");
     }
 

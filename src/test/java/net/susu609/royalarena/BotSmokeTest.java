@@ -177,7 +177,7 @@ public final class BotSmokeTest {
         BattleCard best = null;
         double bestHealth = -1.0D;
         for (BattleCard card : h.match.player(TeamSide.RED).deck().hand()) {
-            if (card.cost() > 5)
+            if (card.cost() > 5 || card.stats().traits().buildingsOnly())
                 continue;
             double health = card.stats().health() * card.stats().count();
             if (health > bestHealth) {

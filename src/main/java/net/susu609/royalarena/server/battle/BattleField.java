@@ -15,6 +15,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.item.Item;
@@ -518,7 +519,8 @@ public final class BattleField {
         sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
                 attack.flightTicks(), (float) (distance * 0.12D));
         level.playSound(null, from[0], from[1], from[2],
-                attack.attackerTower() != null ? SoundEvents.CROSSBOW_SHOOT :
+                attack.attackerTower() != null || attacker instanceof Pillager ?
+                        SoundEvents.CROSSBOW_SHOOT :
                         SoundEvents.ARROW_SHOOT, SoundSource.HOSTILE, 0.6F,
                 1.0F);
     }

@@ -69,8 +69,10 @@ vanilla triggers from what the engine decides:
 |---|---|---|
 | Zombie, Skeletons (sword), Vindicator | arms up / axe raised | `setAggressive` while it has an enemy or stands fighting |
 | Skeleton Archer, Stray | bow raised, string drawn, released on the shot | aggressive pose, `startUsingItem` / `stopUsingItem` on the bow |
+| Pillager | crossbow charged while it takes aim, crossbow sound on the shot | `setChargingCrossbow` and `startUsingItem` on the crossbow |
 | Iron Golem | arm swing and golem attack sound; the victim is tossed up a little | entity event 4, a small upward hop of the victim |
-| Slime | moves in hops and squishes on landing; bounces when it attacks | jumps every 5-8 ticks (bigger slimes jump higher), moving only while in the air, fast enough that its average speed is the engine's |
+| Hoglin, Ravager | head swing and attack sound | entity event 4 |
+| Slime, Magma Cube | moves in hops and squishes on landing; bounces when it attacks | jumps every 5-8 ticks (bigger slimes jump higher), moving only while in the air, fast enough that its average speed is the engine's |
 | Spider | pounces on each bite | small hop |
 
 Troops standing to fight turn toward their enemy or tower. Hops and tosses

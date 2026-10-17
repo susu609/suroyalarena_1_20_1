@@ -6,11 +6,11 @@
   "entity": "minecraft:ravager",
   "count": 1,
   "unit": {
-    "health": 100,
+    "health": 130,
     "damage": 10,
     "attack_interval_ticks": 32,
     "range": 1.5,
-    "move_speed": 0.75,
+    "move_speed": 1.0,
     "flying": false,
     "targets": "ground",
     "knockback": 1.0

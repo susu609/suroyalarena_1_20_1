@@ -11,6 +11,8 @@ public final class CostFormula {
     public static final double AREA_DAMAGE = 1.3D;
     /** A unit that dies on its first strike delivers its damage once. */
     public static final double SELF_DESTRUCT = 0.5D;
+    /** A unit that only hits towers cannot defend, so it is cheaper. */
+    public static final double BUILDINGS_ONLY = 0.85D;
 
     private CostFormula() {
     }
@@ -33,6 +35,8 @@ public final class CostFormula {
             modifier *= AREA_DAMAGE;
         if (s.traits().selfDestruct())
             modifier *= SELF_DESTRUCT;
+        if (s.traits().buildingsOnly())
+            modifier *= BUILDINGS_ONLY;
         return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
     }
 
