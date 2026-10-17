@@ -7,13 +7,12 @@
   "model_scale": 0.9,
   "count": 3,
   "unit": {
-    "health": 10,
+    "health": 18,
     "damage": 1.5,
     "attack_interval_ticks": 18,
     "range": 1.2,
     "move_speed": 1.33,
     "flying": false,
     "targets": "ground"
-  },
-  "held_item": "minecraft:stone_sword"
+  }
 }
