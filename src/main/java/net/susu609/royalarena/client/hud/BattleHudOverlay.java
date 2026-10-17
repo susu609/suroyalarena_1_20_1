@@ -1,6 +1,7 @@
 package net.susu609.royalarena.client.hud;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -46,12 +47,17 @@ public final class BattleHudOverlay implements IGuiOverlay {
     private static final int CARD_DISABLED = 0x99606060;
     private static final int ELIXIR = 0xFFD05CFF;
     private static final int ELIXIR_DARK = 0xFF3A2140;
+    /** Cost badge of a card the player cannot afford yet. */
+    private static final int ELIXIR_DIM = 0xFF7A4A88;
     private static final int ELIXIR_EDGE = 0xFF1A0E1F;
     private static final int BLUE = 0xFF2F6FD6;
     private static final int RED = 0xFFC8352E;
 
     private static final Map<BattleCard, ItemStack> ICONS =
             new EnumMap<>(BattleCard.class);
+    /** Animated lift of each hand slot, in reference units. */
+    private static final float[] LIFTS = new float[4];
+    private static long lastFrameMillis;
 
     private BattleHudOverlay() {
     }
@@ -98,12 +104,21 @@ public final class BattleHudOverlay implements IGuiOverlay {
         int hovered = layout.cardSlotAt(
                 ArenaCameraController.cursorGuiX(),
                 ArenaCameraController.cursorGuiY());
+        long now = Util.getMillis();
+        float elapsed = lastFrameMillis == 0L ? 0.0F :
+                Math.min(100.0F, now - lastFrameMillis);
+        lastFrameMillis = now;
         for (int slot = 0; slot < hand.size() && slot < 4; slot++) {
             BattleCard card = hand.get(slot);
             boolean selected = ClientMatchState.selectedSlot() == slot;
             boolean hover = !selected && hovered == slot;
-            float lift = selected ? HudLayout.SELECT_LIFT :
+            boolean affordable = card.cost() * 10 <= elixir;
+            float target = selected ? HudLayout.SELECT_LIFT :
                     hover ? HudLayout.HOVER_LIFT : 0.0F;
+            // Everything on the card (frame, art, tint, badge, key) follows
+            // this one animated lift, so it all rises and falls together.
+            float lift = LIFTS[slot] =
+                    HudLayout.approachLift(LIFTS[slot], target, elapsed);
             Rect r = layout.card(slot, lift);
             if (selected) {
                 int glow = Math.max(1, Math.round(layout.u() * 2.0F));
@@ -112,20 +127,20 @@ public final class BattleHudOverlay implements IGuiOverlay {
             }
             drawCardFace(graphics, layout, card, r,
                     selected ? CARD_SELECTED : hover ? CARD_HOVER : CARD_EDGE);
-            if (card.cost() * 10 > elixir)
+            if (!affordable)
                 overlay(graphics, r, CARD_DISABLED);
-            else if (hover)
+            else if (hover || selected)
                 overlay(graphics, r, CARD_HOVER_TINT);
 
-            float small = textScale(layout, 6.0F);
+            float u = layout.u();
             text(graphics, font, Integer.toString(slot + 1),
-                    r.x() + 3.5F * layout.u(), r.y() + 4.0F * layout.u(),
-                    small, 0xFFFFFFFF);
+                    r.right() - 3.5F * u, r.bottom() - 4.0F * u,
+                    textScale(layout, 6.0F), 0xFFFFFFFF);
 
             Rect cost = layout.cardCost(slot, lift);
-            drawDrop(graphics, cost);
+            drawDrop(graphics, cost, affordable ? ELIXIR : ELIXIR_DIM);
             text(graphics, font, Integer.toString(card.cost()),
-                    cost.centerX(), cost.centerY(), textScale(layout, 7.0F),
+                    cost.centerX(), cost.centerY(), textScale(layout, 8.0F),
                     0xFFFFFFFF);
         }
     }
@@ -253,9 +268,18 @@ public final class BattleHudOverlay implements IGuiOverlay {
     }
 
     private static void drawDrop(GuiGraphics graphics, Rect r) {
+        drawDrop(graphics, r, ELIXIR);
+    }
+
+    /** Elixir drop above items and card overlays, so it never greys out. */
+    private static void drawDrop(GuiGraphics graphics, Rect r, int fill) {
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(0.0F, 0.0F, 220.0F);
         graphics.fill(r.x(), r.y(), r.right(), r.bottom(), ELIXIR_EDGE);
         graphics.fill(r.x() + 1, r.y() + 1, r.right() - 1, r.bottom() - 1,
-                ELIXIR);
+                fill);
+        pose.popPose();
     }
 
     /** Draws over items, which GuiGraphics renders at z = 150. */

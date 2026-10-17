@@ -139,6 +139,29 @@ public final class DomainSmokeTest {
                 "raised card is still clickable at its top edge");
         var small = net.susu609.royalarena.client.hud.HudLayout.of(480, 270);
         check(small.card(0).h() == 30, "layout scales with GUI height");
+        for (float lift : new float[] {0.0F, 3.0F, 8.0F}) {
+            var c = hud.card(1, lift);
+            var cost = hud.cardCost(1, lift);
+            check(cost.x() < c.x() && cost.y() < c.y() &&
+                    cost.right() > c.x() && cost.bottom() > c.y() &&
+                    c.x() - cost.x() <= 9 && c.y() - cost.y() <= 9,
+                    "cost badge sits on the card's top-left corner");
+            check(cost.x() > hud.card(0).right(),
+                    "cost badge does not reach the card to the left");
+        }
+        float lift = 0.0F;
+        float previous = -1.0F;
+        for (int frame = 0; frame < 30; frame++) {
+            lift = net.susu609.royalarena.client.hud.HudLayout.approachLift(
+                    lift, 8.0F, 16.0F);
+            check(lift >= previous && lift <= 8.0F,
+                    "lift rises smoothly without overshooting");
+            previous = lift;
+        }
+        check(lift == 8.0F, "lift settles on its target within half a second");
+        check(net.susu609.royalarena.client.hud.HudLayout.approachLift(
+                3.0F, 0.0F, 16.0F) < 3.0F,
+                "a card sinks back when the hover ends");
     }
 
     private static void troopSpawnsAfterOneSecondDeployTime() {

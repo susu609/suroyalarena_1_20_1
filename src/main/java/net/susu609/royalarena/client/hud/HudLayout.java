@@ -20,6 +20,11 @@ public final class HudLayout {
     /** How far a card rises when hovered / selected. */
     public static final float HOVER_LIFT = 3.0F;
     public static final float SELECT_LIFT = 8.0F;
+    /** Time constant of the card lift animation, in milliseconds. */
+    public static final float LIFT_MILLIS = 45.0F;
+    /** Cost badge size, and how far it sticks out over the card corner. */
+    public static final float COST_SIZE = 11.0F;
+    public static final float COST_OVERHANG = 2.5F;
 
     private final float u;
     private final float originX;
@@ -59,10 +64,28 @@ public final class HudLayout {
         return ref(CARD_LEFT + slot * CARD_PITCH, CARD_TOP - lift, CARD_W,
                 CARD_H);
     }
-    /** Cost drop at the bottom centre of a card raised by {@code lift}. */
+    /**
+     * Cost badge on the top-left corner of a card raised by {@code lift},
+     * sticking out a little over the corner so it moves with the card.
+     */
     public Rect cardCost(int slot, float lift) {
-        float x = CARD_LEFT + slot * CARD_PITCH + (CARD_W - 10.0F) / 2.0F;
-        return ref(x, CARD_TOP + CARD_H - 8.0F - lift, 10.0F, 10.0F);
+        return ref(CARD_LEFT + slot * CARD_PITCH - COST_OVERHANG,
+                CARD_TOP - lift - COST_OVERHANG, COST_SIZE, COST_SIZE);
+    }
+
+    /**
+     * One animation step of a card's lift toward {@code target}: eases out
+     * over about {@link #LIFT_MILLIS} ms, never overshoots, and snaps when it
+     * is within a hundredth of a unit.
+     */
+    public static float approachLift(float current, float target,
+            float elapsedMillis)
+    {
+        if (elapsedMillis <= 0.0F)
+            return current;
+        float k = 1.0F - (float) Math.exp(-elapsedMillis / LIFT_MILLIS);
+        float next = current + (target - current) * k;
+        return Math.abs(target - next) < 0.01F ? target : next;
     }
     /** Clickable area: the card plus the space it rises into. */
     public Rect cardHitArea(int slot) {

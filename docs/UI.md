@@ -11,7 +11,7 @@ is centred horizontally. All positions live in `client/hud/HudLayout.java`
 |---|---|---|
 | Control panel | 37, 290, 163, 66 | wooden panel, bottom ~18.5% |
 | Hand cards | 47 + 37.5 * slot, 297, 31, 39 | portrait 4:5 |
-| Card cost | bottom centre of the card, 10 x 10 | purple drop |
+| Card cost | top-left corner of the card, 11 x 11, sticking out 2.5 | purple drop, dimmer when unaffordable |
 | Next label / card | 6, 314 / 10, 324, 18, 23 | next card ~58% of a hand card |
 | Elixir bar | 41, 341, 153, 8 | continuous, 10 tick marks, under the cards |
 | Elixir drop | 36, 336, 16, 17 | whole elixir number |
@@ -20,7 +20,8 @@ is centred horizontally. All positions live in `client/hud/HudLayout.java`
 
 At 1080 px height `u` is about 3.03, so a card is 94 x 118 px.
 
-Cards show a small key number (1-4) and their art: a portrait PNG if one
+Cards show their cost on the top-left corner, a small key number (1-4) in the
+bottom-right corner and their art: a portrait PNG if one
 exists, otherwise the mob's spawn egg (an arrow for Arrow Storm, a fire
 charge for Fireball). Portraits are optional and live at
 `assets/royalarena/textures/gui/card/<card id>.png` in this mod or any
@@ -31,8 +32,12 @@ lower-case enum name).
 Any size works, the image is stretched over the card face (31:39, so 124x156 or
 248x312 is a good size); press F3+T after adding one. See `CardArt`. Cards that
 cost more than the current elixir are greyed out. A hovered card rises 3 units
-with a light frame; the selected card rises 8 units with a gold frame and glow.
-The click area includes the space a card rises into.
+with a light frame and tint; the selected card rises 8 units with a gold frame
+and glow. The rise is animated (eases out over about 45 ms,
+`HudLayout.approachLift`), and the frame, art, tint, cost badge and key number
+all follow the same lift, so the whole card moves as one piece. The cost
+badge is drawn above the grey "can't afford" overlay so the cost stays
+readable. The click area includes the space a card rises into.
 
 ## Camera
 
