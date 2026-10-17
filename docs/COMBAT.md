@@ -79,6 +79,22 @@ Troops standing to fight turn toward their enemy or tower. Hops and tosses
 only change a mob's height, never the position the engine uses. Walking legs
 animate on their own from the movement.
 
+## Battle effects
+
+All drawn on each client; the three in `royalarena-client.toml [effects]`
+can be turned down or off.
+
+| Effect | What | Where |
+|---|---|---|
+| Damage numbers | red "-5" over a troop, orange over a tower, green "+2" for healing, blue "Frozen"; worked out from the health the server already syncs, small burns added up | `DamageNumbers` (`damageNumbers`) |
+| Team rings | a blue or red ring on the floor under every troop | `TroopEffects` (`teamRings`) |
+| Tower falls | explosion, stone bricks flying, dust, a pile of slab rubble troops can step over, a crown popping up and flying into the crown counter | `ServerMatchSession.towerDestroyed`, `ArenaBuilder.rubble`, `CrownFlights` |
+| Camera shake | TNT, Lightning, Iron Golem and Ravager blows, a falling tower (a King hardest) | `S2CShakePacket`, `CameraShake` (`cameraShake` 0..2) |
+| Death bits | bones, slime balls, magma cream and lava, rotten flesh, string, wool, iron, leather, gunpowder, glass, emeralds | `BattleField.deathBits` |
+| Full elixir | the bar throbs and glows at 10 | `BattleHudOverlay` |
+| Final seconds | the last 10 s counted down big in the middle, the clock turns red; "x2 ELIXIR!", "x3 ELIXIR!", "OVERTIME!" banners; an "x2" tag on the elixir bar | `BattleHudOverlay` |
+| Footstep dust | Iron Golem, Ravager and Hoglin kick up the ground they walk on | `TroopEffects` |
+
 ## Area damage, burning, the bot's hand
 
 - **Hurt flash.** Every troop that loses health, from any source (blows,

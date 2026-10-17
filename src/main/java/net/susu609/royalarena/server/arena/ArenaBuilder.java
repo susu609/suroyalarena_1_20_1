@@ -163,6 +163,28 @@ public final class ArenaBuilder {
         }
     }
 
+    /**
+     * Broken stone where a tower fell: cobblestone, mossy cobblestone and
+     * stone brick slabs scattered over its footprint ({@code half} blocks
+     * from its centre), always the same pile for the same spot. Only slabs,
+     * so troops still step over it on their way to the King. The arena's
+     * clear removes it with the rest.
+     */
+    public static void rubble(ServerLevel level, ArenaPoint point, int half) {
+        BlockState[] pieces = {
+                Blocks.COBBLESTONE_SLAB.defaultBlockState(),
+                Blocks.MOSSY_COBBLESTONE_SLAB.defaultBlockState(),
+                Blocks.STONE_BRICK_SLAB.defaultBlockState(),
+                Blocks.MOSSY_STONE_BRICK_SLAB.defaultBlockState()};
+        for (int x = point.x() - half; x < point.x() + half; x++) {
+            for (int z = point.z() - half; z < point.z() + half; z++) {
+                int h = Math.floorMod(x * 734287 + z * 912931, 97);
+                if (h >= 35)
+                    set(level, x, point.y(), z, pieces[h % pieces.length]);
+            }
+        }
+    }
+
     public static void markTowerDestroyed(ServerLevel level, ArenaPoint point) {
         set(level, point.x(), point.y() - 1, point.z(),
                 Blocks.CRACKED_STONE_BRICKS.defaultBlockState());

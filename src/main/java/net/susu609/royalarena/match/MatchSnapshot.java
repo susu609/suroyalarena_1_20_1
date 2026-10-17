@@ -13,7 +13,7 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
                             List<String> hand, String nextCard,
                             int[] towerHealth, TeamSide winner,
                             List<PendingDeploy> pending, UUID bluePlayer,
-                            UUID redPlayer)
+                            UUID redPlayer, boolean overtime, int elixirRate)
 {
     /** Player of a side (the bot has a random id): its skin is the King's. */
     public UUID player(TeamSide side) {
@@ -33,7 +33,8 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
                 match.player(localSide).deck().nextCard().id(), hp,
                 match.winner(), match.pendingDeploys(),
                 match.player(TeamSide.BLUE).playerId(),
-                match.player(TeamSide.RED).playerId());
+                match.player(TeamSide.RED).playerId(), match.overtime(),
+                match.elixirRate());
     }
 
     public static MatchSnapshot inactive() {
@@ -41,6 +42,6 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
                 false, new UUID(0L, 0L), MatchState.WAITING, TeamSide.BLUE,
                 new ArenaPoint(0, 0, 0), 0, 0, List.of(), "",
                 new int[TowerId.values().length], null, List.of(),
-                new UUID(0L, 0L), new UUID(0L, 0L));
+                new UUID(0L, 0L), new UUID(0L, 0L), false, 1);
     }
 }

@@ -357,3 +357,18 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `client/render/WorldHealthBar.java` (`towerOverlay`),
   `client/render/entity/KingFigure.java`, `CrownTowerRenderer.java`,
   `KingTowerRenderer.java`
+
+## Part 31 — Battle effects, double elixir and overtime
+
+- `client/render/DamageNumbers.java`, `TroopEffects.java`,
+  `client/camera/CameraShake.java`, `client/hud/CrownFlights.java`,
+  `client/hud/BattleHudOverlay.java`, `config/ArenaClientConfig.java`
+  (`[effects]`)
+- `network/s2c/S2CShakePacket.java` (protocol 8),
+  `server/battle/BattleField.java` (shakes, death bits),
+  `server/match/ServerMatchSession.java`, `server/arena/ArenaBuilder.java`
+  (rubble)
+- `match/ElixirMeter.java`, `match/MatchInstance.java` (x2 / x3 elixir,
+  overtime), `match/MatchSnapshot.java`
+- `model_scale` in the troop card JSONs
+- `DomainSmokeTest.elixirSpeedsUpAndOvertimeIsSuddenDeath`

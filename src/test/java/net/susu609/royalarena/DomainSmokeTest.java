@@ -31,6 +31,7 @@ public final class DomainSmokeTest {
         towerTargetingMirrorsForBothSides();
         towerVisualTypesMatchUploadedModels();
         kingTowerEndsMatch();
+        elixirSpeedsUpAndOvertimeIsSuddenDeath();
         noRawResourceLocationConstructors();
         cardArtPluginKnowsEveryCard();
         CombatSmokeTest.run();
@@ -491,6 +492,55 @@ public final class DomainSmokeTest {
     private static void check(boolean condition, String name) {
         if (!condition)
             throw new AssertionError(name);
+    }
+
+    private static MatchInstance freshBattle() {
+        MatchInstance match = MatchInstance.create(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                ArenaLayout.standard(new ArenaPoint(0, 80, 0)));
+        match.startBattle();
+        return match;
+    }
+
+    private static void elixirSpeedsUpAndOvertimeIsSuddenDeath() {
+        MatchInstance match = freshBattle();
+        match.blue().elixir().spend(5);
+        int start = match.blue().elixirTenths();
+        for (int i = 0; i < 56; i++)
+            match.tick();
+        check(match.blue().elixirTenths() - start == 10,
+                "one elixir per 2.8 s at first");
+        check(match.elixirRate() == 1, "normal rate");
+        while (match.ticksRemaining() > 20 * 60)
+            match.tick();
+        check(match.elixirRate() == 2, "double elixir in the last minute");
+        match.blue().elixir().spend(match.blue().elixirTenths() / 10);
+        start = match.blue().elixirTenths();
+        for (int i = 0; i < 28; i++)
+            match.tick();
+        check(match.blue().elixirTenths() - start == 10,
+                "one elixir per 1.4 s at double rate");
+        while (match.state() == MatchState.BATTLE && !match.overtime())
+            match.tick();
+        check(match.state() == MatchState.BATTLE && match.overtime() &&
+                match.ticksRemaining() == MatchInstance.OVERTIME_TICKS,
+                "level crowns: two minutes of overtime");
+        for (int i = 0; i < 20 * 60; i++)
+            match.tick();
+        check(match.elixirRate() == 3, "triple elixir late in overtime");
+        match.damageTower(TowerId.RED_LEFT, 1000.0D);
+        check(match.state() == MatchState.FINISHED &&
+                match.winner() == TeamSide.BLUE,
+                "the first tower in overtime wins");
+
+        MatchInstance ahead = freshBattle();
+        ahead.damageTower(TowerId.BLUE_RIGHT, 1000.0D);
+        check(ahead.state() == MatchState.BATTLE,
+                "a Princess tower does not end regulation");
+        while (ahead.state() == MatchState.BATTLE)
+            ahead.tick();
+        check(!ahead.overtime() && ahead.winner() == TeamSide.RED,
+                "more crowns at the end of regulation wins");
     }
 
     private static void kingTowerEndsMatch() {

@@ -43,6 +43,25 @@ public final class ArenaClientConfig {
 
     static {
         BUILDER.pop();
+        BUILDER.comment("Battle effects.").push("effects");
+    }
+
+    public static final ForgeConfigSpec.DoubleValue CAMERA_SHAKE = BUILDER
+            .comment("How hard the camera shakes on TNT, Lightning, Golem " +
+                    "blows and falling towers. 0 = never, 1 = normal.")
+            .defineInRange("cameraShake", 1.0D, 0.0D, 2.0D);
+
+    public static final ForgeConfigSpec.BooleanValue DAMAGE_NUMBERS = BUILDER
+            .comment("Damage and healing numbers floating up from troops " +
+                    "and towers.")
+            .define("damageNumbers", true);
+
+    public static final ForgeConfigSpec.BooleanValue TEAM_RINGS = BUILDER
+            .comment("A blue or red ring on the floor under every troop.")
+            .define("teamRings", true);
+
+    static {
+        BUILDER.pop();
     }
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();

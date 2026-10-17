@@ -179,5 +179,5 @@ The three Skeletons are drawn at 80% and the four Spiders at 75%
 | Item | Code today | Target |
 |---|---|---|
 | Starting elixir | 5 (`ElixirMeter.START_TENTHS`) | 6 |
-| Elixir regeneration | 3.0 s per elixir (6 ticks per tenth) | 2.8 s, then 1.4 s, then ~0.95 s |
-| Match length | 180 s, no overtime or tower-count win | 180 s + 120 s overtime |
+| Elixir regeneration | done: 2.8 s, 1.4 s in the last minute, 0.95 s after the first minute of overtime | |
+| Match length | done: 180 s; level crowns go to 120 s of sudden-death overtime | |

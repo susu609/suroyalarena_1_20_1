@@ -1,6 +1,7 @@
 package net.susu609.royalarena.server.battle;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -12,15 +13,25 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Witch;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.hoglin.Hoglin;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.susu609.modlib.resource.RL;
@@ -44,6 +55,7 @@ import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
+import net.susu609.royalarena.network.s2c.S2CShakePacket;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
 
@@ -515,6 +527,7 @@ public final class BattleField {
             }
             case TNT -> {
                 flash(x, z, radius, S2CAoeFlashPacket.RED);
+                shake(x, z, 0.8F);
                 level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, x,
                         floor + 0.5D, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
                 level.sendParticles(ParticleTypes.EXPLOSION, x, floor + 0.5D,
@@ -525,6 +538,7 @@ public final class BattleField {
                         SoundSource.HOSTILE, 1.2F, 0.8F);
             }
             case LIGHTNING -> {
+                shake(x, z, 0.5F);
                 // A real (harmless) bolt on every unit and tower struck.
                 for (TickResult.Strike strike : pulse.strikes()) {
                     LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
@@ -627,6 +641,12 @@ public final class BattleField {
                 1.0F);
     }
 
+    /** Shakes the camera of the players watching (S2CShakePacket). */
+    private void shake(double x, double z, float strength) {
+        ModNetwork.sendNear(level, x, arena.floorY(), z, PROJECTILE_VIEW_RANGE,
+                new S2CShakePacket(strength));
+    }
+
     /** A red circle flashing on the floor where area damage lands. */
     private void flash(double x, double z, double radius) {
         flash(x, z, radius, S2CAoeFlashPacket.RED);
@@ -659,9 +679,12 @@ public final class BattleField {
             return;
         if (attack.victimUnit() != null) {
             Entity victim = level.getEntity(attack.victimUnit());
-            if (attack.attackerUnit() != null && !attack.ranged())
-                animator.onHit(level.getEntity(attack.attackerUnit()),
-                        victim);
+            if (attack.attackerUnit() != null && !attack.ranged()) {
+                Entity attacker = level.getEntity(attack.attackerUnit());
+                animator.onHit(attacker, victim);
+                if (attacker instanceof IronGolem || attacker instanceof Ravager)
+                    shake(to[0], to[2], 0.25F);
+            }
         }
         if (attack.ranged() && attack.splash() > 0.0D) {
             // A splash potion breaking over its circle.
@@ -778,6 +801,33 @@ public final class BattleField {
         }
     }
 
+    /** What a dead troop breaks into: bones, slime, wool, iron... */
+    private static Item deathBits(Entity entity) {
+        if (entity instanceof MagmaCube)
+            return Items.MAGMA_CREAM;
+        if (entity instanceof Slime)
+            return Items.SLIME_BALL;
+        if (entity instanceof AbstractSkeleton)
+            return Items.BONE;
+        if (entity instanceof Zombie)
+            return Items.ROTTEN_FLESH;
+        if (entity instanceof Spider)
+            return Items.STRING;
+        if (entity instanceof Wolf)
+            return Items.WHITE_WOOL;
+        if (entity instanceof IronGolem)
+            return Items.IRON_INGOT;
+        if (entity instanceof Ravager || entity instanceof Hoglin)
+            return Items.LEATHER;
+        if (entity instanceof Witch)
+            return Items.GLASS_BOTTLE;
+        if (entity instanceof Creeper)
+            return Items.GUNPOWDER;
+        if (entity instanceof AbstractIllager)
+            return Items.EMERALD;
+        return null;
+    }
+
     /**
      * Removes a dead unit's mob and spawns its split children. The mob is
      * discarded while its vanilla health is still above zero, so vanilla
@@ -790,9 +840,18 @@ public final class BattleField {
         flashedAt.remove(death.unit());
         Entity entity = level.getEntity(death.unit());
         if (entity != null) {
-            level.sendParticles(ParticleTypes.POOF, entity.getX(),
-                    entity.getY() + entity.getBbHeight() * 0.5D,
+            double y = entity.getY() + entity.getBbHeight() * 0.5D;
+            double spread = entity.getBbWidth() * 0.4D;
+            level.sendParticles(ParticleTypes.POOF, entity.getX(), y,
                     entity.getZ(), 8, 0.2D, 0.2D, 0.2D, 0.02D);
+            Item bits = deathBits(entity);
+            if (bits != null)
+                level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM,
+                                new ItemStack(bits)), entity.getX(), y,
+                        entity.getZ(), 14, spread, 0.25D, spread, 0.12D);
+            if (entity instanceof MagmaCube)
+                level.sendParticles(ParticleTypes.LAVA, entity.getX(), y,
+                        entity.getZ(), 6, spread, 0.2D, spread, 0.0D);
             entity.discard();
         }
         for (ChildSpawn child : death.children())

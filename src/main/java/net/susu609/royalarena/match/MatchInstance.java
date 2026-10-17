@@ -14,7 +14,14 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class MatchInstance {
+    /** Regulation time (balance.json match.regulation_ticks). */
     public static final int DEFAULT_BATTLE_TICKS = 20 * 180;
+    /** Overtime when the crowns are level after regulation (2 min). */
+    public static final int OVERTIME_TICKS = 20 * 120;
+    /** Battle ticks at which elixir comes 2x, then 3x (balance.json). */
+    public static final int DOUBLE_ELIXIR_AT = 2400;
+    public static final int TRIPLE_ELIXIR_AT = 4800;
+    private static final int[] TICKS_PER_ELIXIR = {56, 28, 19};
     /** Time between an accepted troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = BattleCard.DEPLOY_TICKS;
 
@@ -29,6 +36,9 @@ public final class MatchInstance {
 
     private MatchState state = MatchState.WAITING;
     private int ticksRemaining;
+    /** Ticks of battle so far, overtime included. */
+    private int battleTicks;
+    private boolean overtime;
     private TeamSide winner;
 
     private MatchInstance(UUID matchId, UUID blueId, UUID redId,
@@ -105,8 +115,11 @@ public final class MatchInstance {
         if (state != MatchState.BATTLE || damage <= 0)
             return;
         TowerState target = tower(id);
+        boolean standing = !target.isDestroyed();
         target.damage(damage);
-        if (id.kind() == TowerKind.KING && target.isDestroyed()) {
+        // The King ends the match; in overtime, so does the first tower.
+        if (standing && target.isDestroyed() &&
+                (id.kind() == TowerKind.KING || overtime)) {
             finish(id.side().opponent());
         }
     }
@@ -143,6 +156,29 @@ public final class MatchInstance {
             return;
         state = MatchState.BATTLE;
         ticksRemaining = DEFAULT_BATTLE_TICKS;
+        battleTicks = 0;
+        overtime = false;
+    }
+
+    /** Whether the match is in overtime (sudden death: first crown wins). */
+    public boolean overtime() {
+        return overtime;
+    }
+
+    /** 1 for normal elixir, 2 in the last minute, 3 late in overtime. */
+    public int elixirRate() {
+        return battleTicks >= TRIPLE_ELIXIR_AT ? 3 :
+                battleTicks >= DOUBLE_ELIXIR_AT ? 2 : 1;
+    }
+
+    /** Destroyed towers of the other side. */
+    public int crowns(TeamSide side) {
+        int count = 0;
+        for (TowerId id : TowerId.values()) {
+            if (id.side() != side && tower(id).isDestroyed())
+                count++;
+        }
+        return count;
     }
     public MatchState state() {
         return state;
@@ -156,12 +192,13 @@ public final class MatchInstance {
         if (state != MatchState.BATTLE)
             return;
 
-        blue.elixir().tick();
-        red.elixir().tick();
+        int perElixir = TICKS_PER_ELIXIR[elixirRate() - 1];
+        blue.elixir().tick(perElixir);
+        red.elixir().tick(perElixir);
+        battleTicks++;
         advancePending();
-        if (--ticksRemaining <= 0) {
-            finishByTowerHealth();
-        }
+        if (--ticksRemaining <= 0)
+            timeUp();
     }
     public int ticksRemaining() {
         return ticksRemaining;
@@ -213,6 +250,23 @@ public final class MatchInstance {
     }
     public TeamSide winner() {
         return winner;
+    }
+
+    /**
+     * Regulation over: more crowns wins, level crowns go to overtime.
+     * Overtime over: the most tower health left wins.
+     */
+    private void timeUp() {
+        int blueCrowns = crowns(TeamSide.BLUE);
+        int redCrowns = crowns(TeamSide.RED);
+        if (blueCrowns != redCrowns) {
+            finish(blueCrowns > redCrowns ? TeamSide.BLUE : TeamSide.RED);
+        } else if (!overtime) {
+            overtime = true;
+            ticksRemaining = OVERTIME_TICKS;
+        } else {
+            finishByTowerHealth();
+        }
     }
 
     private void finishByTowerHealth() {

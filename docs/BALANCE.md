@@ -105,6 +105,10 @@ an archer (6) and a Pillager (6.5).
 | 3 | 4800-6000 | 19 (~0.95 s) | x3 |
 
 Phase 2 covers the last minute of regulation and the first minute of overtime.
+
+At the end of regulation the side with more crowns wins. With level crowns
+the match goes to overtime: the first tower destroyed wins at once, and if
+none falls the most tower health left wins (`MatchInstance.timeUp`).
 The reference data uses 0.93 s for x3; 19 ticks is the nearest whole tick.
 
 Minimum time between two card plays: 20 / 10 / 7 ticks in phases 1 / 2 / 3

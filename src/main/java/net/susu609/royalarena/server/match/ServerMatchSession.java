@@ -1,6 +1,7 @@
 package net.susu609.royalarena.server.match;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -9,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
@@ -22,10 +24,12 @@ import net.susu609.royalarena.match.*;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CBotDragPacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
+import net.susu609.royalarena.network.s2c.S2CShakePacket;
 import net.susu609.royalarena.server.arena.ArenaBuilder;
 import net.susu609.royalarena.server.arena.ArenaReservation;
 import net.susu609.royalarena.server.battle.BattleField;
 import net.susu609.royalarena.tower.TowerId;
+import net.susu609.royalarena.tower.TowerKind;
 
 import java.util.*;
 
@@ -259,15 +263,33 @@ public final class ServerMatchSession {
             }
         }
     }
-    /** A tower fell: remove its model, crack its base and play the blast. */
+    /**
+     * A tower fell: remove its model, leave a pile of rubble where it stood,
+     * and play the blast: an explosion, stone bricks flying, dust, and a
+     * camera shake for everyone watching.
+     */
     private void towerDestroyed(TowerId id) {
         removeTowerHitbox(id);
         ArenaPoint point = match.arena().towerPoint(id);
         ArenaBuilder.markTowerDestroyed(arenaLevel, point);
+        ArenaBuilder.rubble(arenaLevel, point, id.kind() == TowerKind.KING ?
+                ArenaLayout.KING_SIZE / 2 : ArenaLayout.PRINCESS_SIZE / 2);
+        double y = point.y() + 2.0D;
         arenaLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER, point.x(),
-                point.y() + 2.0D, point.z(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
-        arenaLevel.playSound(null, point.x(), point.y() + 2.0D, point.z(),
+                y, point.z(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        arenaLevel.sendParticles(ParticleTypes.EXPLOSION, point.x(), y,
+                point.z(), 8, 1.5D, 1.0D, 1.5D, 0.0D);
+        arenaLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK,
+                        Blocks.STONE_BRICKS.defaultBlockState()), point.x(), y,
+                point.z(), 160, 1.6D, 1.4D, 1.6D, 0.4D);
+        arenaLevel.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, point.x(),
+                point.y() + 1.0D, point.z(), 20, 1.4D, 0.5D, 1.4D, 0.02D);
+        arenaLevel.playSound(null, point.x(), y, point.z(),
                 SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.5F, 0.8F);
+        arenaLevel.playSound(null, point.x(), y, point.z(),
+                SoundEvents.STONE_BREAK, SoundSource.BLOCKS, 1.5F, 0.6F);
+        ModNetwork.sendNear(arenaLevel, point.x(), y, point.z(), 96.0D,
+                new S2CShakePacket(id.kind() == TowerKind.KING ? 2.0F : 1.2F));
     }
     private void removeTowerHitbox(TowerId id) {
         UUID uuid = towerHitboxes.remove(id);

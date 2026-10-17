@@ -34,6 +34,15 @@ If the far end of the arena is cut off, increase `distance` or `fov`. If the
 arena looks small, decrease `distance`. If your own towers hide behind the card
 panel, increase `lookAhead`.
 
+## `royalarena-client.toml`: effects
+
+```toml
+[effects]
+	cameraShake = 1.0      # how hard the camera shakes on heavy hits; 0 = never (0..2)
+	damageNumbers = true   # damage and healing numbers over troops and towers
+	teamRings = true       # a blue or red ring under every troop
+```
+
 ## `royalarena-common.toml`: troops, bot, debug
 
 ```toml

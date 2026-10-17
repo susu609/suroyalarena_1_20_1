@@ -13,17 +13,21 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
+import net.susu609.royalarena.client.camera.CameraShake;
 import net.susu609.royalarena.client.hud.BattleHudOverlay;
+import net.susu609.royalarena.client.hud.CrownFlights;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
-import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.AoeFlashRenderer;
 import net.susu609.royalarena.client.render.BotDragRenderer;
 import net.susu609.royalarena.client.render.BurnEffects;
+import net.susu609.royalarena.client.render.DamageNumbers;
+import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
-import net.susu609.royalarena.client.render.entity.KingFigure;
 import net.susu609.royalarena.client.render.SpellTargetHighlighter;
+import net.susu609.royalarena.client.render.TroopEffects;
 import net.susu609.royalarena.client.render.TroopVisuals;
 import net.susu609.royalarena.client.render.WorldHealthBar;
+import net.susu609.royalarena.client.render.entity.KingFigure;
 import net.susu609.royalarena.client.screen.MatchingScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.client.state.ClientQueueState;
@@ -31,6 +35,7 @@ import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
+
 import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(modid = RoyalArena.MOD_ID,
@@ -51,6 +56,9 @@ public final class ClientForgeEvents {
         AoeFlashRenderer.tick();
         BurnEffects.tick();
         BotDragRenderer.tick();
+        DamageNumbers.tick();
+        TroopEffects.tick();
+        CameraShake.tick();
 
         while (RoyalArenaKeyMappings.OPEN_MATCHING.consumeClick()) {
             if (!ClientMatchState.active() && mc.screen == null)
@@ -79,6 +87,8 @@ public final class ClientForgeEvents {
         AoeFlashRenderer.clear();
         BurnEffects.clear();
         BotDragRenderer.clear();
+        DamageNumbers.clear();
+        CrownFlights.clear();
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
@@ -98,6 +108,14 @@ public final class ClientForgeEvents {
         ProjectileRenderer.render(event);
         AoeFlashRenderer.render(event);
         BotDragRenderer.render(event);
+        TroopEffects.render(event);
+        DamageNumbers.render(event);
+    }
+
+    /** Camera shake on heavy hits (S2CShakePacket). */
+    @SubscribeEvent
+    public static void onCameraAngles(ViewportEvent.ComputeCameraAngles event) {
+        CameraShake.apply(event);
     }
 
     /** Small troops (the three Skeletons, the four Spiders) drawn smaller. */

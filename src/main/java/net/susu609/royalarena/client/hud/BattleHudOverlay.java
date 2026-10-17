@@ -5,6 +5,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.susu609.royalarena.card.BattleCard;
@@ -37,12 +38,21 @@ public final class BattleHudOverlay implements IGuiOverlay {
     private static final int ELIXIR = 0xFFD05CFF;
     private static final int ELIXIR_DARK = 0xFF3A2140;
     private static final int ELIXIR_EDGE = 0xFF1A0E1F;
+    private static final int ELIXIR_FULL = 0xFFF4C8FF;
     private static final int BLUE = 0xFF2F6FD6;
     private static final int RED = 0xFFC8352E;
 
     /** Animated lift of each hand slot, in reference units. */
     private static final float[] LIFTS = new float[4];
     private static long lastFrameMillis;
+    private static int lastRate = 1;
+    private static boolean lastOvertime;
+    private static String phaseText;
+    private static int phaseColor;
+    private static long phaseStart;
+    private static final long PHASE_BANNER_MS = 2500L;
+    /** Seconds left when the big countdown starts. */
+    private static final int FINAL_SECONDS = 10;
 
     private BattleHudOverlay() {
     }
@@ -63,6 +73,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
         Minecraft mc = Minecraft.getInstance();
         HudLayout layout = HudLayout.of(screenWidth, screenHeight);
 
+        watchPhase();
         drawPanel(graphics, layout);
         drawHand(graphics, mc.font, layout);
         drawNext(graphics, mc.font, layout);
@@ -70,6 +81,30 @@ public final class BattleHudOverlay implements IGuiOverlay {
         drawTimer(graphics, mc.font, layout);
         drawCrowns(graphics, mc.font, layout);
         drawBanner(graphics, mc.font, layout);
+        CrownFlights.draw(graphics, layout);
+    }
+
+    /** Shows a short banner when the elixir rate or overtime changes. */
+    private static void watchPhase() {
+        int rate = ClientMatchState.elixirRate();
+        boolean overtime = ClientMatchState.overtime();
+        if (ClientMatchState.state() != MatchState.BATTLE) {
+            lastRate = rate;
+            lastOvertime = overtime;
+            return;
+        }
+        if (overtime && !lastOvertime)
+            phaseBanner("OVERTIME! First crown wins", 0xFFFFAA33);
+        else if (rate > lastRate)
+            phaseBanner("x" + rate + " ELIXIR!", 0xFFE070FF);
+        lastRate = rate;
+        lastOvertime = overtime;
+    }
+
+    private static void phaseBanner(String text, int color) {
+        phaseText = text;
+        phaseColor = color;
+        phaseStart = Util.getMillis();
     }
 
     private static void drawPanel(GuiGraphics graphics, HudLayout layout) {
@@ -153,8 +188,22 @@ public final class BattleHudOverlay implements IGuiOverlay {
         graphics.fill(bar.x(), bar.y(), bar.right(), bar.bottom(),
                 ELIXIR_DARK);
         int filled = Math.round(bar.w() * Math.min(100, tenths) / 100.0F);
+        boolean full = tenths >= 100;
+        // Full: the bar throbs so a wasted second is hard to miss.
+        float throb = full ? 0.5F + 0.5F * Mth.sin(Util.getMillis() / 140.0F)
+                : 0.0F;
+        int color = full ? lerpColor(ELIXIR, ELIXIR_FULL, throb) : ELIXIR;
+        if (full) {
+            int glow = Math.max(1, Math.round(layout.u() * 1.5F));
+            int alpha = Math.round(0x30 + 0x60 * throb);
+            graphics.fill(bar.x() - 1 - glow, bar.y() - 1 - glow,
+                    bar.right() + 1 + glow, bar.bottom() + 1 + glow,
+                    (alpha << 24) | (ELIXIR_FULL & 0xFFFFFF));
+            graphics.fill(bar.x() - 1, bar.y() - 1, bar.right() + 1,
+                    bar.bottom() + 1, ELIXIR_EDGE);
+        }
         graphics.fill(bar.x(), bar.y(), bar.x() + filled, bar.bottom(),
-                ELIXIR);
+                color);
         for (int i = 1; i < 10; i++) {
             int x = bar.x() + Math.round(bar.w() * i / 10.0F);
             graphics.fill(x, bar.y(), x + 1, bar.bottom(), ELIXIR_EDGE);
@@ -163,6 +212,11 @@ public final class BattleHudOverlay implements IGuiOverlay {
         drawDrop(graphics, drop);
         text(graphics, font, Integer.toString(tenths / 10), drop.centerX(),
                 drop.centerY(), textScale(layout, 11.0F), 0xFFFFFFFF);
+        int rate = ClientMatchState.elixirRate();
+        if (rate > 1 && ClientMatchState.state() == MatchState.BATTLE) {
+            text(graphics, font, "x" + rate, bar.right() - 6.0F * layout.u(),
+                    bar.centerY(), textScale(layout, 7.0F), 0xFFFFE680);
+        }
     }
 
     private static void drawTimer(GuiGraphics graphics, Font font,
@@ -174,12 +228,16 @@ public final class BattleHudOverlay implements IGuiOverlay {
         if (ClientMatchState.state() != MatchState.BATTLE)
             seconds = 0;
         float u = layout.u();
-        text(graphics, font, "Time left:", box.centerX(), box.y() + 4.0F * u,
-                textScale(layout, 5.0F), 0xFFDDDDDD);
+        boolean overtime = ClientMatchState.overtime();
+        text(graphics, font, overtime ? "Overtime:" : "Time left:",
+                box.centerX(), box.y() + 4.0F * u, textScale(layout, 5.0F),
+                overtime ? 0xFFFFAA33 : 0xFFDDDDDD);
+        boolean last = ClientMatchState.state() == MatchState.BATTLE &&
+                seconds < FINAL_SECONDS;
         text(graphics, font,
                 String.format("%d:%02d", seconds / 60, seconds % 60),
                 box.centerX(), box.y() + 10.5F * u, textScale(layout, 8.0F),
-                0xFFFFFFFF);
+                last ? 0xFFFF5555 : 0xFFFFFFFF);
     }
 
     private static void drawCrowns(GuiGraphics graphics, Font font,
@@ -227,11 +285,55 @@ public final class BattleHudOverlay implements IGuiOverlay {
             color = winner == null ? 0xFFFFFFFF :
                     won ? 0xFF55FF55 : 0xFFFF6666;
         } else {
+            drawBattleBanner(graphics, font, layout);
             return;
         }
         Rect r = layout.banner();
         text(graphics, font, text, r.centerX(), r.centerY(),
                 textScale(layout, 24.0F), color);
+    }
+
+    /**
+     * During the battle: the last ten seconds counted down in big numbers
+     * that pop on every second, else a short "x2 ELIXIR!" / "OVERTIME!"
+     * banner when the phase changes.
+     */
+    private static void drawBattleBanner(GuiGraphics graphics, Font font,
+            HudLayout layout)
+    {
+        Rect r = layout.banner();
+        int ticks = ClientMatchState.ticksRemaining();
+        int seconds = (ticks + 19) / 20;
+        if (ticks > 0 && seconds <= FINAL_SECONDS) {
+            // Each number starts big and shrinks during its second.
+            float inSecond = ((ticks + 19) % 20) / 19.0F;
+            float size = 22.0F + 14.0F * inSecond;
+            int alpha = Math.round(0x90 + 0x6F * inSecond);
+            text(graphics, font, Integer.toString(seconds), r.centerX(),
+                    r.centerY(), textScale(layout, size),
+                    (alpha << 24) | 0xFF5555);
+            return;
+        }
+        long age = Util.getMillis() - phaseStart;
+        if (phaseText == null || age > PHASE_BANNER_MS)
+            return;
+        float t = age / (float) PHASE_BANNER_MS;
+        float pop = t < 0.12F ? 1.0F + (0.12F - t) * 4.0F : 1.0F;
+        int alpha = t < 0.75F ? 0xFF : Math.max(8,
+                Math.round(0xFF * (1.0F - (t - 0.75F) / 0.25F)));
+        text(graphics, font, phaseText, r.centerX(), r.centerY(),
+                textScale(layout, 16.0F * pop),
+                (alpha << 24) | (phaseColor & 0xFFFFFF));
+    }
+
+    private static int lerpColor(int a, int b, float t) {
+        int out = 0xFF000000;
+        for (int shift = 0; shift <= 16; shift += 8) {
+            int ca = (a >> shift) & 0xFF;
+            int cb = (b >> shift) & 0xFF;
+            out |= Math.round(ca + (cb - ca) * t) << shift;
+        }
+        return out;
     }
 
     private static void drawDrop(GuiGraphics graphics, Rect r) {

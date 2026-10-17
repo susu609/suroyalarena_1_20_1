@@ -62,6 +62,13 @@ public final class ClientMatchState {
     public static int ticksRemaining() {
         return snapshot.ticksRemaining();
     }
+    public static boolean overtime() {
+        return snapshot.overtime();
+    }
+    /** 1 normal, 2 or 3 for double and triple elixir. */
+    public static int elixirRate() {
+        return snapshot.elixirRate();
+    }
     public static int elixirTenths() {
         return snapshot.elixirTenths();
     }
