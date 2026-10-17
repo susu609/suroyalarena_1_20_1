@@ -14,11 +14,15 @@ the hand cycle, deploy areas and the one-second deploy delay all apply to it.
 
 It thinks every 10 ticks and never plays twice within 40 ticks.
 
+- **Spell.** If a spell in its hand would hit at least two enemy units and
+  take off at least 8 health per elixir it costs (24 for Arrow Storm, 32 for
+  Fireball), it casts it where it hits most, a little ahead of where the units
+  walk. It never wastes a spell on a single unit.
 - **Defend.** If an enemy unit stands on its bank of the river, it plays the
-  sturdiest card it can afford (most total health) three blocks behind that
+  sturdiest troop card it can afford (most total health) three blocks behind that
   unit, in the same lane.
 - **Attack.** Otherwise, once it has 7 elixir, it plays a random affordable
-  card near the back of the lane whose enemy Princess tower is weaker (or the
+  troop card near the back of the lane whose enemy Princess tower is weaker (or the
   surviving lane when one has fallen, or a random lane when equal).
 - It uses a random seed (taken from the match id), so one game is
   reproducible in tests but each match plays differently.

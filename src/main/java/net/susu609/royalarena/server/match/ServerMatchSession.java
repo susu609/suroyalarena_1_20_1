@@ -94,7 +94,7 @@ public final class ServerMatchSession {
             match.tryDeploy(bot.side(), play.slot(), play.x(), play.z());
     }
 
-    /** Spawns troops whose one-second deploy time has run out. */
+    /** Spawns troops whose deploy time ran out and lands arrived spells. */
     private void spawnReadyDeploys() {
         for (PendingDeploy deploy : match.drainReadyDeploys())
             battle.deploy(deploy);
@@ -198,6 +198,7 @@ public final class ServerMatchSession {
             if (match.state() == MatchState.BATTLE) {
                 botPlay();
                 battle.tick();
+                battle.showFlights(match.pendingDeploys());
             }
             if (tickCounter % 5 == 0 || match.state() == MatchState.FINISHED)
                 sync(server);

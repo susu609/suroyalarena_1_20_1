@@ -6,6 +6,7 @@ package net.susu609.royalarena.card;
  */
 public final class CostFormula {
     public static final double COST_DIVISOR = 5.4D;
+    public static final double SPELL_COST_DIVISOR = 20.8D;
 
     private CostFormula() {
     }
@@ -28,6 +29,19 @@ public final class CostFormula {
     }
 
     public static int elixir(TroopStats s) {
+        return (int) Math.floor(raw(s) + 0.5D);
+    }
+
+    /**
+     * Unrounded spell cost: 1 + damage per target (burn excluded) x radius /
+     * 20.8. Burn is a bonus on top, like the knockback.
+     */
+    public static double raw(SpellStats s) {
+        return 1.0D + s.damagePerPulse() * s.pulses() * s.radius() /
+                SPELL_COST_DIVISOR;
+    }
+
+    public static int elixir(SpellStats s) {
         return (int) Math.floor(raw(s) + 0.5D);
     }
 }

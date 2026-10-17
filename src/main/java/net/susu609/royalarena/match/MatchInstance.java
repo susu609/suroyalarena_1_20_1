@@ -14,8 +14,8 @@ import java.util.UUID;
 
 public final class MatchInstance {
     public static final int DEFAULT_BATTLE_TICKS = 20 * 180;
-    /** Time between an accepted card play and the troop appearing (1 s). */
-    public static final int DEPLOY_TICKS = 20;
+    /** Time between an accepted troop card play and the troop appearing (1 s). */
+    public static final int DEPLOY_TICKS = BattleCard.DEPLOY_TICKS;
 
     private final UUID matchId;
     private final ArenaLayout arena;
@@ -163,15 +163,15 @@ public final class MatchInstance {
             return DeployResult.rejected("match_not_in_battle");
         if (slot < 0 || slot >= 4)
             return DeployResult.rejected("invalid_slot");
-        if (!arena.canDeploy(side, worldX, worldZ))
-            return DeployResult.rejected("outside_deploy_area");
         MatchPlayer player = player(side);
         BattleCard card = player.deck().cardAt(slot);
+        if (!arena.canPlay(side, card, worldX, worldZ))
+            return DeployResult.rejected("outside_deploy_area");
         if (!player.elixir().spend(card.cost()))
             return DeployResult.rejected("not_enough_elixir");
         player.deck().play(slot);
         pending.add(new PendingDeploy(card, side, worldX, worldZ,
-                DEPLOY_TICKS));
+                card.deployTicks()));
         return DeployResult.accepted(card);
     }
 

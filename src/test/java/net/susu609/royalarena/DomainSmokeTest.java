@@ -10,7 +10,6 @@ import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
-import java.util.List;
 import java.util.UUID;
 
 public final class DomainSmokeTest {
@@ -34,6 +33,7 @@ public final class DomainSmokeTest {
         noRawResourceLocationConstructors();
         CombatSmokeTest.run();
         BotSmokeTest.run();
+        SpellSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 
@@ -286,7 +286,7 @@ public final class DomainSmokeTest {
     }
 
     private static void deckCyclesPlayedCard() {
-        BattleDeck deck = new BattleDeck(List.of(BattleCard.values()));
+        BattleDeck deck = BattleDeck.starter();
         BattleCard first = deck.hand().get(0);
         BattleCard next = deck.nextCard();
         deck.play(0);

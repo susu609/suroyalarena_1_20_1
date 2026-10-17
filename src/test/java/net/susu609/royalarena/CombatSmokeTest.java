@@ -4,6 +4,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.card.CostFormula;
 import net.susu609.royalarena.combat.ChildSpawn;
 import net.susu609.royalarena.combat.CombatEngine;
@@ -122,11 +123,21 @@ public final class CombatSmokeTest {
 
     private static void costsFollowTheFormula() {
         for (BattleCard card : BattleCard.values()) {
+            if (card.isSpell()) {
+                check(CostFormula.elixir(card.spell()) == card.cost(),
+                        card.id() + " cost " + card.cost() + " vs formula " +
+                                CostFormula.raw(card.spell()));
+                continue;
+            }
             check(CostFormula.elixir(card.stats()) == card.cost(),
                     card.id() + " cost " + card.cost() + " vs formula " +
                             CostFormula.raw(card.stats()));
         }
-        check(BattleCard.values().length == 8, "starter deck has 8 cards");
+        var starter = BattleDeck.starter().snapshotCycle();
+        check(starter.size() == 8, "starter deck has 8 cards");
+        check(starter.contains(BattleCard.ARROW_STORM) &&
+                starter.contains(BattleCard.FIREBALL),
+                "starter deck carries both spells");
     }
 
     private static void cardJsonMatchesCode() {
@@ -142,8 +153,12 @@ public final class CombatSmokeTest {
             } catch (IOException e) {
                 throw new AssertionError(e);
             }
-            var s = card.stats();
             near(number(json, "elixir"), card.cost(), card.id() + " elixir");
+            if (card.isSpell()) {
+                spellJsonMatches(card, json);
+                continue;
+            }
+            var s = card.stats();
             near(number(json, "count"), s.count(), card.id() + " count");
             near(number(json, "health"), s.health(), card.id() + " health");
             near(number(json, "damage"), s.damage(), card.id() + " damage");
@@ -151,6 +166,32 @@ public final class CombatSmokeTest {
                     card.id() + " interval");
             near(number(json, "range"), s.range(), card.id() + " range");
             near(number(json, "move_speed"), s.speed(), card.id() + " speed");
+        }
+    }
+
+    private static void spellJsonMatches(BattleCard card, String json) {
+        var s = card.spell();
+        String id = card.id();
+        check(json.contains("\"type\": \"spell\""), id + " is a spell");
+        near(number(json, "radius"), s.radius(), id + " radius");
+        near(number(json, "travel_ticks"), s.castTicks(), id + " travel");
+        if (s.pulses() > 1) {
+            near(number(json, "duration_ticks"),
+                    s.pulses() * s.pulseInterval(), id + " duration");
+            near(number(json, "pulse_interval_ticks"), s.pulseInterval(),
+                    id + " pulse interval");
+            near(number(json, "damage_per_pulse"), s.damagePerPulse(),
+                    id + " pulse damage");
+        } else {
+            near(number(json, "damage"), s.damagePerPulse(), id + " damage");
+        }
+        if (json.contains("\"knockback\""))
+            near(number(json, "knockback"), s.knockback(), id + " knockback");
+        if (s.burnTicks() > 0) {
+            near(number(json, "damage_per_second"), s.burnPerSecond(),
+                    id + " burn");
+            near(number(json, "duration_ticks"), s.burnTicks(),
+                    id + " burn time");
         }
     }
 

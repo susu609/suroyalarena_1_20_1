@@ -21,10 +21,12 @@ is centred horizontally. All positions live in `client/hud/HudLayout.java`
 At 1080 px height `u` is about 3.03, so a card is 94 x 118 px.
 
 Cards show a small key number (1-4) and their art: a portrait PNG if one
-exists, otherwise the mob's spawn egg. Portraits are optional and live at
+exists, otherwise the mob's spawn egg (an arrow for Arrow Storm, a fire
+charge for Fireball). Portraits are optional and live at
 `assets/royalarena/textures/gui/card/<card id>.png` in this mod or any
 resource pack (ids: `zombie`, `skeleton_archer`, `spider`, `skeletons`,
-`big_slime`, `stray`, `vindicator`, `iron_golem`; a new card's id is its
+`big_slime`, `stray`, `vindicator`, `iron_golem`, `arrow_storm`,
+`fireball`; a new card's id is its
 lower-case enum name).
 Any size works, the image is stretched over the card face (31:39, so 124x156 or
 248x312 is a good size); press F3+T after adding one. See `CardArt`. Cards that
@@ -63,6 +65,10 @@ filled and empty segments side by side so they never overlap.
   deployable (own half, enough elixir) and **red** otherwise; green tiles also
   show a translucent ghost of the troop. Clicking a red tile sends nothing and
   keeps the card selected (the server still validates every deploy).
+- A selected **spell** shows its circle of effect instead of a tile and a
+  ghost. Spells can be aimed anywhere on the arena, so the circle is green
+  everywhere on it when the elixir is there. A spell in flight shows a
+  team-coloured circle that fills up until it lands.
 - An accepted click spends elixir and cycles the hand at once, then the troop
   waits `MatchInstance.DEPLOY_TICKS` (20 ticks = 1 s). Both players see the
   ghost and a team-coloured square that fills up; the troop spawns when it is

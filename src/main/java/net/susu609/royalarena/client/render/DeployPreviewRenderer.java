@@ -38,7 +38,10 @@ import java.util.Map;
  * (deployable) or red (not), and a deployable tile shows a ghost of the
  * troop;</li>
  * <li>each pending deploy shows its ghost plus a team-coloured square that
- * fills up during the one-second deploy time.</li>
+ * fills up during the one-second deploy time;</li>
+ * <li>a selected spell shows its circle of effect instead (green or red), and
+ * a spell in flight shows a team-coloured circle that fills up until it
+ * lands.</li>
  * </ul>
  * Ghosts are invisible client-only entities that are never added to the
  * level: the arena player is a spectator, and vanilla renders invisible mobs
@@ -81,6 +84,14 @@ public final class DeployPreviewRenderer {
         for (PendingDeploy deploy : ClientMatchState.pendingDeploys()) {
             int rgb = deploy.side() == TeamSide.BLUE ?
                     WorldHealthBar.BLUE_RGB : WorldHealthBar.RED_RGB;
+            if (deploy.card().isSpell()) {
+                double radius = deploy.card().spell().radius();
+                circle(pose, buffers, deploy.x(), floor, deploy.z(), radius,
+                        rgb, 0.15F);
+                circle(pose, buffers, deploy.x(), floor + 0.005D, deploy.z(),
+                        radius * deploy.progress(), rgb, 0.35F);
+                continue;
+            }
             tile(pose, buffers, deploy.x(), floor, deploy.z(), rgb, 0.25F,
                     1.0F);
             tile(pose, buffers, deploy.x(), floor + 0.005D, deploy.z(), rgb,
@@ -95,12 +106,18 @@ public final class DeployPreviewRenderer {
         if (target != null) {
             boolean ok = ClientMatchState.canDeployAt(
                     slot, target.getX(), target.getZ());
-            tile(pose, buffers, target.getX(), floor, target.getZ(),
-                    ok ? VALID_RGB : INVALID_RGB, 0.35F, 1.0F);
-            if (ok) {
-                ghost(mc, pose, buffers, ClientMatchState.hand().get(slot),
-                        target.getX(), floor, target.getZ(),
-                        ClientMatchState.side(), partial);
+            BattleCard card = ClientMatchState.hand().get(slot);
+            int rgb = ok ? VALID_RGB : INVALID_RGB;
+            if (card.isSpell()) {
+                circle(pose, buffers, target.getX(), floor, target.getZ(),
+                        card.spell().radius(), rgb, 0.25F);
+            } else {
+                tile(pose, buffers, target.getX(), floor, target.getZ(), rgb,
+                        0.35F, 1.0F);
+                if (ok) {
+                    ghost(mc, pose, buffers, card, target.getX(), floor,
+                            target.getZ(), ClientMatchState.side(), partial);
+                }
             }
         }
 
@@ -139,10 +156,63 @@ public final class DeployPreviewRenderer {
                 new AABB(x0, fy, z0, x1, fy + 0.01D, z1), r, g, b, 1.0F);
     }
 
+    /**
+     * Translucent disc of {@code radius} blocks centred on block (x, z), with
+     * an outline: the area a spell hits.
+     */
+    private static void circle(PoseStack pose, MultiBufferSource buffers,
+            int x, double y, int z, double radius, int rgb, float alpha)
+    {
+        if (radius <= 0.01D)
+            return;
+        float r = ((rgb >> 16) & 0xFF) / 255.0F;
+        float g = ((rgb >> 8) & 0xFF) / 255.0F;
+        float b = (rgb & 0xFF) / 255.0F;
+        float cx = x + 0.5F;
+        float cz = z + 0.5F;
+        float fy = (float) y + 0.02F;
+        int segments = 40;
+        Matrix4f m = pose.last().pose();
+        VertexConsumer fill = buffers.getBuffer(RenderType.debugQuads());
+        for (int i = 0; i < segments; i++) {
+            double a0 = Math.PI * 2.0D * i / segments;
+            double a1 = Math.PI * 2.0D * (i + 1) / segments;
+            float x0 = cx + (float) (Math.cos(a0) * radius);
+            float z0 = cz + (float) (Math.sin(a0) * radius);
+            float x1 = cx + (float) (Math.cos(a1) * radius);
+            float z1 = cz + (float) (Math.sin(a1) * radius);
+            // A fan slice as a quad with two vertices on the centre.
+            fill.vertex(m, cx, fy, cz).color(r, g, b, alpha).endVertex();
+            fill.vertex(m, x1, fy, z1).color(r, g, b, alpha).endVertex();
+            fill.vertex(m, x0, fy, z0).color(r, g, b, alpha).endVertex();
+            fill.vertex(m, cx, fy, cz).color(r, g, b, alpha).endVertex();
+        }
+        VertexConsumer lines = buffers.getBuffer(RenderType.lines());
+        for (int i = 0; i < segments; i++) {
+            double a0 = Math.PI * 2.0D * i / segments;
+            double a1 = Math.PI * 2.0D * (i + 1) / segments;
+            float x0 = cx + (float) (Math.cos(a0) * radius);
+            float z0 = cz + (float) (Math.sin(a0) * radius);
+            float x1 = cx + (float) (Math.cos(a1) * radius);
+            float z1 = cz + (float) (Math.sin(a1) * radius);
+            float nx = x1 - x0;
+            float nz = z1 - z0;
+            float length = (float) Math.sqrt(nx * nx + nz * nz);
+            nx /= length;
+            nz /= length;
+            lines.vertex(m, x0, fy, z0).color(r, g, b, 1.0F)
+                    .normal(pose.last().normal(), nx, 0.0F, nz).endVertex();
+            lines.vertex(m, x1, fy, z1).color(r, g, b, 1.0F)
+                    .normal(pose.last().normal(), nx, 0.0F, nz).endVertex();
+        }
+    }
+
     private static void ghost(Minecraft mc, PoseStack pose,
             MultiBufferSource buffers, BattleCard card, int x, double y,
             int z, TeamSide side, float partial)
     {
+        if (card.isSpell())
+            return;
         Entity entity = GHOSTS.computeIfAbsent(card,
                 c -> createGhost(mc.level, c));
         if (entity == null)

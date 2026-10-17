@@ -22,8 +22,8 @@ public final class BattleDeck {
         return new BattleDeck(List.of(
                 BattleCard.ZOMBIE, BattleCard.SKELETON_ARCHER,
                 BattleCard.SPIDER, BattleCard.SKELETONS,
-                BattleCard.BIG_SLIME, BattleCard.STRAY,
-                BattleCard.VINDICATOR, BattleCard.IRON_GOLEM));
+                BattleCard.BIG_SLIME, BattleCard.IRON_GOLEM,
+                BattleCard.ARROW_STORM, BattleCard.FIREBALL));
     }
 
     public List<BattleCard> hand() {

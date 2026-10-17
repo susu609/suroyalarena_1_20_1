@@ -233,3 +233,18 @@ Practice matches now have a bot playing RED through the normal deploy rules.
 The camera is now almost top-down (pitch 68, distance 30). Camera, troop speed,
 bot pace and two debug aids (route particles, movement log) are configurable
 and reload when the file is saved.
+
+## Part 20 — Spells: Arrow Storm and Fireball
+
+- `card/SpellStats.java`, `card/BattleCard.java` (`ARROW_STORM`, `FIREBALL`),
+  `card/CostFormula.java` (spell cost)
+- `combat/CombatEngine.java` (`castSpell`, pulses, knockback, burn),
+  `combat/TickResult.java` (`SpellPulse`, `Push`)
+- `arena/ArenaLayout.java` (`canPlay`: spells anywhere on the arena)
+- `bot/BotBrain.java` (casts a spell on a group worth it)
+- `server/battle/BattleField.java` (particles and sounds),
+  `client/render/DeployPreviewRenderer.java` (spell circle)
+- `SpellSmokeTest`
+
+The two spells replace Stray and Vindicator in the starter deck. See
+`docs/CARDS.md` for the numbers.

@@ -27,6 +27,8 @@ public final class CombatUnit {
     private int invulnerableTicks;
     private TowerId lockedTower;
     private UUID target;
+    private int burnTicks;
+    private double burnPerTick;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -86,6 +88,10 @@ public final class CombatUnit {
     public TowerId lockedTower() {
         return lockedTower;
     }
+    /** Ticks of burning left (Fireball). */
+    public int burnTicks() {
+        return burnTicks;
+    }
     /** Enemy unit currently chased, or null when heading for a tower. */
     public UUID target() {
         return target;
@@ -109,6 +115,22 @@ public final class CombatUnit {
             cooldown--;
         if (invulnerableTicks > 0)
             invulnerableTicks--;
+    }
+
+    /** Sets the unit burning; a new burn replaces the old one. */
+    void ignite(int ticks, double perSecond) {
+        if (ticks <= 0 || perSecond <= 0.0D)
+            return;
+        burnTicks = ticks;
+        burnPerTick = perSecond / 20.0D;
+    }
+
+    /** Damage the burn deals this tick (0 when not burning). */
+    double burnStep() {
+        if (burnTicks <= 0)
+            return 0.0D;
+        burnTicks--;
+        return burnPerTick;
     }
 
     boolean ready() {

@@ -108,16 +108,17 @@ public final class ClientMatchState {
     }
 
     /**
-     * Client-side check before sending a deploy: own half, enough elixir.
-     * The server validates again.
+     * Client-side check before sending a deploy: own half for a troop, the
+     * whole arena for a spell, and enough elixir. The server validates again.
      */
     public static boolean canDeployAt(int slot, int worldX, int worldZ) {
         if (!active() || state() != MatchState.BATTLE || slot < 0 ||
                 slot >= hand().size())
             return false;
-        if (hand().get(slot).cost() * 10 > elixirTenths())
+        BattleCard card = hand().get(slot);
+        if (card.cost() * 10 > elixirTenths())
             return false;
-        return arena().canDeploy(side(), worldX, worldZ);
+        return arena().canPlay(side(), card, worldX, worldZ);
     }
 
     public static void clearSelection() {

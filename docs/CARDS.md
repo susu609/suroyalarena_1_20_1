@@ -51,13 +51,20 @@ Split rules for implementation:
 
 ## Spells
 
-Spells deal damage by server-side area checks on a tick schedule. Arrow and
-fireball entities are visual only. Spells deal **30%** damage to towers.
+Spells deal damage by server-side area checks on a tick schedule
+(`CombatEngine.castSpell`, stats in `SpellStats`); the arrows and the fireball
+are particles only. A spell can be played **anywhere on the arena**, including
+the enemy half and the river. It hits enemy units whose body touches the
+circle, and enemy towers whose footprint touches it for **30%** of the damage
+(a hit King tower wakes up). Own troops and towers are never hit.
 
 | Spell | Elixir | Behaviour |
 |---|---|---|
-| Arrow Storm | **3** | Circle radius 3 blocks for 4 s; every 5 ticks (0.25 s) deals 1 damage to each enemy inside: **16 total**, 4 DPS. |
+| Arrow Storm | **3** | Arrows fly 0.5 s, then a circle of radius 3 blocks for 4 s; every 5 ticks (0.25 s) deals 1 damage to each enemy inside: **16 total**, 4 DPS. |
 | Fireball | **4** | Travels 1 s, explodes radius 2.5 blocks for **25** damage, knocks back 1 block, burns 1 damage/s for 3 s. |
+
+Burning troops are shown on fire; the burn damage comes from the engine (the
+mobs themselves are invulnerable).
 
 ## Spell vs troop kill table
 
@@ -70,10 +77,12 @@ Fireball kills a big slime in one hit, but the children it splits into spawn
 after the explosion and are not hit. Arrow Storm lasts 4 s, so it also clears
 children that split inside the circle.
 
-## Fillers until spells exist
+## Starter deck and extra troops
 
-The deck needs 8 cards and the two spells are not built yet, so three more
-troops fill the deck. Costs come from the same formula:
+The starter deck is Zombie, Skeleton Archer, Spider, Skeletons, Big Slime,
+Iron Golem, Arrow Storm and Fireball. Stray and Vindicator were fillers while
+the spells did not exist; they stay as cards for later decks. Costs come from
+the same formula:
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Elixir |
 |---|---|---|---|---|---|---|---|---|
@@ -85,7 +94,6 @@ troops fill the deck. Costs come from the same formula:
 
 | Item | Code today | Target |
 |---|---|---|
-| Spells (Arrow Storm, Fireball) | not built | Definitions above |
 | Starting elixir | 5 (`ElixirMeter.START_TENTHS`) | 6 |
 | Elixir regeneration | 3.0 s per elixir (6 ticks per tenth) | 2.8 s, then 1.4 s, then ~0.95 s |
 | Match length | 180 s, no overtime or tower-count win | 180 s + 120 s overtime |

@@ -3,11 +3,15 @@ package net.susu609.royalarena.combat;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
+import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.card.SplitRule;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.combat.TickResult.Attack;
 import net.susu609.royalarena.combat.TickResult.Death;
 import net.susu609.royalarena.combat.TickResult.Move;
+import net.susu609.royalarena.combat.TickResult.Push;
+import net.susu609.royalarena.combat.TickResult.SpellPulse;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
@@ -29,7 +33,8 @@ import java.util.UUID;
  *
  * <p>Within a tick every decision uses the state at the start of the tick,
  * then all damage is applied at once, so two units that hit each other in
- * the same tick both land their hit.</p>
+ * the same tick both land their hit. Spell pulses are decided the same way
+ * and land together with the attacks.</p>
  */
 public final class CombatEngine {
     /** A chased enemy is only dropped once it is this much farther than sight. */
@@ -43,7 +48,31 @@ public final class CombatEngine {
             new EnumMap<>(TowerId.class);
     private final Map<TowerId, UUID> towerTarget =
             new EnumMap<>(TowerId.class);
+    private final List<ActiveSpell> spells = new ArrayList<>();
     private double speedMultiplier = 1.0D;
+
+    /** A spell that has landed and still has pulses to deal. */
+    private static final class ActiveSpell {
+        final TeamSide side;
+        final BattleCard card;
+        final double x;
+        final double z;
+        int pulsesDone;
+        int wait;
+
+        ActiveSpell(TeamSide side, BattleCard card, double x, double z) {
+            this.side = side;
+            this.card = card;
+            this.x = x;
+            this.z = z;
+        }
+    }
+
+    /** Damage decided this tick, applied after every decision is made. */
+    private record Hit(CombatUnit unit, TowerId tower, double damage,
+                       ActiveSpell spell)
+    {
+    }
 
     public CombatEngine(MatchInstance match) {
         this.match = match;
@@ -65,6 +94,21 @@ public final class CombatEngine {
                 entityId, spawn.side(), spawn.stats(), spawn.generation(),
                 spawn.health(), spawn.damage(), spawn.radius(), spawn.x(),
                 spawn.z(), spawn.invulnerableTicks(), spawn.lockedTower()));
+    }
+
+    /**
+     * A spell card lands centred on (x, z). Its first pulse is dealt on the
+     * next {@link #tick()}.
+     */
+    public void castSpell(TeamSide side, BattleCard card, double x, double z) {
+        if (!card.isSpell())
+            throw new IllegalArgumentException(card.id() + " is not a spell");
+        spells.add(new ActiveSpell(side, card, x, z));
+    }
+
+    /** Spells that have landed and are still pulsing. */
+    public int activeSpells() {
+        return spells.size();
     }
 
     private CombatUnit register(CombatUnit unit) {
@@ -101,11 +145,17 @@ public final class CombatEngine {
             planUnit(unit, moves, attacks);
         }
         planTowers(attacks);
+        List<SpellPulse> pulses = new ArrayList<>();
+        List<Hit> hits = planSpells(pulses);
 
         List<TowerId> destroyed = new ArrayList<>();
         applyDamage(attacks, destroyed);
+        applyBurns();
+        List<Push> pushes = new ArrayList<>();
+        applySpellHits(hits, destroyed, pushes);
         List<Death> deaths = collectDeaths();
-        return new TickResult(moves, attacks, deaths, destroyed);
+        return new TickResult(moves, attacks, deaths, destroyed, pulses,
+                pushes);
     }
 
     /** Whether a King tower may shoot: it was hit, or a Princess tower fell. */
@@ -222,11 +272,7 @@ public final class CombatEngine {
 
     /** Distance from the unit's edge to the nearest edge of the tower. */
     private double edgeDistanceToTower(CombatUnit unit, TowerId id) {
-        ArenaPoint p = arena.towerPoint(id);
-        double half = ArenaLayout.towerHalfSize(id.kind());
-        double dx = Math.max(Math.abs(unit.x() - p.x()) - half, 0.0D);
-        double dz = Math.max(Math.abs(unit.z() - p.z()) - half, 0.0D);
-        return Math.hypot(dx, dz) - unit.radius();
+        return distanceToTower(unit.x(), unit.z(), id) - unit.radius();
     }
 
     // --------------------------------------------------------------- towers
@@ -278,6 +324,107 @@ public final class CombatEngine {
             }
         }
         return best;
+    }
+
+    // --------------------------------------------------------------- spells
+
+    /** Pulses every landed spell whose wait ran out; drops finished ones. */
+    private List<Hit> planSpells(List<SpellPulse> pulses) {
+        List<Hit> hits = new ArrayList<>();
+        for (int i = 0; i < spells.size(); i++) {
+            ActiveSpell active = spells.get(i);
+            if (active.wait > 0) {
+                active.wait--;
+                continue;
+            }
+            SpellStats spell = active.card.spell();
+            int before = hits.size();
+            for (CombatUnit unit : units) {
+                if (unit.side() == active.side || !unit.alive())
+                    continue;
+                double reach = spell.radius() + unit.radius();
+                if (Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
+                        reach + EPSILON)
+                    hits.add(new Hit(unit, null, spell.damagePerPulse(),
+                            active));
+            }
+            for (TowerId id : TowerId.values()) {
+                if (id.side() == active.side ||
+                        match.tower(id).isDestroyed())
+                    continue;
+                if (distanceToTower(active.x, active.z, id) <=
+                        spell.radius() + EPSILON)
+                    hits.add(new Hit(null, id, spell.damagePerPulse() *
+                            spell.towerMultiplier(), active));
+            }
+            pulses.add(new SpellPulse(active.side, active.card, active.x,
+                    active.z, active.pulsesDone, hits.size() - before));
+            active.pulsesDone++;
+            active.wait = spell.pulseInterval() - 1;
+            if (active.pulsesDone >= spell.pulses())
+                spells.remove(i--);
+        }
+        return hits;
+    }
+
+    private void applySpellHits(List<Hit> hits, List<TowerId> destroyed,
+            List<Push> pushes)
+    {
+        for (Hit hit : hits) {
+            SpellStats spell = hit.spell().card.spell();
+            if (hit.tower() != null) {
+                TowerState tower = match.tower(hit.tower());
+                boolean wasStanding = !tower.isDestroyed();
+                match.damageTower(hit.tower(), hit.damage());
+                if (wasStanding && tower.isDestroyed())
+                    destroyed.add(hit.tower());
+                continue;
+            }
+            CombatUnit unit = hit.unit();
+            if (!unit.hurt(hit.damage()))
+                continue;
+            unit.ignite(spell.burnTicks(), spell.burnPerSecond());
+            if (spell.knockback() > 0.0D && unit.alive())
+                knockBack(unit, hit.spell(), spell.knockback(), pushes);
+        }
+    }
+
+    /** Pushes a unit straight away from the spell centre, kept on land. */
+    private void knockBack(CombatUnit unit, ActiveSpell from, double blocks,
+            List<Push> pushes)
+    {
+        double dx = unit.x() - from.x;
+        double dz = unit.z() - from.z;
+        double length = Math.hypot(dx, dz);
+        if (length < 1.0E-3D) {
+            dx = 0.0D;
+            dz = -ArenaLayout.sideSign(from.side);
+            length = 1.0D;
+        }
+        ArenaWaypoint spot = arena.clampSpawn(
+                unit.x() + dx / length * blocks,
+                unit.z() + dz / length * blocks,
+                ArenaLayout.sideSign(unit.side()));
+        pushes.add(new Push(unit.id(), spot.x() - unit.x(),
+                spot.z() - unit.z()));
+        unit.setPosition(spot.x(), spot.z());
+    }
+
+    private void applyBurns() {
+        for (CombatUnit unit : units) {
+            double burn = unit.burnStep();
+            if (burn > 0.0D)
+                unit.hurt(burn);
+        }
+    }
+
+    /** Distance from a point to the nearest edge of a tower's footprint. */
+    private double distanceToTower(double x, double z, TowerId id) {
+        ArenaPoint p = arena.towerPoint(id);
+        double half = ArenaLayout.towerHalfSize(id.kind());
+        double dx = Math.max(Math.abs(x - p.x()) - half, 0.0D);
+        double dz = Math.max(Math.abs(z - p.z()) - half, 0.0D);
+        return Math.hypot(dx, dz);
     }
 
     // ----------------------------------------------------- damage and deaths

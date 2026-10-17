@@ -3,8 +3,9 @@ package net.susu609.royalarena.card;
 import java.util.Locale;
 
 /**
- * Starter troop cards. Stats mirror data/royalarena/cards/*.json (a test
- * keeps them in sync) and every cost follows {@link CostFormula}.
+ * Troop and spell cards. Troop Stats mirror data/royalarena/cards/*.json (a test
+ * keeps them in sync) and every cost follows {@link CostFormula}. A spell
+ * has {@link #spell()} instead of {@link #stats()} and no mob.
  */
 public enum BattleCard {
     ZOMBIE("Zombie", 3, "minecraft:zombie", null, 0,
@@ -25,7 +26,16 @@ public enum BattleCard {
             "minecraft:iron_axe", 0,
             new TroopStats(1, 24, 7, 28, 1.2D, 1.1D, 0.3D)),
     IRON_GOLEM("Iron Golem", 4, "minecraft:iron_golem", null, 0,
-            new TroopStats(1, 100, 8, 32, 1.5D, 0.67D, 0.7D));
+            new TroopStats(1, 100, 8, 32, 1.5D, 0.67D, 0.7D)),
+    ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
+            new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0)),
+    FIREBALL("Fireball", 4, "minecraft:fire_charge",
+            new SpellStats(2.5D, 20, 1, 1, 25.0D, SpellStats.TOWER_MULTIPLIER,
+                    1.0D, 1.0D, 60));
+
+    /** Time between a troop card play and the troop appearing (1 s). */
+    public static final int DEPLOY_TICKS = 20;
 
     private final String displayName;
     private final int cost;
@@ -33,6 +43,8 @@ public enum BattleCard {
     private final String heldItemId;
     private final int mobSize;
     private final TroopStats stats;
+    private final SpellStats spell;
+    private final String iconItemId;
 
     BattleCard(String displayName, int cost, String entityId,
             String heldItemId, int mobSize, TroopStats stats)
@@ -43,6 +55,21 @@ public enum BattleCard {
         this.heldItemId = heldItemId;
         this.mobSize = mobSize;
         this.stats = stats;
+        this.spell = null;
+        this.iconItemId = null;
+    }
+
+    BattleCard(String displayName, int cost, String iconItemId,
+            SpellStats spell)
+    {
+        this.displayName = displayName;
+        this.cost = cost;
+        this.entityId = null;
+        this.heldItemId = null;
+        this.mobSize = 0;
+        this.stats = null;
+        this.spell = spell;
+        this.iconItemId = iconItemId;
     }
 
     public String id() {
@@ -61,6 +88,7 @@ public enum BattleCard {
         throw new IllegalArgumentException("Unknown battle card: " + id);
     }
 
+    /** Mob of a troop card; null for a spell. */
     public String entityId() {
         return entityId;
     }
@@ -75,7 +103,26 @@ public enum BattleCard {
     public int cost() {
         return cost;
     }
+    /** Troop stats; null for a spell. */
     public TroopStats stats() {
         return stats;
+    }
+    /** Spell effect; null for a troop. */
+    public SpellStats spell() {
+        return spell;
+    }
+    public boolean isSpell() {
+        return spell != null;
+    }
+    /** Item shown as a spell's card art when no portrait exists. */
+    public String iconItemId() {
+        return iconItemId;
+    }
+    /**
+     * Ticks between the card play and its effect: the one-second deploy time
+     * of a troop, or the flight time of a spell.
+     */
+    public int deployTicks() {
+        return spell != null ? spell.castTicks() : DEPLOY_TICKS;
     }
 }

@@ -1,6 +1,7 @@
 package net.susu609.royalarena.server.battle;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -80,9 +81,17 @@ public final class BattleField {
 
     // --------------------------------------------------------------- spawn
 
-    /** Creates the mobs of a card whose deploy time ran out. */
+    /**
+     * Creates the mobs of a card whose deploy time ran out, or lands a spell
+     * whose flight time ran out.
+     */
     public void deploy(PendingDeploy deploy) {
         BattleCard card = deploy.card();
+        if (card.isSpell()) {
+            engine.castSpell(deploy.side(), card, deploy.x() + 0.5D,
+                    deploy.z() + 0.5D);
+            return;
+        }
         TroopStats stats = card.stats();
         double spacing = Math.max(0.8D, stats.radius() * 2.0D + 0.3D);
         double[][] offsets = Formation.offsets(stats.count(), spacing);
@@ -183,7 +192,11 @@ public final class BattleField {
         }
 
         TickResult result = engine.tick();
+        for (TickResult.Push push : result.pushes())
+            knockBack(push);
         moveUnits(result.moves());
+        for (TickResult.SpellPulse pulse : result.spellPulses())
+            playSpell(pulse);
         for (TickResult.Attack attack : result.attacks())
             playAttack(attack);
         mirrorHealth();
@@ -315,6 +328,85 @@ public final class BattleField {
         }
     }
 
+    /** Moves a mob the way the engine knocked its unit back. */
+    private void knockBack(TickResult.Push push) {
+        Entity entity = level.getEntity(push.unit());
+        if (entity != null)
+            entity.move(MoverType.SELF, new Vec3(push.dx(), 0.0D, push.dz()));
+    }
+
+    // -------------------------------------------------------------- spells
+
+    /**
+     * Shows spells still in flight: the fireball arcs from the caster's King
+     * tower to its target; arrows mark the circle they are about to hit.
+     */
+    public void showFlights(List<PendingDeploy> pending) {
+        for (PendingDeploy deploy : pending) {
+            if (!deploy.card().isSpell())
+                continue;
+            double tx = deploy.x() + 0.5D;
+            double tz = deploy.z() + 0.5D;
+            double floor = arena.floorY() + 1.0D;
+            if (deploy.card() == BattleCard.FIREBALL) {
+                ArenaPoint from = arena.towerPoint(TowerId.king(deploy.side()));
+                double t = deploy.progress();
+                double x = Mth.lerp(t, from.x(), tx);
+                double z = Mth.lerp(t, from.z(), tz);
+                double y = Mth.lerp(t, from.y() + 4.0D, floor) +
+                        Math.sin(Math.PI * t) * 3.0D;
+                level.sendParticles(ParticleTypes.FLAME, x, y, z, 6, 0.15D,
+                        0.15D, 0.15D, 0.01D);
+                level.sendParticles(ParticleTypes.LARGE_SMOKE, x, y, z, 1,
+                        0.1D, 0.1D, 0.1D, 0.0D);
+            } else if (level.getGameTime() % 2 == 0) {
+                ring(tx, floor + 0.1D, tz, deploy.card().spell().radius(),
+                        ParticleTypes.CRIT, 16);
+            }
+        }
+    }
+
+    private void playSpell(TickResult.SpellPulse pulse) {
+        double floor = arena.floorY() + 1.0D;
+        double radius = pulse.card().spell().radius();
+        if (pulse.card() == BattleCard.FIREBALL) {
+            level.sendParticles(ParticleTypes.EXPLOSION, pulse.x(), floor + 0.5D,
+                    pulse.z(), 4, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
+            level.sendParticles(ParticleTypes.FLAME, pulse.x(), floor + 0.3D,
+                    pulse.z(), 40, radius * 0.5D, 0.2D, radius * 0.5D, 0.05D);
+            level.playSound(null, pulse.x(), floor, pulse.z(),
+                    SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 0.8F,
+                    1.2F);
+            return;
+        }
+        // Arrow Storm: a volley falls on random points of the circle.
+        for (int i = 0; i < 8; i++) {
+            double angle = level.random.nextDouble() * Math.PI * 2.0D;
+            double r = Math.sqrt(level.random.nextDouble()) * radius;
+            level.sendParticles(ParticleTypes.CRIT,
+                    pulse.x() + Math.cos(angle) * r, floor + 5.0D,
+                    pulse.z() + Math.sin(angle) * r, 0, 0.0D, -1.0D, 0.0D,
+                    1.5D);
+        }
+        if (pulse.index() == 0)
+            ring(pulse.x(), floor + 0.1D, pulse.z(), radius,
+                    ParticleTypes.CRIT, 24);
+        if (pulse.index() % 2 == 0)
+            level.playSound(null, pulse.x(), floor, pulse.z(),
+                    SoundEvents.ARROW_HIT, SoundSource.HOSTILE, 0.5F,
+                    0.9F + level.random.nextFloat() * 0.3F);
+    }
+
+    private void ring(double x, double y, double z, double radius,
+            ParticleOptions particle, int points)
+    {
+        for (int i = 0; i < points; i++) {
+            double angle = Math.PI * 2.0D * i / points;
+            level.sendParticles(particle, x + Math.cos(angle) * radius, y,
+                    z + Math.sin(angle) * radius, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
     // ------------------------------------------------------------- effects
 
     private void playAttack(TickResult.Attack attack) {
@@ -384,13 +476,20 @@ public final class BattleField {
         return new double[] {p.x(), p.y() + height, p.z()};
     }
 
-    /** Copies engine health onto the mobs so health bars follow it. */
+    /**
+     * Copies engine health onto the mobs so health bars follow it, and sets
+     * burning units on fire (only the look: the mobs are invulnerable, the
+     * burn damage comes from the engine).
+     */
     private void mirrorHealth() {
         for (CombatUnit unit : engine.units()) {
             Entity entity = level.getEntity(unit.id());
             if (entity instanceof LivingEntity living &&
                     living.getHealth() != (float) unit.health())
                 living.setHealth((float) unit.health());
+            if (entity != null && unit.burnTicks() > 0 &&
+                    entity.getRemainingFireTicks() < unit.burnTicks())
+                entity.setRemainingFireTicks(unit.burnTicks());
         }
     }
 

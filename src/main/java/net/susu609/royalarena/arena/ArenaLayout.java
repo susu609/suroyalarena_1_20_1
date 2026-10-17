@@ -1,5 +1,6 @@
 package net.susu609.royalarena.arena;
 
+import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
@@ -145,6 +146,23 @@ public final class ArenaLayout {
     public boolean canDeploy(TeamSide side, int worldX, int worldZ) {
         return deployArea(side).contains(worldX, worldZ);
     }
+    /** Whether the block (x, z) is part of the arena floor or river. */
+    public boolean contains(int worldX, int worldZ) {
+        return worldX >= minX() && worldX <= maxX() && worldZ >= minZ() &&
+                worldZ <= maxZ();
+    }
+
+    /**
+     * Where a card may be played: a troop on the player's own deploy area, a
+     * spell anywhere on the arena.
+     */
+    public boolean canPlay(TeamSide side, BattleCard card, int worldX,
+            int worldZ)
+    {
+        return card.isSpell() ? contains(worldX, worldZ) :
+                canDeploy(side, worldX, worldZ);
+    }
+
     public ArenaBox deployArea(TeamSide side) {
         return side == TeamSide.BLUE ? blueDeploy : redDeploy;
     }

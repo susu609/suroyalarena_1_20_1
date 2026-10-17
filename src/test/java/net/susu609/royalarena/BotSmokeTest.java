@@ -91,6 +91,11 @@ public final class BotSmokeTest {
         }
 
         private void spawn(PendingDeploy deploy) {
+            if (deploy.card().isSpell()) {
+                engine.castSpell(deploy.side(), deploy.card(),
+                        deploy.x() + 0.5D, deploy.z() + 0.5D);
+                return;
+            }
             TroopStats stats = deploy.card().stats();
             int sign = ArenaLayout.sideSign(deploy.side());
             double[][] offsets = Formation.offsets(stats.count(),
@@ -238,6 +243,8 @@ public final class BotSmokeTest {
                 .filter(p -> p.side() == TeamSide.RED).count();
         check(blue >= 8 && red >= 8,
                 "both bots keep playing for three minutes: " + blue + "/" + red);
+        check(h.played.stream().anyMatch(p -> p.card().isSpell()),
+                "the bots cast spells in a full match");
         check(h.deaths >= 10,
                 "the bots' troops really fight each other: " + h.deaths +
                         " deaths");

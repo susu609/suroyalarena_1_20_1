@@ -6,6 +6,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
@@ -295,9 +296,17 @@ public final class BattleHudOverlay implements IGuiOverlay {
         pose.popPose();
     }
 
-    /** Spawn egg of the card's mob, used as card art. */
+    /**
+     * Fallback card art: the spawn egg of a troop's mob, or a spell's icon
+     * item.
+     */
     private static ItemStack icon(BattleCard card) {
         return ICONS.computeIfAbsent(card, c -> {
+            if (c.isSpell()) {
+                Item item = ForgeRegistries.ITEMS.getValue(
+                        RL.require(c.iconItemId()));
+                return new ItemStack(item == null ? Items.PAPER : item);
+            }
             EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
                     RL.require(c.entityId()));
             SpawnEggItem egg = type == null ? null : SpawnEggItem.byId(type);
