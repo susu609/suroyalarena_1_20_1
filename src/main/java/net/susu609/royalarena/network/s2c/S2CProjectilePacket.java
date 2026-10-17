@@ -9,7 +9,8 @@ import net.susu609.royalarena.client.render.ProjectileRenderer;
 import java.util.function.Supplier;
 
 /**
- * A purely visual projectile: the client draws an arrow (or a fireball)
+ * A purely visual projectile: the client draws an arrow (a fireball, a
+ * thrown splash potion)
  * flying from one point to another in {@code ticks}, along an arc that rises
  * {@code arc} blocks at its middle. Damage is decided on the server.
  */
@@ -18,7 +19,7 @@ public record S2CProjectilePacket(Kind kind, float fromX, float fromY,
                                   float toZ, int ticks, float arc)
 {
     public enum Kind {
-        ARROW, FIREBALL
+        ARROW, FIREBALL, POTION
     }
 
     public static void encode(S2CProjectilePacket p, FriendlyByteBuf buffer) {

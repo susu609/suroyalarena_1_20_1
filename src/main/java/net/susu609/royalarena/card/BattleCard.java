@@ -14,9 +14,9 @@ public enum BattleCard {
             "minecraft:bow", 0,
             new TroopStats(1, 20, 4, 20, 6.0D, 1.0D, 0.3D)),
     SPIDER("Spider", 3, "minecraft:spider", null, 0,
-            new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.6D)),
+            new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.45D)),
     SKELETONS("Skeletons", 2, "minecraft:skeleton", "minecraft:stone_sword", 0,
-            new TroopStats(3, 10, 2, 24, 1.2D, 1.33D, 0.3D)),
+            new TroopStats(3, 10, 2, 24, 1.2D, 1.33D, 0.24D)),
     BIG_SLIME("Big Slime", 3, "minecraft:slime", null, 4,
             new TroopStats(1, 20, 5, 28, 1.2D, 0.67D, 1.0D,
                     new SplitRule(2, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
@@ -27,6 +27,17 @@ public enum BattleCard {
             new TroopStats(1, 24, 7, 28, 1.2D, 1.1D, 0.3D)),
     IRON_GOLEM("Iron Golem", 4, "minecraft:iron_golem", null, 0,
             new TroopStats(1, 100, 8, 32, 1.5D, 0.67D, 0.7D)),
+    CREEPER("Creeper", 3, "minecraft:creeper", null, 0,
+            new TroopStats(1, 20, 30, 20, 0.5D, 1.0D, 0.3D,
+                    new TroopTraits(2.5D, true, 0.0D))),
+    WITCH("Witch", 4, "minecraft:witch", null, 0,
+            new TroopStats(1, 26, 8, 30, 5.0D, 0.8D, 0.3D,
+                    new TroopTraits(1.5D, false, 0.0D))),
+    WOLVES("Wolves", 3, "minecraft:wolf", null, 0,
+            new TroopStats(3, 8, 3, 16, 1.2D, 1.6D, 0.35D)),
+    RAVAGER("Ravager", 5, "minecraft:ravager", null, 0,
+            new TroopStats(1, 100, 10, 32, 1.5D, 0.75D, 0.9D,
+                    new TroopTraits(0.0D, false, 1.0D))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
                     0.0D, 0.0D, 0)),
@@ -88,6 +99,15 @@ public enum BattleCard {
         throw new IllegalArgumentException("Unknown battle card: " + id);
     }
 
+    /** The card whose display name is {@code name}, or null. */
+    public static BattleCard byDisplayName(String name) {
+        for (BattleCard card : values()) {
+            if (card.displayName.equals(name))
+                return card;
+        }
+        return null;
+    }
+
     /** Mob of a troop card; null for a spell. */
     public String entityId() {
         return entityId;
@@ -103,6 +123,18 @@ public enum BattleCard {
     public int cost() {
         return cost;
     }
+    /**
+     * How big the mob is drawn, relative to vanilla: the three Skeletons and
+     * the four Spiders are a small swarm.
+     */
+    public float modelScale() {
+        return switch (this) {
+            case SKELETONS -> 0.8F;
+            case SPIDER -> 0.75F;
+            default -> 1.0F;
+        };
+    }
+
     /** Troop stats; null for a spell. */
     public TroopStats stats() {
         return stats;

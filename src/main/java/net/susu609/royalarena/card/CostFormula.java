@@ -7,6 +7,10 @@ package net.susu609.royalarena.card;
 public final class CostFormula {
     public static final double COST_DIVISOR = 5.4D;
     public static final double SPELL_COST_DIVISOR = 20.8D;
+    /** Splash damage is worth more (balance.json cost_modifiers). */
+    public static final double AREA_DAMAGE = 1.3D;
+    /** A unit that dies on its first strike delivers its damage once. */
+    public static final double SELF_DESTRUCT = 0.5D;
 
     private CostFormula() {
     }
@@ -25,6 +29,10 @@ public final class CostFormula {
             modifier *= 0.85D;
         else if (s.count() >= 3)
             modifier *= 0.93D;
+        if (s.traits().splash())
+            modifier *= AREA_DAMAGE;
+        if (s.traits().selfDestruct())
+            modifier *= SELF_DESTRUCT;
         return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
     }
 

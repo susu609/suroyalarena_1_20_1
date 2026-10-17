@@ -14,7 +14,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -490,15 +492,39 @@ public final class BattleField {
                 animator.onAttack(attacker);
             }
         }
+        Entity attacker = attack.attackerUnit() == null ? null :
+                level.getEntity(attack.attackerUnit());
+        if (attacker instanceof Creeper) {
+            explode(from, attack.splash());
+            return;
+        }
         if (!attack.ranged())
             return;
         double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
+        if (attacker instanceof Witch) {
+            sendProjectile(S2CProjectilePacket.Kind.POTION, from, to,
+                    attack.flightTicks(), (float) (distance * 0.3D));
+            level.playSound(null, from[0], from[1], from[2],
+                    SoundEvents.WITCH_THROW, SoundSource.HOSTILE, 0.6F, 1.0F);
+            return;
+        }
         sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
                 attack.flightTicks(), (float) (distance * 0.12D));
         level.playSound(null, from[0], from[1], from[2],
                 attack.attackerTower() != null ? SoundEvents.CROSSBOW_SHOOT :
                         SoundEvents.ARROW_SHOOT, SoundSource.HOSTILE, 0.6F,
                 1.0F);
+    }
+
+    /** A Creeper going off: blast particles over its splash circle. */
+    private void explode(double[] at, double radius) {
+        double floor = arena.floorY() + 1.0D;
+        level.sendParticles(ParticleTypes.EXPLOSION, at[0], floor + 0.5D,
+                at[2], 6, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
+        level.sendParticles(ParticleTypes.POOF, at[0], floor + 0.3D, at[2], 20,
+                radius * 0.5D, 0.2D, radius * 0.5D, 0.05D);
+        level.playSound(null, at[0], floor, at[2], SoundEvents.GENERIC_EXPLODE,
+                SoundSource.HOSTILE, 0.8F, 1.1F);
     }
 
     /** Damage applied this tick: a melee blow, or an arrow arriving. */
@@ -513,6 +539,17 @@ public final class BattleField {
             if (attack.attackerUnit() != null && !attack.ranged())
                 animator.onHit(level.getEntity(attack.attackerUnit()),
                         victim);
+        }
+        if (attack.ranged() && attack.splash() > 0.0D) {
+            // A splash potion breaking over its circle.
+            double floor = arena.floorY() + 1.0D;
+            level.sendParticles(ParticleTypes.WITCH, attack.x(), floor + 0.3D,
+                    attack.z(), 24, attack.splash() * 0.5D, 0.2D,
+                    attack.splash() * 0.5D, 0.05D);
+            level.playSound(null, attack.x(), floor, attack.z(),
+                    SoundEvents.SPLASH_POTION_BREAK, SoundSource.HOSTILE, 0.6F,
+                    1.0F);
+            return;
         }
         level.playSound(null, to[0], to[1], to[2],
                 attack.ranged() ? SoundEvents.ARROW_HIT :

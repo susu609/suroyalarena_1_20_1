@@ -1,0 +1,157 @@
+package net.susu609.royalarena;
+
+import net.susu609.royalarena.arena.ArenaLayout;
+import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.CardRole;
+import net.susu609.royalarena.combat.CombatEngine;
+import net.susu609.royalarena.combat.CombatUnit;
+import net.susu609.royalarena.combat.TickResult;
+import net.susu609.royalarena.match.MatchInstance;
+import net.susu609.royalarena.match.TeamSide;
+import net.susu609.royalarena.tower.TowerId;
+
+import java.util.UUID;
+
+/**
+ * Pure-Java checks for troop traits: Creeper self-destruct splash, Witch
+ * splash, Ravager knockback. Units stand around the river, out of tower
+ * range, and the harness never moves them.
+ */
+public final class TraitSmokeTest {
+    private TraitSmokeTest() {
+    }
+
+    public static void run() {
+        newCardsHaveTheirRoles();
+        creeperExplodesOnce();
+        creeperHurtsTheTowerItReaches();
+        witchSplashesAroundItsTarget();
+        ravagerKnocksItsVictimBack();
+        System.out.println("RoyalArena trait smoke tests: PASS");
+    }
+
+    private static MatchInstance battle() {
+        MatchInstance match = MatchInstance.create(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                ArenaLayout.standard(new ArenaPoint(0, 80, 0)));
+        match.startBattle();
+        return match;
+    }
+
+    private static CombatUnit unit(CombatEngine engine, BattleCard card,
+            TeamSide side, double x, double z)
+    {
+        return engine.add(UUID.randomUUID(), side, card.stats(), x, z);
+    }
+
+    private static void newCardsHaveTheirRoles() {
+        check(CardRole.of(BattleCard.RAVAGER).contains(CardRole.TANK),
+                "Ravager is a tank");
+        check(CardRole.of(BattleCard.WITCH).contains(CardRole.RANGED) &&
+                CardRole.of(BattleCard.WITCH).contains(CardRole.AREA),
+                "Witch is ranged area damage");
+        check(CardRole.of(BattleCard.CREEPER).contains(CardRole.AREA),
+                "Creeper is area damage");
+        check(CardRole.of(BattleCard.WOLVES).contains(CardRole.SWARM),
+                "Wolves are a swarm");
+        check(BattleCard.SKELETONS.modelScale() < 1.0F &&
+                BattleCard.SPIDER.modelScale() < 1.0F &&
+                BattleCard.ZOMBIE.modelScale() == 1.0F,
+                "the swarms are drawn smaller");
+    }
+
+    private static void creeperExplodesOnce() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit creeper = unit(engine, BattleCard.CREEPER, TeamSide.BLUE,
+                0.5D, 1.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, 0.0D);
+        CombatUnit spider = unit(engine, BattleCard.SPIDER, TeamSide.RED,
+                2.0D, 0.0D);
+        CombatUnit far = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                -4.5D, 0.0D);
+        // Inside the blast, but out of reach of the enemies' own attacks.
+        CombatUnit friend = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                -1.5D, 1.0D);
+        TickResult result = engine.tick();
+        check(result.attacks().size() >= 1 &&
+                result.attacks().stream().anyMatch(
+                        a -> creeper.id().equals(a.attackerUnit()) &&
+                                a.splash() > 0.0D),
+                "the Creeper strikes with splash");
+        check(!creeper.alive() && result.deaths().stream().anyMatch(
+                d -> d.unit().equals(creeper.id())),
+                "the Creeper dies when it explodes");
+        check(!zombie.alive(), "its target takes 30 and dies");
+        check(!spider.alive(), "a Spider 1.5 blocks away is caught too");
+        near(far.health(), 20.0D, "enemies outside the blast are safe");
+        near(friend.health(), 20.0D, "the blast spares its own side");
+        for (int i = 0; i < 40; i++)
+            engine.tick();
+        check(engine.unit(creeper.id()) == null, "it explodes only once");
+    }
+
+    private static void creeperHurtsTheTowerItReaches() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        ArenaPoint tower = match.arena().towerPoint(TowerId.RED_LEFT);
+        // Just in front of the tower, so it hits it at once.
+        unit(engine, BattleCard.CREEPER, TeamSide.BLUE, tower.x(),
+                tower.z() + 2.6D);
+        engine.tick();
+        check(match.tower(TowerId.RED_LEFT).health() == 110 - 30,
+                "a Creeper deals full damage to the tower: " +
+                        match.tower(TowerId.RED_LEFT).health());
+    }
+
+    private static void witchSplashesAroundItsTarget() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        unit(engine, BattleCard.WITCH, TeamSide.BLUE, 0.5D, 4.0D);
+        CombatUnit target = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, -0.5D);
+        CombatUnit beside = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                1.7D, -0.5D);
+        CombatUnit away = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                5.0D, -0.5D);
+        TickResult shot = engine.tick();
+        int flight = shot.attacks().stream()
+                .filter(a -> a.ranged() && a.splash() > 0.0D)
+                .findFirst().orElseThrow().flightTicks();
+        for (int i = 0; i < flight; i++)
+            engine.tick();
+        near(target.health(), 12.0D, "the potion hits its target for 8");
+        near(beside.health(), 12.0D, "and a zombie beside it");
+        near(away.health(), 20.0D, "but not one 4.5 blocks away");
+    }
+
+    private static void ravagerKnocksItsVictimBack() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit ravager = unit(engine, BattleCard.RAVAGER, TeamSide.BLUE,
+                0.5D, 2.5D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, 0.0D);
+        TickResult result = engine.tick();
+        check(result.pushes().stream().anyMatch(
+                p -> p.unit().equals(zombie.id())),
+                "the Ravager's hit pushes the zombie");
+        near(zombie.health(), 10.0D, "the hit deals 10");
+        // 1 block away lands in the river band, so it is put on RED's bank.
+        near(zombie.z(), -1.5D, "pushed straight away, kept on land");
+        near(zombie.x(), 0.5D, "straight away from the Ravager");
+        near(ravager.z(), 2.5D, "the Ravager stays put");
+    }
+
+    private static void near(double actual, double expected, String name) {
+        check(Math.abs(actual - expected) < 1.0E-6D,
+                name + ": " + actual + " vs " + expected);
+    }
+
+    private static void check(boolean condition, String name) {
+        if (!condition)
+            throw new AssertionError(name);
+    }
+}

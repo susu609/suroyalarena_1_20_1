@@ -380,6 +380,14 @@ public final class DeckScreen extends Screen {
         if (s.split() != null)
             lines.add(line("Splits in %d when it dies, %d times",
                     s.split().children(), s.split().generations()));
+        if (s.traits().splash())
+            lines.add(line("Hits everything within %.1f blocks of its target",
+                    s.traits().splashRadius()));
+        if (s.traits().selfDestruct())
+            lines.add(line("Explodes on its first hit and is gone"));
+        if (s.traits().knockback() > 0)
+            lines.add(line("Knocks its target back %.1f block",
+                    s.traits().knockback()));
         return lines;
     }
 

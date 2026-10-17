@@ -10,7 +10,8 @@
     "fast": 1.1,
     "swarm_3_4": 0.93,
     "swarm_5_plus": 0.85,
-    "area_damage": 1.3
+    "area_damage": 1.3,
+    "self_destruct": 0.5
   },
   "towers": {
     "princess": {

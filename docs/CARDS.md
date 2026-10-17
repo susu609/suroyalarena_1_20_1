@@ -92,6 +92,29 @@ the same formula:
 | Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 7 | 1.4 | 1.2 | 1.1 | **2** |
 | Iron Golem | `minecraft:iron_golem` | 1 | 100 | 8 | 1.6 | 1.5 | 0.67 | **4** |
 
+## Library cards: Creeper, Witch, Wolves, Ravager
+
+In the card library and the bot's random decks, not in the starter deck.
+Costs follow the same formula, with two more modifiers: area damage x1.3 and
+self-destruct x0.5 (`CostFormula`, balance.json).
+
+| Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
+|---|---|---|---|---|---|---|---|---|---|
+| Creeper | `minecraft:creeper` | 1 | 20 | 30 | 1.0 | 0.5 | 1.0 | explodes on its first hit, splash 2.5 (towers too), then dies | **3** |
+| Witch | `minecraft:witch` | 1 | 26 | 8 | 1.5 | 5.0 | 0.8 | thrown splash potion, splash 1.5 | **4** |
+| Wolves | `minecraft:wolf` | 3 | 8 | 3 | 0.8 | 1.2 | 1.6 | fast pack | **3** |
+| Ravager | `minecraft:ravager` | 1 | 100 | 10 | 1.6 | 1.5 | 0.75 | knocks its target back 1 block | **5** |
+
+Splash hits every other enemy whose body touches the circle around the
+target, and enemy towers whose footprint does (`TroopTraits`,
+`CombatEngine.splash`).
+
+## Model size
+
+The three Skeletons are drawn at 80% and the four Spiders at 75%
+(`BattleCard.modelScale`), with smaller bodies in the engine to match
+(radius 0.24 and 0.45), so the swarms bunch up more tightly.
+
 ## Current code gap
 
 | Item | Code today | Target |

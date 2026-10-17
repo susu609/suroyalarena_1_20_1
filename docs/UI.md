@@ -70,10 +70,12 @@ filled and empty segments side by side so they never overlap.
 
 - With a card selected, the tile under the cursor is tinted **green** when
   deployable (own half, enough elixir) and **red** otherwise; green tiles also
-  show a translucent ghost of the troop. Clicking a red tile sends nothing and
+  show translucent ghosts of every unit the card brings (two Zombies, four
+  Spiders...), in the formation and at the size they will appear. Clicking a red tile sends nothing and
   keeps the card selected (the server still validates every deploy).
 - A selected **spell** shows its circle of effect instead of a tile and a
-  ghost. Spells can be aimed anywhere on the arena, so the circle is green
+  ghost, and every enemy troop and tower it would hit glows (vanilla glowing
+  outline, on your screen only). Spells can be aimed anywhere on the arena, so the circle is green
   everywhere on it when the elixir is there. A spell in flight shows a
   team-coloured circle that fills up until it lands.
 - An accepted click spends elixir and cycles the hand at once, then the troop

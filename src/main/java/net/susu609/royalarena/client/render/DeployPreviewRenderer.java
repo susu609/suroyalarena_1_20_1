@@ -20,7 +20,10 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.arena.ArenaLayout;
+import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.TroopStats;
+import net.susu609.royalarena.combat.Formation;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.match.MatchState;
@@ -35,8 +38,8 @@ import java.util.Map;
  * World-space deploy feedback:
  * <ul>
  * <li>while a card is selected, the tile under the cursor is tinted green
- * (deployable) or red (not), and a deployable tile shows a ghost of the
- * troop;</li>
+ * (deployable) or red (not), and a deployable tile shows ghosts of every
+ * unit the card brings, in formation and at the card's scale;</li>
  * <li>each pending deploy shows its ghost plus a team-coloured square that
  * fills up during the one-second deploy time;</li>
  * <li>a selected spell shows its circle of effect instead (green or red), and
@@ -207,6 +210,11 @@ public final class DeployPreviewRenderer {
         }
     }
 
+    /**
+     * Ghosts of every unit the card brings, where the server will put them
+     * (the same formation and spacing as BattleField.deploy), drawn at the
+     * card's model scale.
+     */
     private static void ghost(Minecraft mc, PoseStack pose,
             MultiBufferSource buffers, BattleCard card, int x, double y,
             int z, TeamSide side, float partial)
@@ -217,21 +225,34 @@ public final class DeployPreviewRenderer {
                 c -> createGhost(mc.level, c));
         if (entity == null)
             return;
-        double cx = x + 0.5D;
-        double cz = z + 0.5D;
+        TroopStats stats = card.stats();
+        double spacing = Math.max(0.8D, stats.radius() * 2.0D + 0.3D);
+        ArenaLayout arena = ClientMatchState.arena();
+        int sign = ArenaLayout.sideSign(side);
+        float scale = card.modelScale();
         float yaw = side == TeamSide.BLUE ? 180.0F : 0.0F;
-        entity.setPos(cx, y, cz);
-        entity.xo = entity.xOld = cx;
-        entity.yo = entity.yOld = y;
-        entity.zo = entity.zOld = cz;
-        entity.setYRot(yaw);
-        entity.yRotO = yaw;
-        if (entity instanceof LivingEntity living) {
-            living.yBodyRot = living.yBodyRotO = yaw;
-            living.yHeadRot = living.yHeadRotO = yaw;
+        for (double[] offset : Formation.offsets(stats.count(), spacing)) {
+            ArenaWaypoint spot = arena.clampSpawn(x + 0.5D + offset[0],
+                    z + 0.5D + offset[1], sign);
+            double cx = spot.x();
+            double cz = spot.z();
+            entity.setPos(cx, y, cz);
+            entity.xo = entity.xOld = cx;
+            entity.yo = entity.yOld = y;
+            entity.zo = entity.zOld = cz;
+            entity.setYRot(yaw);
+            entity.yRotO = yaw;
+            if (entity instanceof LivingEntity living) {
+                living.yBodyRot = living.yBodyRotO = yaw;
+                living.yHeadRot = living.yHeadRotO = yaw;
+            }
+            pose.pushPose();
+            pose.translate(cx, y, cz);
+            pose.scale(scale, scale, scale);
+            mc.getEntityRenderDispatcher().render(entity, 0.0D, 0.0D, 0.0D,
+                    yaw, partial, pose, buffers, LightTexture.FULL_BRIGHT);
+            pose.popPose();
         }
-        mc.getEntityRenderDispatcher().render(entity, cx, y, cz, yaw, partial,
-                pose, buffers, LightTexture.FULL_BRIGHT);
     }
 
     private static Entity createGhost(ClientLevel level, BattleCard card) {

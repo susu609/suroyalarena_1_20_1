@@ -117,6 +117,11 @@ public final class CombatUnit {
             invulnerableTicks--;
     }
 
+    /** Kills the unit outright (a Creeper that has exploded). */
+    void expire() {
+        health = 0.0D;
+    }
+
     /** Sets the unit burning; a new burn replaces the old one. */
     void ignite(int ticks, double perSecond) {
         if (ticks <= 0 || perSecond <= 0.0D)

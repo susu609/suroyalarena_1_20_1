@@ -28,6 +28,10 @@
         'stray': 2,
         'vindicator': 2,
         'iron_golem': 4,
+        'creeper': 3,
+        'witch': 4,
+        'wolves': 3,
+        'ravager': 5,
         'arrow_storm': 3,
         'fireball': 4,
     };

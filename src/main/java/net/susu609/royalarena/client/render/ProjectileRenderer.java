@@ -135,8 +135,11 @@ public final class ProjectileRenderer {
     }
 
     private static Entity create(ClientLevel level, Kind kind) {
-        EntityType<?> type = kind == Kind.FIREBALL ? EntityType.FIREBALL :
-                EntityType.ARROW;
+        EntityType<?> type = switch (kind) {
+            case FIREBALL -> EntityType.FIREBALL;
+            case POTION -> EntityType.POTION;
+            case ARROW -> EntityType.ARROW;
+        };
         Entity entity = type.create(level);
         if (entity != null)
             entity.setSilent(true);

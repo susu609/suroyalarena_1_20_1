@@ -16,6 +16,8 @@ public enum CardRole {
     RANGED("Ranged"),
     /** Three or more bodies. */
     SWARM("Swarm"),
+    /** Hits everything around its target. */
+    AREA("Area damage"),
     /** Fights up close. */
     MELEE("Melee");
 
@@ -44,6 +46,8 @@ public enum CardRole {
         roles.add(s.melee() ? MELEE : RANGED);
         if (s.count() >= 3)
             roles.add(SWARM);
+        if (s.traits().splash())
+            roles.add(AREA);
         return roles;
     }
 

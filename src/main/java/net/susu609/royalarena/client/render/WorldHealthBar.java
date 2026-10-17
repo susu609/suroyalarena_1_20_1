@@ -30,7 +30,7 @@ public final class WorldHealthBar {
 
     /** Troops: only once damaged, coloured by their team-coloured name. */
     public static void renderTroop(LivingEntity entity, PoseStack pose,
-            MultiBufferSource buffer)
+            MultiBufferSource buffer, float scale)
     {
         if (!ClientMatchState.active())
             return;
@@ -42,7 +42,7 @@ public final class WorldHealthBar {
         TextColor color = name == null ? null : name.getStyle().getColor();
         if (color == null)
             return;
-        render(pose, buffer, entity.getBbHeight() + 0.5D, health / max,
+        render(pose, buffer, entity.getBbHeight() * scale + 0.5D, health / max,
                 color.getValue(), null);
     }
 

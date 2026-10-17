@@ -1,0 +1,18 @@
+{
+  "id": "witch",
+  "type": "troop",
+  "display_name": "Witch",
+  "elixir": 4,
+  "entity": "minecraft:witch",
+  "count": 1,
+  "unit": {
+    "health": 26,
+    "damage": 8,
+    "attack_interval_ticks": 30,
+    "range": 5.0,
+    "move_speed": 0.8,
+    "flying": false,
+    "targets": "ground",
+    "splash_radius": 1.5
+  }
+}

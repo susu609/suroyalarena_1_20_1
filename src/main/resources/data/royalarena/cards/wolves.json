@@ -1,0 +1,17 @@
+{
+  "id": "wolves",
+  "type": "troop",
+  "display_name": "Wolves",
+  "elixir": 3,
+  "entity": "minecraft:wolf",
+  "count": 3,
+  "unit": {
+    "health": 8,
+    "damage": 3,
+    "attack_interval_ticks": 16,
+    "range": 1.2,
+    "move_speed": 1.6,
+    "flying": false,
+    "targets": "ground"
+  }
+}

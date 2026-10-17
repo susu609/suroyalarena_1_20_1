@@ -96,6 +96,15 @@ public final class ArenaLayout {
         return lane || road;
     }
 
+    /** Distance from (x, z) to the nearest edge of a tower's footprint. */
+    public double distanceToTower(double x, double z, TowerId id) {
+        ArenaPoint p = towerPoint(id);
+        double half = towerHalfSize(id.kind());
+        double dx = Math.max(Math.abs(x - p.x()) - half, 0.0D);
+        double dz = Math.max(Math.abs(z - p.z()) - half, 0.0D);
+        return Math.hypot(dx, dz);
+    }
+
     /** Whether the block is part of a tower's footprint. */
     public boolean underTower(int worldX, int worldZ) {
         for (TowerId id : TowerId.values()) {

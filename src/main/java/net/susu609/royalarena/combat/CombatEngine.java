@@ -6,6 +6,7 @@ import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.card.SplitRule;
+import net.susu609.royalarena.card.TroopTraits;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.combat.TickResult.Attack;
 import net.susu609.royalarena.combat.TickResult.Death;
@@ -180,9 +181,9 @@ public final class CombatEngine {
             else
                 landed.add(attack);
         }
-        applyDamage(landed, destroyed);
-        applyBurns();
         List<Push> pushes = new ArrayList<>();
+        applyDamage(landed, destroyed, pushes);
+        applyBurns();
         applySpellHits(hits, destroyed, pushes);
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
@@ -236,13 +237,13 @@ public final class CombatEngine {
         boolean ranged = !stats.melee();
         int flight = ranged ? flightTicks(unit.x(), unit.z(), targetX,
                 targetZ) : 0;
-        if (enemy != null) {
-            attacks.add(new Attack(unit.id(), null, enemy.id(), null,
-                    unit.damage(), ranged, flight));
-        } else {
-            attacks.add(new Attack(unit.id(), null, null, tower,
-                    unit.damage(), ranged, flight));
-        }
+        TroopTraits traits = stats.traits();
+        attacks.add(new Attack(unit.id(), null,
+                enemy == null ? null : enemy.id(), enemy == null ? tower : null,
+                unit.damage(), ranged, flight, unit.side(), targetX, targetZ,
+                traits.splashRadius(), ranged ? 0.0D : traits.knockback()));
+        if (traits.selfDestruct())
+            unit.expire();
     }
 
     /**
@@ -346,7 +347,7 @@ public final class CombatEngine {
             attacks.add(new Attack(null, id, target.id(), null,
                     id.kind().damage(), true,
                     flightTicks(from.x(), from.z(), target.x(),
-                            target.z())));
+                            target.z()), id.side(), target.x(), target.z()));
         }
     }
 
@@ -423,11 +424,7 @@ public final class CombatEngine {
         for (Hit hit : hits) {
             SpellStats spell = hit.spell().card.spell();
             if (hit.tower() != null) {
-                TowerState tower = match.tower(hit.tower());
-                boolean wasStanding = !tower.isDestroyed();
-                match.damageTower(hit.tower(), hit.damage());
-                if (wasStanding && tower.isDestroyed())
-                    destroyed.add(hit.tower());
+                hitTower(hit.tower(), hit.damage(), destroyed);
                 continue;
             }
             CombatUnit unit = hit.unit();
@@ -435,20 +432,25 @@ public final class CombatEngine {
                 continue;
             unit.ignite(spell.burnTicks(), spell.burnPerSecond());
             if (spell.knockback() > 0.0D && unit.alive())
-                knockBack(unit, hit.spell(), spell.knockback(), pushes);
+                knockBack(unit, hit.spell().x, hit.spell().z,
+                        -ArenaLayout.sideSign(hit.spell().side),
+                        spell.knockback(), pushes);
         }
     }
 
-    /** Pushes a unit straight away from the spell centre, kept on land. */
-    private void knockBack(CombatUnit unit, ActiveSpell from, double blocks,
-            List<Push> pushes)
+    /**
+     * Pushes a unit straight away from (fx, fz), kept on land; a unit right
+     * on that point goes {@code fallbackSign} along Z.
+     */
+    private void knockBack(CombatUnit unit, double fx, double fz,
+            int fallbackSign, double blocks, List<Push> pushes)
     {
-        double dx = unit.x() - from.x;
-        double dz = unit.z() - from.z;
+        double dx = unit.x() - fx;
+        double dz = unit.z() - fz;
         double length = Math.hypot(dx, dz);
         if (length < 1.0E-3D) {
             dx = 0.0D;
-            dz = -ArenaLayout.sideSign(from.side);
+            dz = fallbackSign;
             length = 1.0D;
         }
         ArenaWaypoint spot = arena.clampSpawn(
@@ -470,28 +472,70 @@ public final class CombatEngine {
 
     /** Distance from a point to the nearest edge of a tower's footprint. */
     private double distanceToTower(double x, double z, TowerId id) {
-        ArenaPoint p = arena.towerPoint(id);
-        double half = ArenaLayout.towerHalfSize(id.kind());
-        double dx = Math.max(Math.abs(x - p.x()) - half, 0.0D);
-        double dz = Math.max(Math.abs(z - p.z()) - half, 0.0D);
-        return Math.hypot(dx, dz);
+        return arena.distanceToTower(x, z, id);
     }
 
     // ----------------------------------------------------- damage and deaths
 
-    private void applyDamage(List<Attack> attacks, List<TowerId> destroyed) {
+    private void applyDamage(List<Attack> attacks, List<TowerId> destroyed,
+            List<Push> pushes)
+    {
         for (Attack attack : attacks) {
+            CombatUnit victim = null;
             if (attack.victimUnit() != null) {
-                CombatUnit victim = unit(attack.victimUnit());
+                victim = unit(attack.victimUnit());
                 if (victim != null)
                     victim.hurt(attack.damage());
             } else {
-                TowerState tower = match.tower(attack.victimTower());
-                boolean wasStanding = !tower.isDestroyed();
-                match.damageTower(attack.victimTower(), attack.damage());
-                if (wasStanding && tower.isDestroyed())
-                    destroyed.add(attack.victimTower());
+                hitTower(attack.victimTower(), attack.damage(), destroyed);
             }
+            if (attack.splash() > 0.0D)
+                splash(attack, victim, destroyed);
+            if (attack.knockback() > 0.0D && victim != null && victim.alive()) {
+                CombatUnit attacker = attack.attackerUnit() == null ? null :
+                        unit(attack.attackerUnit());
+                double fx = attacker != null ? attacker.x() : attack.x();
+                double fz = attacker != null ? attacker.z() : attack.z();
+                knockBack(victim, fx, fz,
+                        -ArenaLayout.sideSign(attack.side()),
+                        attack.knockback(), pushes);
+            }
+        }
+    }
+
+    private void hitTower(TowerId id, double damage, List<TowerId> destroyed) {
+        TowerState tower = match.tower(id);
+        boolean wasStanding = !tower.isDestroyed();
+        match.damageTower(id, damage);
+        if (wasStanding && tower.isDestroyed())
+            destroyed.add(id);
+    }
+
+    /**
+     * The hit also lands on every other enemy within the splash radius of
+     * the target: units whose body touches the circle, towers whose
+     * footprint does. A target that died meanwhile still splashes where it
+     * stood when it was hit.
+     */
+    private void splash(Attack attack, CombatUnit victim,
+            List<TowerId> destroyed)
+    {
+        double cx = victim != null ? victim.x() : attack.x();
+        double cz = victim != null ? victim.z() : attack.z();
+        for (CombatUnit other : units) {
+            if (other == victim || other.side() == attack.side() ||
+                    !other.alive())
+                continue;
+            if (Math.hypot(other.x() - cx, other.z() - cz) <=
+                    attack.splash() + other.radius() + EPSILON)
+                other.hurt(attack.damage());
+        }
+        for (TowerId id : TowerId.values()) {
+            if (id == attack.victimTower() || id.side() == attack.side() ||
+                    match.tower(id).isDestroyed())
+                continue;
+            if (distanceToTower(cx, cz, id) <= attack.splash() + EPSILON)
+                hitTower(id, attack.damage(), destroyed);
         }
     }
 

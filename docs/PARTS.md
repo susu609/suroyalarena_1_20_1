@@ -298,3 +298,13 @@ world preset).
 Attack poses, the archers' bow draw, the Iron Golem swing and toss, slime
 hops and squish, spider pounce; troops turn toward what they fight. See
 `docs/COMBAT.md`.
+
+## Part 26 — Spell targets glow, ghost formations, smaller swarms, new cards
+
+- `client/render/SpellTargetHighlighter.java`, `client/render/TroopVisuals.java`
+- `client/render/DeployPreviewRenderer.java` (one ghost per unit)
+- `card/TroopTraits.java`, `card/BattleCard.java` (Creeper, Witch, Wolves,
+  Ravager, `modelScale`), `card/CostFormula.java`, `card/CardRole.java`
+- `combat/CombatEngine.java` (splash, self-destruct, melee knockback)
+- `server/battle/BattleField.java`, `server/battle/TroopAnimator.java`
+- `TraitSmokeTest`

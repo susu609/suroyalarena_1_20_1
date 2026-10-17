@@ -1,0 +1,19 @@
+{
+  "id": "creeper",
+  "type": "troop",
+  "display_name": "Creeper",
+  "elixir": 3,
+  "entity": "minecraft:creeper",
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 30,
+    "attack_interval_ticks": 20,
+    "range": 0.5,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground",
+    "splash_radius": 2.5,
+    "self_destruct": true
+  }
+}

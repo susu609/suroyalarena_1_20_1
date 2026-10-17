@@ -1,0 +1,18 @@
+{
+  "id": "ravager",
+  "type": "troop",
+  "display_name": "Ravager",
+  "elixir": 5,
+  "entity": "minecraft:ravager",
+  "count": 1,
+  "unit": {
+    "health": 100,
+    "damage": 10,
+    "attack_interval_ticks": 32,
+    "range": 1.5,
+    "move_speed": 0.75,
+    "flying": false,
+    "targets": "ground",
+    "knockback": 1.0
+  }
+}

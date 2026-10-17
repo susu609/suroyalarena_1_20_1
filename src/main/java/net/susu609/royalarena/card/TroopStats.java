@@ -8,7 +8,8 @@ package net.susu609.royalarena.card;
  */
 public record TroopStats(int count, double health, double damage,
                          int attackTicks, double range, double speed,
-                         double radius, SplitRule split)
+                         double radius, SplitRule split,
+                         TroopTraits traits)
 {
     public static final double DEFAULT_SIGHT = 5.5D;
 
@@ -28,6 +29,23 @@ public record TroopStats(int count, double health, double damage,
     public TroopStats(int count, double health, double damage,
             int attackTicks, double range, double speed, double radius)
     {
-        this(count, health, damage, attackTicks, range, speed, radius, null);
+        this(count, health, damage, attackTicks, range, speed, radius, null,
+                TroopTraits.NONE);
+    }
+
+    public TroopStats(int count, double health, double damage,
+            int attackTicks, double range, double speed, double radius,
+            SplitRule split)
+    {
+        this(count, health, damage, attackTicks, range, speed, radius, split,
+                TroopTraits.NONE);
+    }
+
+    public TroopStats(int count, double health, double damage,
+            int attackTicks, double range, double speed, double radius,
+            TroopTraits traits)
+    {
+        this(count, health, damage, attackTicks, range, speed, radius, null,
+                traits);
     }
 }

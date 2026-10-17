@@ -17,6 +17,8 @@ import net.susu609.royalarena.client.hud.BattleHudOverlay;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
+import net.susu609.royalarena.client.render.SpellTargetHighlighter;
+import net.susu609.royalarena.client.render.TroopVisuals;
 import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.client.screen.MatchingScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
@@ -41,6 +43,7 @@ public final class ClientForgeEvents {
         Minecraft mc = Minecraft.getInstance();
         ClientMatchState.tick();
         ProjectileRenderer.tick();
+        SpellTargetHighlighter.tick();
 
         while (RoyalArenaKeyMappings.OPEN_MATCHING.consumeClick()) {
             if (!ClientMatchState.active() && mc.screen == null)
@@ -64,6 +67,7 @@ public final class ClientForgeEvents {
     public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         ArenaCameraController.release();
         ProjectileRenderer.clear();
+        SpellTargetHighlighter.clear();
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
@@ -83,11 +87,24 @@ public final class ClientForgeEvents {
         ProjectileRenderer.render(event);
     }
 
+    /** Small troops (the three Skeletons, the four Spiders) drawn smaller. */
+    @SubscribeEvent
+    public static void onRenderLivingPre(RenderLivingEvent.Pre<?, ?> event) {
+        float scale = TroopVisuals.scale(event.getEntity());
+        if (scale != 1.0F) {
+            event.getPoseStack().pushPose();
+            event.getPoseStack().scale(scale, scale, scale);
+        }
+    }
+
     @SubscribeEvent
     public static void onRenderLiving(RenderLivingEvent.Post<?, ?> event) {
+        float scale = TroopVisuals.scale(event.getEntity());
+        if (scale != 1.0F)
+            event.getPoseStack().popPose();
         WorldHealthBar.renderTroop(
                 event.getEntity(), event.getPoseStack(),
-                event.getMultiBufferSource());
+                event.getMultiBufferSource(), scale);
     }
 
     @SubscribeEvent
