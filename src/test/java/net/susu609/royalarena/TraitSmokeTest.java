@@ -4,6 +4,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.CardRole;
+import net.susu609.royalarena.card.TroopTraits;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.TickResult;
@@ -30,6 +31,7 @@ public final class TraitSmokeTest {
         witchSplashesAroundItsTarget();
         ravagerKnocksItsVictimBack();
         buildingTargetersIgnoreTroops();
+        strayArrowsSlow();
         System.out.println("RoyalArena trait smoke tests: PASS");
     }
 
@@ -153,7 +155,7 @@ public final class TraitSmokeTest {
         check(result.pushes().stream().anyMatch(
                 p -> p.unit().equals(zombie.id())),
                 "the Ravager's hit pushes the zombie");
-        near(zombie.health(), 10.0D, "the hit deals 10");
+        near(zombie.health(), 12.0D, "the hit deals 8");
         // 1 block away lands in the river band, so it is put on RED's bank.
         near(zombie.z(), -1.5D, "pushed straight away, kept on land");
         near(zombie.x(), 0.5D, "straight away from the Ravager");
@@ -180,6 +182,28 @@ public final class TraitSmokeTest {
             check(tank.id().equals(zombie.target()),
                     "the Zombie still fights the " + card.id());
         }
+    }
+
+    private static void strayArrowsSlow() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit stray = unit(engine, BattleCard.STRAY, TeamSide.BLUE,
+                0.5D, 3.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, -3.0D);
+        double normal = BattleCard.ZOMBIE.stats().speedPerTick();
+        boolean slowedWalk = false;
+        for (int tick = 0; tick < 40 && !slowedWalk; tick++) {
+            TickResult r = engine.tick();
+            for (TickResult.Move m : r.moves()) {
+                if (m.unit().equals(zombie.id()) && zombie.slowed())
+                    slowedWalk = Math.abs(m.speed() - normal *
+                            TroopTraits.SLOW_SPEED) < 1.0E-9D;
+            }
+        }
+        check(slowedWalk, "a Zombie hit by a Stray walks at 60%");
+        check(zombie.slowTicks() <= 20, "for a second at most");
+        check(stray.alive(), "the Stray is fine");
     }
 
     private static void near(double actual, double expected, String name) {

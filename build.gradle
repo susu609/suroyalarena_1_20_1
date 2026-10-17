@@ -156,6 +156,20 @@ tasks.named('check').configure {
     dependsOn 'runDomainSmoke'
 }
 
+// Bot-versus-bot balance report: gradlew balanceReport [-Pmatches=500]
+// Plays random balanced bot decks against each other and writes
+// docs/BALANCE_REPORT.md. Not part of build or check.
+tasks.register('balanceReport', JavaExec) {
+    dependsOn testClasses
+    group = 'verification'
+    description = 'Plays bot-versus-bot matches and writes docs/BALANCE_REPORT.md'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'net.susu609.royalarena.BalanceReport'
+    workingDir = projectDir
+    args((project.findProperty('matches') ?: '200').toString(),
+            'docs/BALANCE_REPORT.md')
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }

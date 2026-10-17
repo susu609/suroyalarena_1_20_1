@@ -372,3 +372,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   overtime), `match/MatchSnapshot.java`
 - `model_scale` in the troop card JSONs
 - `DomainSmokeTest.elixirSpeedsUpAndOvertimeIsSuddenDeath`
+
+## Part 32 — Power band and the balance report
+
+- `card/CostFormula.java` (range per block, knockback, slow),
+  `card/TroopTraits.java` (`slowTicks`), `combat/CombatEngine.java`,
+  `combat/CombatUnit.java`, `combat/TickResult.java` (slow on hit)
+- Ravager 110 HP / 8 damage, Pillager 8 damage, Stray slows 1 s
+- `src/test/.../Sim.java`, `PowerCreepTest.java` (in `check`),
+  `BalanceReport.java` (`gradlew balanceReport`), `docs/BALANCE_REPORT.md`

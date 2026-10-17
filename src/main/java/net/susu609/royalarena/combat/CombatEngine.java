@@ -233,8 +233,9 @@ public final class CombatEngine {
         if (!inRange) {
             ArenaWaypoint waypoint = arena.route(
                     unit.x(), unit.z(), targetX, targetZ);
+            double slow = unit.slowed() ? TroopTraits.SLOW_SPEED : 1.0D;
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
-                    stats.speedPerTick() * speedMultiplier));
+                    stats.speedPerTick() * speedMultiplier * slow));
             return;
         }
         if (!unit.ready())
@@ -247,7 +248,8 @@ public final class CombatEngine {
         attacks.add(new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
                 unit.damage(), ranged, flight, unit.side(), targetX, targetZ,
-                traits.splashRadius(), ranged ? 0.0D : traits.knockback()));
+                traits.splashRadius(), ranged ? 0.0D : traits.knockback(),
+                traits.slowTicks()));
         if (traits.selfDestruct())
             unit.expire();
     }
@@ -578,6 +580,8 @@ public final class CombatEngine {
             }
             if (attack.splash() > 0.0D)
                 splash(attack, victim, destroyed);
+            if (attack.slowTicks() > 0 && victim != null && victim.alive())
+                victim.slow(attack.slowTicks());
             if (attack.knockback() > 0.0D && victim != null && victim.alive()) {
                 CombatUnit attacker = attack.attackerUnit() == null ? null :
                         unit(attack.attackerUnit());

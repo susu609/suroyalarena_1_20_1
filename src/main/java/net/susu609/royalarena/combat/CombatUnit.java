@@ -30,6 +30,7 @@ public final class CombatUnit {
     private int burnTicks;
     private double burnPerTick;
     private int frozenTicks;
+    private int slowTicks;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -100,6 +101,13 @@ public final class CombatUnit {
     public boolean frozen() {
         return frozenTicks > 0;
     }
+    /** Ticks the unit still walks slowed (a Stray's arrow). */
+    public int slowTicks() {
+        return slowTicks;
+    }
+    public boolean slowed() {
+        return slowTicks > 0;
+    }
     /** Enemy unit currently chased, or null when heading for a tower. */
     public UUID target() {
         return target;
@@ -121,6 +129,8 @@ public final class CombatUnit {
     void tickTimers() {
         if (invulnerableTicks > 0)
             invulnerableTicks--;
+        if (slowTicks > 0)
+            slowTicks--;
         // A frozen unit's attack does not charge.
         if (frozenTicks > 0)
             frozenTicks--;
@@ -134,6 +144,11 @@ public final class CombatUnit {
             return false;
         health = Math.min(maxHealth, health + amount);
         return true;
+    }
+
+    /** Slows the unit's walk for {@code ticks}; a longer slow wins. */
+    void slow(int ticks) {
+        slowTicks = Math.max(slowTicks, ticks);
     }
 
     /** Stops the unit for {@code ticks}; a longer freeze wins. */

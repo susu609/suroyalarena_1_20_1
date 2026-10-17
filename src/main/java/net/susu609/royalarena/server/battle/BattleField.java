@@ -751,6 +751,12 @@ public final class BattleField {
             // Frozen or stunned: vanilla's frozen look, the mob shakes.
             if (entity != null && unit.frozen())
                 entity.setTicksFrozen(entity.getTicksRequiredToFreeze());
+            // Chilled by a Stray's arrow: a few snowflakes while slowed.
+            if (entity != null && unit.slowed() &&
+                    level.getGameTime() % 6 == 0)
+                level.sendParticles(ParticleTypes.SNOWFLAKE, entity.getX(),
+                        entity.getY() + entity.getBbHeight() * 0.6D,
+                        entity.getZ(), 2, 0.2D, 0.2D, 0.2D, 0.0D);
             int burn = unit.burnTicks();
             int known = burnShown.getOrDefault(unit.id(), 0);
             if (entity != null && burn > known) {

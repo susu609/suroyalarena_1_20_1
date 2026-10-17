@@ -13,6 +13,14 @@ public final class CostFormula {
     public static final double SELF_DESTRUCT = 0.5D;
     /** A unit that only hits towers cannot defend, so it is cheaper. */
     public static final double BUILDINGS_ONLY = 0.85D;
+    /** Range of 4 blocks or more (balance.json ranged). */
+    public static final double RANGED = 1.25D;
+    /** On top of {@link #RANGED}: each block of range past 4 is worth 4%. */
+    public static final double RANGE_STEP = 0.04D;
+    /** Pushing the victim back delays it and breaks its attack. */
+    public static final double KNOCKBACK = 1.1D;
+    /** Slowing what it hits. */
+    public static final double SLOW = 1.15D;
 
     private CostFormula() {
     }
@@ -24,7 +32,7 @@ public final class CostFormula {
         double dps = s.damage() / (s.attackTicks() / 20.0D) * s.count();
         double modifier = 1.0D;
         if (s.range() >= 4.0D)
-            modifier *= 1.25D;
+            modifier *= RANGED * (1.0D + RANGE_STEP * (s.range() - 4.0D));
         if (s.speed() >= 1.33D)
             modifier *= 1.1D;
         if (s.count() >= 5)
@@ -37,6 +45,10 @@ public final class CostFormula {
             modifier *= SELF_DESTRUCT;
         if (s.traits().buildingsOnly())
             modifier *= BUILDINGS_ONLY;
+        if (s.traits().knockback() > 0.0D)
+            modifier *= KNOCKBACK;
+        if (s.traits().slows())
+            modifier *= SLOW;
         return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
     }
 

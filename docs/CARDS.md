@@ -92,7 +92,7 @@ Armed mobs fight like their weapon (the cost formula keeps their elixir):
 | Axe | Vindicator | 12 | 2.4 s | one heavy blow: kills a Spider, a Skeleton or a Wolf per swing, slow against swarms |
 | Bare hands | Skeletons | 1.5 | 0.9 s | quick light blows |
 | Bow | Skeleton Archer, Stray | 4 / 3 | 1.0 / 1.2 s | steady |
-| Crossbow | Pillager | 10 | 2.0 s | slower than a bow, hits harder, longer range |
+| Crossbow | Pillager | 8 | 2.0 s | slower than a bow, hits harder, longer range |
 
 ## Starter deck and extra troops
 
@@ -104,6 +104,9 @@ the same formula:
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Elixir |
 |---|---|---|---|---|---|---|---|---|
 | Stray | `minecraft:stray` (bow) | 1 | 20 | 3 | 1.2 | 6.0 | 1.0 | **2** |
+
+Stray arrows chill: a troop hit walks at 60% speed for 1 s (snowflakes on
+it), cost x1.15.
 | Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 12 | 2.4 | 1.2 | 1.1 | **2** |
 | Iron Golem | `minecraft:iron_golem` | 1 | 160 | 12 | 1.6 | 1.5 | 0.9 | **5** |
 
@@ -120,7 +123,7 @@ self-destruct x0.5 (`CostFormula`, balance.json).
 | Creeper | `minecraft:creeper` | 1 | 20 | 30 | 1.0 | 0.5 | 1.33 | explodes on its first hit, splash 2.5 (towers too), then dies | **3** |
 | Witch | `minecraft:witch` | 1 | 26 | 8 | 1.5 | 5.0 | 0.8 | thrown splash potion, splash 1.5 | **4** |
 | Wolves | `minecraft:wolf` | 3 | 8 | 3 | 0.8 | 1.2 | 1.6 | fast pack | **3** |
-| Ravager | `minecraft:ravager` | 1 | 130 | 10 | 1.6 | 1.5 | 1.0 | knocks its target back 1 block | **5** |
+| Ravager | `minecraft:ravager` | 1 | 110 | 8 | 1.6 | 1.5 | 1.0 | knocks its target back 1 block | **5** |
 
 Splash hits every other enemy whose body touches the circle around the
 target, and enemy towers whose footprint does (`TroopTraits`,
@@ -131,7 +134,7 @@ target, and enemy towers whose footprint does (`TroopTraits`,
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
 | Hoglin | `minecraft:hoglin` | 1 | 45 | 8 | 1.4 | 1.2 | 1.6 | charges the towers, ignores troops | **3** |
-| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 10 | 2.0 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
+| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 8 | 2.0 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
 | Magma Cube | `minecraft:magma_cube` | 1 | 36 | 7 | 1.4 | 1.2 | 0.83 | splits once into 2 (18 HP, 3.5 damage) | **4** |
 
 NoAI Hoglins never turn into Zoglins, so the arena dimension does not need to

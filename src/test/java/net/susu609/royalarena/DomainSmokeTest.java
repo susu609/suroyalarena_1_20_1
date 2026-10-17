@@ -39,6 +39,7 @@ public final class DomainSmokeTest {
         SpellSmokeTest.run();
         DeckSmokeTest.run();
         TraitSmokeTest.run();
+        PowerCreepTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

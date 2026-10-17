@@ -29,7 +29,7 @@ Modifiers multiply together:
 
 | Condition | Modifier |
 |---|---|
-| Range >= 4 blocks | x1.25 |
+| Range >= 4 blocks | x1.25, and +4% for each block past 4 (6.5 blocks: x1.375) |
 | Flying | x1.2 |
 | Move speed >= 1.33 blocks/s | x1.1 |
 | Count 3-4 | x0.93 |
@@ -37,6 +37,8 @@ Modifiers multiply together:
 | Area damage | x1.3 |
 | Self-destruct (dies on its first hit) | x0.5 |
 | Targets towers only | x0.85 |
+| Knockback | x1.1 |
+| Slows what it hits | x1.15 |
 
 `cost_divisor` is a tuning knob. At 5.4 the starter set averages under 3
 elixir. Lowering it makes every troop more expensive. Decide after playtests.
@@ -51,6 +53,27 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 | Skeletons x3 | 33 | 5.0 | count 3, speed | 2.43 | 2 |
 | Big Slime x1 | 60 | 3.57 | - | 2.71 | 3 |
 | Iron Golem x1 | 160 | 7.5 | towers only | 5.45 | 5 |
+
+## Power band (`PowerCreepTest`)
+
+Cost alone misses how cards play out, so the build also measures every
+card in the combat engine (`Sim`) and fails when one leaves the band:
+
+| Card kind | Measure | Band |
+|---|---|---|
+| Troops that fight | push score: elixir it comes out ahead, averaged over attacking across the bridge into every other fighting troop defending under its tower, and defending against each; tower damage counts 1 elixir per 25 health | -1.2 .. +1.1 |
+| Tower-only troops | tower health taken per elixir, walking in alone | 12 .. 25 |
+| Spells | cost formula value per elixir paid | 0.90 .. 1.12 |
+
+The failure lists every card's number, so the fix is easy to aim.
+
+## Bot-versus-bot report (`gradlew balanceReport`)
+
+`gradlew balanceReport` (or `-Pmatches=500`) plays random balanced bot decks
+against each other, each pairing twice with the sides swapped, and writes
+`docs/BALANCE_REPORT.md`: each card's deck win rate with a 95% margin, how
+often the bots play it, and how long matches last. About 1 s per 100
+matches. It is not part of `build`; run it after a balance change.
 
 ## Spell cost
 

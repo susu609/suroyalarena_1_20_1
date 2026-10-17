@@ -5,6 +5,7 @@
   "cost_modifiers": {
     "ranged_min_range": 4.0,
     "ranged": 1.25,
+    "ranged_per_block_past_min": 0.04,
     "flying": 1.2,
     "fast_min_speed": 1.33,
     "fast": 1.1,
@@ -12,7 +13,9 @@
     "swarm_5_plus": 0.85,
     "area_damage": 1.3,
     "self_destruct": 0.5,
-    "buildings_only": 0.85
+    "buildings_only": 0.85,
+    "knockback": 1.1,
+    "slow": 1.15
   },
   "towers": {
     "princess": {

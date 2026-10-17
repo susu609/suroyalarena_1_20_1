@@ -170,6 +170,8 @@ public final class CombatSmokeTest {
                     card.id() + " interval");
             near(number(json, "range"), s.range(), card.id() + " range");
             near(number(json, "move_speed"), s.speed(), card.id() + " speed");
+            near(json.contains("\"slow_ticks\"") ? number(json, "slow_ticks")
+                    : 0.0D, s.traits().slowTicks(), card.id() + " slow");
         }
     }
 

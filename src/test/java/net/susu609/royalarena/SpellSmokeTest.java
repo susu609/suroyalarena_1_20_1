@@ -237,7 +237,7 @@ public final class SpellSmokeTest {
                 first.spellPulses().get(0).strikes().size() == 3,
                 "Lightning strikes three targets");
         near(golem.health(), 120.0D, "the Golem is struck");
-        near(ravager.health(), 90.0D, "the Ravager is struck");
+        near(ravager.health(), 70.0D, "the Ravager is struck");
         near(hoglin.health(), 5.0D, "the Hoglin is struck");
         near(zombie.health(), 20.0D, "the Zombie is spared");
         near(spider.health(), 10.0D, "the Spider is spared");
