@@ -561,8 +561,10 @@ public final class CombatEngine {
                         spell.freezeTicks());
             if (spell.stunTicks() > 0)
                 unit.stun(spell.stunTicks());
-            unit.ignite(spell.burnTicks(), spell.burnPerSecond(),
-                    hit.spell().card);
+            BattleCard own = cardOf.get(unit.id());
+            if (own == null || !own.fireImmune())
+                unit.ignite(spell.burnTicks(), spell.burnPerSecond(),
+                        hit.spell().card);
             if (spell.knockback() > 0.0D && unit.alive())
                 knockBack(unit, hit.spell().x, hit.spell().z,
                         -ArenaLayout.sideSign(hit.spell().side),

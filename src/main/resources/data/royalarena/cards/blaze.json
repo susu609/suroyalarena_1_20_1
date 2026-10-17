@@ -4,6 +4,7 @@
   "display_name": "Blaze",
   "roles": ["attack", "support"],
   "elixir": 3,
+  "fire_immune": true,
   "entity": "minecraft:blaze",
   "model_scale": 1.0,
   "count": 1,

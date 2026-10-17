@@ -4,6 +4,7 @@
   "display_name": "Magma Cube",
   "roles": ["attack", "defense"],
   "elixir": 4,
+  "fire_immune": true,
   "entity": "minecraft:magma_cube",
   "model_scale": 1.0,
   "count": 1,

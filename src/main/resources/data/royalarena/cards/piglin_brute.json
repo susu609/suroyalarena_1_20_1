@@ -4,6 +4,7 @@
   "display_name": "Piglin Brute",
   "roles": ["attack"],
   "elixir": 4,
+  "fire_immune": true,
   "entity": "minecraft:piglin_brute",
   "model_scale": 1.0,
   "count": 1,

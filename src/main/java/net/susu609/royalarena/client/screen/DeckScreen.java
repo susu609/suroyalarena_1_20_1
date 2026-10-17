@@ -562,6 +562,8 @@ public final class DeckScreen extends Screen {
             lines.add(line("Freezing spells hit it twice as hard and freeze it twice as long"));
         if (s.traits().waterWeak())
             lines.add(line("Takes 1.5 times the damage while on the river"));
+        if (card.fireImmune())
+            lines.add(line("Nether mob: never burns (Fireball still hurts)"));
         if (s.traits().frostImmune())
             lines.add(line("Never frozen or slowed; frost only hurts it"));
         if (s.traits().lines())

@@ -4,6 +4,7 @@
   "display_name": "Ghast",
   "roles": ["defense", "support"],
   "elixir": 5,
+  "fire_immune": true,
   "entity": "minecraft:ghast",
   "model_scale": 1.0,
   "count": 1,

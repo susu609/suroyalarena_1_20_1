@@ -31,9 +31,10 @@ Edit this file to change what the cycles do; the next cycle reads it fresh.
 2. **Maintain.** Run `scripts/pure-test.sh`; fix any failure first. Also
    `grep -rn "new ResourceLocation(" src/main/java` (must be empty) and look
    for docs that disagree with the code (costs and stats in `docs/CARDS.md`).
-3. **Add one card**, the first unchecked one in `docs/CARD_QUEUE.md` (designs
-   written by the user come before Claude's proposals). Stop adding when the
-   roster has 40 cards or the queue is empty. Touch points, as for the seven
+3. **Add one card**, the first unchecked one in `docs/CARD_QUEUE.md` that is
+   not marked "(by hand)" (designs written by the user come before Claude's
+   proposals). Every Nether mob gets `fireImmune()` and `"fire_immune": true`.
+   Stop adding when the roster has 55 cards or nothing unmarked is left. Touch points, as for the seven
    mobs in commit 8c9ba7d:
    - `card/BattleCard.java` (append before the spells; cost from the formula),
      `data/royalarena/cards/<id>.json` (same numbers, `model_scale`),

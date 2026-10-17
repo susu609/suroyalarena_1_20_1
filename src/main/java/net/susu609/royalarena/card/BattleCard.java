@@ -249,6 +249,18 @@ public enum BattleCard {
         };
     }
 
+    /**
+     * Nether mobs do not burn: a Fireball still hurts them, but sets nothing
+     * alight. Mirrors {@code fire_immune} in the card's JSON.
+     */
+    public boolean fireImmune() {
+        return switch (this) {
+            case BLAZE, GHAST, MAGMA_CUBE, ZOMBIFIED_PIGLIN, HOGLIN,
+                    WITHER_SKELETON, PIGLIN_BRUTE -> true;
+            default -> false;
+        };
+    }
+
     /** Troop stats; null for a spell. */
     public TroopStats stats() {
         return stats;

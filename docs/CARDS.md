@@ -255,6 +255,15 @@ and it passes the tower-only band (`PowerCreepTest`). Bee is at the low edge
 After (4000 matches, 37 cards): every card between 41% and 58%; Polar Bear
 and Skeleton Archer the highest, Bee the lowest.
 
+## Nether mobs do not burn
+
+Every Nether mob is fire immune: Fireball still takes its damage off, but
+nothing is set alight (`BattleCard.fireImmune()`, `"fire_immune"` in the JSON,
+`CombatEngine.applySpellHits`). Blaze, Ghast, Magma Cube, Zombified Piglin,
+Hoglin, Wither Skeleton and Piglin Brute have it; every future Nether card
+must. Burn was never part of the cost, so costs did not change; 8000 bot
+matches stayed in the 42-58% band.
+
 ## Tactics (Attack, Defense, Support)
 
 Each card's JSON has a hand-written `"roles"` list of `attack`, `defense`,

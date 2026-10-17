@@ -4,6 +4,7 @@
   "display_name": "Wither Skeleton",
   "roles": ["attack", "defense"],
   "elixir": 3,
+  "fire_immune": true,
   "entity": "minecraft:wither_skeleton",
   "model_scale": 0.85,
   "count": 1,

@@ -473,3 +473,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   (snowballs), `network/ModNetwork.java` (protocol 11)
 - `MobsWave2SmokeTest.snowballsAreFrost`; `docs/CARDS.md`, `docs/COMBAT.md`
 
+## Part 40 — Nether mobs do not burn; the next cards
+
+- `card/BattleCard.java` (`fireImmune()`), the seven Nether card JSON files
+  (`fire_immune`), `combat/CombatEngine.java` (no ignite), tooltip
+- `MobsWave2SmokeTest.netherMobsDoNotBurn`, CombatSmokeTest (JSON flag)
+- `docs/CARD_QUEUE.md`: the user's designs (Zombie Villager, Spider Jockey,
+  Fox, Skeleton Rider, Strider, Ender Pearl, Warden, Shulker) and Claude's
+  (Goat, Llama, Piglin, Allay, three potions); autopilot cap 55 cards
+

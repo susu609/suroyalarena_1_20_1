@@ -36,6 +36,7 @@ public final class MobsWave2SmokeTest {
         everyCardHasATactic();
         libraryFiltersAndPages();
         snowballsAreFrost();
+        netherMobsDoNotBurn();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -213,6 +214,26 @@ public final class MobsWave2SmokeTest {
         check(landed, "a snowball lands on the Blaze");
         check(BattleCard.BLAZE.stats().health() - b2.health() >=
                 2.0D * bite - 1.0E-6D, "the Blaze takes double");
+    }
+
+    private static void netherMobsDoNotBurn() {
+        CombatEngine engine = new CombatEngine(battle());
+        CombatUnit ghast = unit(engine, BattleCard.GHAST, TeamSide.BLUE,
+                -4.0D, 3.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                4.0D, 3.0D);
+        engine.castSpell(TeamSide.RED, BattleCard.FIREBALL, -4.0D, 3.0D);
+        engine.castSpell(TeamSide.RED, BattleCard.FIREBALL, 4.0D, 3.0D);
+        engine.tick();
+        near(ghast.health(), BattleCard.GHAST.stats().health() - 25.0D,
+                "the Fireball still hurts a Ghast");
+        near(zombie.health(), 0.0D + Math.max(0.0D, 20.0D - 25.0D),
+                "and the Zombie");
+        check(ghast.burnTicks() == 0, "but the Ghast does not burn");
+        for (BattleCard card : BattleCard.values()) {
+            if (card.fireImmune())
+                check(!card.isSpell(), card.id() + " is a troop");
+        }
     }
 
     private static void libraryFiltersAndPages() {
