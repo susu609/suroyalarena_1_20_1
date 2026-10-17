@@ -251,7 +251,7 @@ The two spells replace Stray and Vindicator in the starter deck. See
 
 ## Part 21 — Card art template for Blockbench
 
-- `model_sources/card_art/card_art_renderer.js` (Blockbench plugin)
+- `model_sources/card_art/royalarena_card_art.js` (Blockbench plugin)
 - `model_sources/card_art/README.md`
 
 Renders the open model as a 31:39 card portrait with the same framing and

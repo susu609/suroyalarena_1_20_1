@@ -48,7 +48,7 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 | Zombie x2 | 40 | 6.0 | - | 2.87 | 3 |
 | Skeleton Archer x1 | 20 | 4.0 | range | 2.07 | 2 |
 | Spider x4 | 40 | 8.0 | count 4, speed | 3.39 | 3 |
-| Skeletons x3 | 30 | 5.0 | count 3, speed | 2.32 | 2 |
+| Skeletons x3 | 33 | 5.0 | count 3, speed | 2.43 | 2 |
 | Big Slime x1 | 60 | 3.57 | - | 2.71 | 3 |
 | Iron Golem x1 | 160 | 7.5 | towers only | 5.45 | 5 |
 

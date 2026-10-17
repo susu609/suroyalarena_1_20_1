@@ -19,7 +19,7 @@ Move speed is in blocks per second.
 | Zombie | `minecraft:zombie` | 2 | 20 | 3 | 1.0 | 1.2 | 0.83 | **3** |
 | Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 6.0 | 1.0 | **2** |
 | Spider | `minecraft:spider` | 4 | 10 | 2 | 1.0 | 1.2 | 1.5 | **3** |
-| Skeletons | `minecraft:skeleton` (stone sword) | 3 | 10 | 1.5 | 0.9 | 1.2 | 1.33 | **2** |
+| Skeletons | `minecraft:skeleton` (bare hands) | 3 | 11 | 1.5 | 0.9 | 1.2 | 1.33 | **2** |
 | Big Slime | `minecraft:slime` | 1 | 20 | 5 | 1.4 | 1.2 | 0.85 | **3** |
 
 Zombie and Skeleton Archer keep vanilla health. Swarm units are thinner than
@@ -74,7 +74,7 @@ mobs themselves are invulnerable).
 
 ## Spell vs troop kill table
 
-| | Zombie (20) | Archer (20) | Spider (10) | Skeleton (10) | Slime big (20) | Slime medium (10) | Slime small (5) |
+| | Zombie (20) | Archer (20) | Spider (10) | Skeleton (11) | Slime big (20) | Slime medium (10) | Slime small (5) |
 |---|---|---|---|---|---|---|---|
 | Arrow Storm (16) | survives | survives | dies | dies | survives | dies | dies |
 | Fireball (25) | dies | dies | dies | dies | dies | dies | dies |
@@ -90,7 +90,7 @@ Armed mobs fight like their weapon (the cost formula keeps their elixir):
 | Weapon | Who | Hit | Interval | Feel |
 |---|---|---|---|---|
 | Axe | Vindicator | 12 | 2.4 s | one heavy blow: kills a Spider, a Skeleton or a Wolf per swing, slow against swarms |
-| Sword | Skeletons | 1.5 | 0.9 s | quick light cuts |
+| Bare hands | Skeletons | 1.5 | 0.9 s | quick light blows |
 | Bow | Skeleton Archer, Stray | 4 / 3 | 1.0 / 1.2 s | steady |
 | Crossbow | Pillager | 10 | 2.0 s | slower than a bow, hits harder, longer range |
 

@@ -468,7 +468,7 @@ public final class DomainSmokeTest {
     /** The Blockbench card art plugin lists every card with its cost. */
     private static void cardArtPluginKnowsEveryCard() {
         java.nio.file.Path plugin = java.nio.file.Path.of(
-                "model_sources/card_art/card_art_renderer.js");
+                "model_sources/card_art/royalarena_card_art.js");
         if (!java.nio.file.Files.exists(plugin))
             return;
         String js;

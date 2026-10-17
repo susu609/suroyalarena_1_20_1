@@ -1,6 +1,6 @@
 # Card art template for Blockbench
 
-`card_art_renderer.js` is a Blockbench plugin that renders the open model as
+`royalarena_card_art.js` is a Blockbench plugin that renders the open model as
 a card portrait for the battle HUD. Every card comes out the same way:
 
 - the card's 31:39 shape (124x156, **248x312** or 496x624 px);
@@ -14,7 +14,7 @@ a card portrait for the battle HUD. Every card comes out the same way:
 ## Install
 
 Blockbench: **File > Plugins**, the "Load Plugin from File" button, pick
-`model_sources/card_art/card_art_renderer.js`. It adds **Tools > Render Card
+`model_sources/card_art/royalarena_card_art.js`. It adds **Tools > Render Card
 Art**.
 
 ## Make a card

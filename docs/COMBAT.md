@@ -67,7 +67,7 @@ vanilla triggers from what the engine decides:
 
 | Troop | Animation | Trigger |
 |---|---|---|
-| Zombie, Skeletons (sword), Vindicator | arms up / axe raised | `setAggressive` while it has an enemy or stands fighting |
+| Zombie, Skeletons (bare hands), Vindicator | arms up / axe raised | `setAggressive` while it has an enemy or stands fighting |
 | Skeleton Archer, Stray | bow raised, string drawn, released on the shot | aggressive pose, `startUsingItem` / `stopUsingItem` on the bow |
 | Pillager | crossbow charged while it takes aim, crossbow sound on the shot | `setChargingCrossbow` and `startUsingItem` on the crossbow |
 | Iron Golem | arm swing and golem attack sound; the victim is tossed up a little | entity event 4, a small upward hop of the victim |
