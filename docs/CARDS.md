@@ -170,9 +170,9 @@ What changed:
 
 ## Model size
 
-The three Skeletons are drawn at 80% and the four Spiders at 75%
+The three Skeletons are drawn at 90% and the four Spiders at 75%
 (`BattleCard.modelScale`), with smaller bodies in the engine to match
-(radius 0.24 and 0.45), so the swarms bunch up more tightly.
+(radius 0.27 and 0.45), so the swarms bunch up more tightly.
 
 ## Current code gap
 

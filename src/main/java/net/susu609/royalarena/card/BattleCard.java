@@ -16,7 +16,7 @@ public enum BattleCard {
     SPIDER("Spider", 3, "minecraft:spider", null, 0,
             new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.45D)),
     SKELETONS("Skeletons", 2, "minecraft:skeleton", "minecraft:stone_sword", 0,
-            new TroopStats(3, 10, 1.5D, 18, 1.2D, 1.33D, 0.24D)),
+            new TroopStats(3, 10, 1.5D, 18, 1.2D, 1.33D, 0.27D)),
     BIG_SLIME("Big Slime", 3, "minecraft:slime", null, 4,
             new TroopStats(1, 20, 5, 28, 1.2D, 0.85D, 1.0D,
                     new SplitRule(2, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
@@ -145,13 +145,13 @@ public enum BattleCard {
         return cost;
     }
     /**
-     * How big the mob is drawn, relative to vanilla: the three Skeletons and
-     * the four Spiders are a small swarm. Mirrors {@code model_scale} in the
+     * How big the mob is drawn, relative to vanilla: the three Skeletons (90%) and
+     * the four Spiders (75%) are a small swarm. Mirrors {@code model_scale} in the
      * card's JSON.
      */
     public float modelScale() {
         return switch (this) {
-            case SKELETONS -> 0.8F;
+            case SKELETONS -> 0.9F;
             case SPIDER -> 0.75F;
             default -> 1.0F;
         };
