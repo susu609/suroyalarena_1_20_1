@@ -30,10 +30,14 @@ It thinks every 10 ticks and never plays twice within 40 ticks.
   target towers, Iron Golem and Hoglin, are never used to defend) three blocks behind that
   unit, in the same lane.
 - **Newer spells.** The same rule: each is cast where it is worth 8
-  health per elixir over at least two units. Freeze and Lightning count 4 per
-  second of freeze or stun on each unit, Lightning only its 3 strongest
-  targets, and a healing potion goes on its own damaged troops (the health
-  it would give back).
+  health per elixir over at least two targets. A freeze or stun is worth the
+  damage the unit would have dealt meanwhile (its damage per second x the
+  seconds), and only for an enemy that is fighting: within its range or one
+  of the bot's own troops' range (+2 blocks) of an own troop or tower. Freeze
+  can also go on an enemy tower while own troops stand in its range; the
+  tower's missed shots count. Lightning counts only its 3 strongest targets,
+  and a healing potion goes on its own damaged troops (the health it would
+  give back).
 - **Attack.** Otherwise, once it has 7 elixir, it plays a random affordable
   troop card near the back of the lane whose enemy Princess tower is weaker (or the
   surviving lane when one has fallen, or a random lane when equal).

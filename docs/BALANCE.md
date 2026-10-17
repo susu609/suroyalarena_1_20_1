@@ -23,7 +23,10 @@ elixir = round(P / cost_divisor)          cost_divisor = 5.4
 
 - `totalHP` = unit HP x count. A Big Slime counts all three generations
   (20 + 20 + 20 = 60).
-- `totalDPS` = damage / interval x count.
+- `totalDPS` = damage / interval x count. Poison counts as damage, but only
+  what one hit's poison deals before the next hit replaces it: poison per
+  second x min(poison time, interval). A Cave Spider (1 a second for 3 s,
+  biting every 1 s) adds 1 per bite, not 3.
 
 Modifiers multiply together:
 
@@ -86,7 +89,7 @@ https://susu609.github.io/suroyalarena_1_20_1/. See `docs/stats/README.md`.
 ## Spell cost
 
 ```
-value  = damagePerTarget + (stun + freeze seconds) * 4
+value  = damagePerTarget + (stun + freeze seconds) * 2
 share  = min(1, maxTargets / 4)        (1 when the spell hits everything)
 elixir = round(1 + value * radius * share / spell_cost_divisor)
 spell_cost_divisor = 20.8
@@ -94,15 +97,17 @@ spell_cost_divisor = 20.8
 
 The divisor is anchored on a 4-elixir fireball (325 damage, radius 2.5 in the
 reference data, i.e. 270 / 13). Burn damage is not counted. A second of
-freeze or stun is worth 4 damage per target; healing counts like damage.
+freeze or stun is worth 2 damage per target; healing counts like damage. (It
+was 4, but in bot matches a 6 s Freeze won no more than a 4 s one: stopping
+troops is worth less than hurting them.)
 
 | Spell | Damage per target | Radius | Raw | Elixir |
 |---|---|---|---|---|
 | Arrow Storm | 16 | 3.0 | 3.31 | 3 |
 | Fireball | 25 | 2.5 | 4.00 | 4 |
-| Lightning | 40 + 0.5 s stun (42), 3 targets | 3.5 | 6.30 | 6 |
+| Lightning | 40 + 0.5 s stun (41), 3 targets | 3.5 | 6.17 | 6 |
 | Potion of Healing | 16 healing | 3.0 | 3.31 | 3 |
-| Freeze | 4 + 4 s freeze (20) | 3.0 | 3.88 | 4 |
+| Freeze | 8 + 4 s freeze (16) | 3.0 | 3.31 | 3 |
 | TNT | 30 | 3.0 | 5.33 | 5 |
 
 Spells deal 30% damage to towers (`spell_tower_damage_multiplier`); TNT

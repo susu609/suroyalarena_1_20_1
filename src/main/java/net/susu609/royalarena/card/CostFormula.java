@@ -37,8 +37,10 @@ public final class CostFormula {
     public static double raw(TroopStats s) {
         int generations = 1 + (s.split() == null ? 0 : s.split().generations());
         double totalHealth = s.health() * s.count() * generations;
-        // Poison lands with every hit, so it counts as part of the damage.
-        double perHit = s.damage() + s.traits().poisonTotal();
+        // Poison lands with every hit, so it counts as part of the damage;
+        // the next hit replaces it, so only what runs until then counts.
+        double perHit = s.damage() + s.traits().poisonPerSecond() *
+                Math.min(s.traits().poisonTicks(), s.attackTicks()) / 20.0D;
         double dps = perHit / (s.attackTicks() / 20.0D) * s.count();
         double modifier = 1.0D;
         if (s.range() >= 4.0D)

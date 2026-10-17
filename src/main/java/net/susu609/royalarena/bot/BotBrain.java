@@ -13,6 +13,7 @@ import net.susu609.royalarena.match.MatchPlayer;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
+import net.susu609.royalarena.tower.TowerKind;
 import net.susu609.royalarena.tower.TowerState;
 
 import java.util.ArrayList;
@@ -51,6 +52,8 @@ public final class BotBrain {
     public static final int DRAG_TICKS = 14;
     /** Enemy health a spell must take off, per elixir it costs. */
     public static final double SPELL_VALUE_PER_ELIXIR = 8.0D;
+    /** Blocks past a range at which an enemy still counts as fighting. */
+    private static final double ENGAGED_MARGIN = 2.0D;
 
     /** A card to play: hand slot and the block to deploy on. */
     public record Play(int slot, int x, int z) {
@@ -143,6 +146,7 @@ public final class BotBrain {
                 continue;
             double needed = card.cost() * SPELL_VALUE_PER_ELIXIR;
             boolean heal = card.spell().heal();
+            List<int[]> aims = new ArrayList<>();
             for (CombatUnit aim : engine.units()) {
                 // A healing potion goes on own troops, the rest on enemies.
                 if ((aim.side() == side) != heal || !aim.alive())
@@ -152,11 +156,23 @@ public final class BotBrain {
                 double lead = aim.stats().speed() *
                         (card.spell().castTicks() + DRAG_TICKS) / 20.0D * 0.5D;
                 int sign = ArenaLayout.sideSign(side) * (heal ? -1 : 1);
-                int x = clamp((int) Math.floor(aim.x()), arena.minX(),
-                        arena.maxX());
-                int z = clamp((int) Math.floor(aim.z() + sign * lead),
-                        arena.minZ(), arena.maxZ());
-                double value = spellValue(engine, card, x + 0.5D, z + 0.5D);
+                aims.add(new int[] {(int) Math.floor(aim.x()),
+                        (int) Math.floor(aim.z() + sign * lead)});
+            }
+            if (card.spell().freezeTicks() > 0) {
+                // Freezing a tower helps the troops under its fire.
+                for (TowerId id : TowerId.values()) {
+                    if (id.side() != side && !match.tower(id).isDestroyed()) {
+                        ArenaPoint at = arena.towerPoint(id);
+                        aims.add(new int[] {at.x(), at.z()});
+                    }
+                }
+            }
+            for (int[] aim : aims) {
+                int x = clamp(aim[0], arena.minX(), arena.maxX());
+                int z = clamp(aim[1], arena.minZ(), arena.maxZ());
+                double value = spellValue(match, engine, card, x + 0.5D,
+                        z + 0.5D);
                 if (value >= needed && value > bestValue) {
                     best = new Play(slot, x, z);
                     bestValue = value;
@@ -168,16 +184,19 @@ public final class BotBrain {
 
     /**
      * What a spell centred on (x, z) is worth: the enemy health it would
-     * remove plus {@link SpellStats#controlValue} for each unit it freezes or
-     * stuns (only the strongest few for a spell with {@code maxTargets}), or
-     * the health a healing potion would give back to own troops. 0 below 2
-     * units.
+     * remove, plus for each unit it freezes or stuns while that unit fights
+     * this side the damage the unit does not deal meanwhile (only the
+     * strongest few for a spell with {@code maxTargets}), plus the shots a
+     * frozen enemy tower does not fire at own troops; or the health a
+     * healing potion would give back to own troops. 0 below 2 targets.
      */
-    private double spellValue(CombatEngine engine, BattleCard card, double x,
-            double z)
+    private double spellValue(MatchInstance match, CombatEngine engine,
+            BattleCard card, double x, double z)
     {
         SpellStats spell = card.spell();
         double perTarget = spell.damagePerTarget();
+        double seconds = Math.max(spell.freezeTicks(), spell.stunTicks()) /
+                20.0D;
         List<Double> values = new ArrayList<>();
         for (CombatUnit unit : engine.units()) {
             if ((unit.side() == side) != spell.heal() || !unit.alive())
@@ -185,9 +204,26 @@ public final class BotBrain {
             if (Math.hypot(unit.x() - x, unit.z() - z) >
                     spell.radius() + unit.radius())
                 continue;
-            values.add(spell.heal() ?
-                    Math.min(unit.maxHealth() - unit.health(), perTarget) :
-                    Math.min(unit.health(), perTarget) + spell.controlValue());
+            if (spell.heal())
+                values.add(Math.min(unit.maxHealth() - unit.health(),
+                        perTarget));
+            else
+                values.add(Math.min(unit.health(), perTarget) +
+                        (engaged(match, engine, unit) ? seconds *
+                                unit.stats().damage() * 20.0D /
+                                unit.stats().attackTicks() : 0.0D));
+        }
+        if (seconds > 0.0D) {
+            for (TowerId id : TowerId.values()) {
+                if (id.side() == side || match.tower(id).isDestroyed() ||
+                        match.arena().distanceToTower(x, z, id) >
+                                spell.radius() ||
+                        !underFire(match, engine, id))
+                    continue;
+                TowerKind kind = id.kind();
+                values.add(seconds * kind.damage() * 20.0D /
+                        kind.attackTicks());
+            }
         }
         if (values.size() < 2)
             return 0.0D;
@@ -198,6 +234,50 @@ public final class BotBrain {
         for (int i = 0; i < count; i++)
             value += values.get(i);
         return value;
+    }
+
+    /**
+     * Whether an enemy is fighting this side, or about to: an own troop or
+     * tower is within its range or the troop's own, give or take
+     * {@link #ENGAGED_MARGIN}. Freezing an enemy nobody is near wastes it.
+     */
+    private boolean engaged(MatchInstance match, CombatEngine engine,
+            CombatUnit enemy)
+    {
+        double reach = enemy.stats().range() + ENGAGED_MARGIN;
+        for (CombatUnit own : engine.units()) {
+            if (own.side() != side || !own.alive())
+                continue;
+            double edge = Math.hypot(own.x() - enemy.x(),
+                    own.z() - enemy.z()) - own.radius() - enemy.radius();
+            if (edge <= Math.max(reach, own.stats().range() + ENGAGED_MARGIN))
+                return true;
+        }
+        for (TowerId id : TowerId.values()) {
+            if (id.side() == side && !match.tower(id).isDestroyed() &&
+                    match.arena().distanceToTower(enemy.x(), enemy.z(), id) -
+                            enemy.radius() <= reach)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether this enemy tower shoots at own troops: one stands within its
+     * range (a sleeping King shoots nothing, and the hit would wake it).
+     */
+    private boolean underFire(MatchInstance match, CombatEngine engine,
+            TowerId id)
+    {
+        if (id.kind() == TowerKind.KING && !engine.kingAwake(id.side()))
+            return false;
+        for (CombatUnit own : engine.units()) {
+            if (own.side() == side && own.alive() &&
+                    match.arena().distanceToTower(own.x(), own.z(), id) -
+                            own.radius() <= id.kind().range())
+                return true;
+        }
+        return false;
     }
 
     private static int clamp(int value, int min, int max) {

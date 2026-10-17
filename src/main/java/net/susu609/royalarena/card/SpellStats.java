@@ -27,7 +27,7 @@ public record SpellStats(double radius, int castTicks, int pulses,
     /** Spells deal this share of their damage to towers (balance.json). */
     public static final double TOWER_MULTIPLIER = 0.3D;
     /** A second of a target frozen or stunned counts as this much damage. */
-    public static final double CONTROL_VALUE_PER_SECOND = 4.0D;
+    public static final double CONTROL_VALUE_PER_SECOND = 2.0D;
 
     public SpellStats(double radius, int castTicks, int pulses,
             int pulseInterval, double damagePerPulse, double towerMultiplier,

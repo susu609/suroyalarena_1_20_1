@@ -46,7 +46,7 @@
         'fireball': 4,
         'lightning': 6,
         'healing_potion': 3,
-        'freeze': 4,
+        'freeze': 3,
         'tnt': 5,
     };
     const CARD_IDS = Object.keys(CARDS);

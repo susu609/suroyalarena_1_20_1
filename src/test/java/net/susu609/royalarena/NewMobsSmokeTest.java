@@ -60,7 +60,7 @@ public final class NewMobsSmokeTest {
         check(first.teleports().size() == 1 &&
                 first.teleports().get(0).unit().equals(ender.id()),
                 "the Enderman teleports away from a Fireball");
-        near(ender.health(), 50.0D, "and takes no damage");
+        near(ender.health(), 58.0D, "and takes no damage");
         TickResult.Teleport to = first.teleports().get(0);
         double moved = Math.hypot(to.x() - 0.5D, to.z() - 1.0D);
         check(moved > 3.5D, "it steps several blocks away: " + moved);
@@ -75,7 +75,7 @@ public final class NewMobsSmokeTest {
                 ender.z());
         TickResult second = engine.tick();
         check(second.teleports().isEmpty(), "no second dodge during the cooldown");
-        near(ender.health(), 25.0D, "the Fireball hits it: 50 - 25");
+        near(ender.health(), 33.0D, "the Fireball hits it: 58 - 25");
 
         // Once the cooldown is over it dodges again (the burn ticks on meanwhile).
         for (int i = 0; i < 160; i++)
@@ -100,7 +100,7 @@ public final class NewMobsSmokeTest {
                 a -> zombie.id().equals(a.attackerUnit())),
                 "the zombie strikes the Enderman");
         check(result.teleports().isEmpty(), "a blow is not dodged");
-        check(ender.health() < 50.0D, "and it takes the damage");
+        check(ender.health() < 58.0D, "and it takes the damage");
     }
 
     private static void caveSpiderPoisons() {
@@ -122,7 +122,8 @@ public final class NewMobsSmokeTest {
         }
         check(hits >= 4, "the Cave Spider strikes again and again: " + hits);
         double lost = 200.0D - dummy.health();
-        check(lost > hits * 1.0D + 1.0D, "poison adds damage on top: lost " +
+        double bite = BattleCard.CAVE_SPIDER.stats().damage();
+        check(lost > hits * bite + 1.0D, "poison adds damage on top: lost " +
                 lost + " from " + hits + " bites");
         near(engine.stats().card(TeamSide.BLUE, BattleCard.CAVE_SPIDER)
                 .damage(), lost, "all of it counts for the Cave Spider");
@@ -181,7 +182,7 @@ public final class NewMobsSmokeTest {
                 TeamSide.BLUE, -6.0D, 6.0D);
         coldEngine.castSpell(TeamSide.RED, BattleCard.FREEZE, 0.5D, 6.0D);
         coldEngine.tick();
-        near(blazeCold.health(), 30.0D - 8.0D, "Freeze does double to a Blaze");
+        near(blazeCold.health(), 30.0D - 16.0D, "Freeze does double to a Blaze");
         check(blazeCold.frozenTicks() == 160,
                 "and freezes it twice as long: " + blazeCold.frozenTicks());
         check(zombieCold.frozenTicks() == 0, "nothing else is touched");

@@ -416,3 +416,15 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `NewMobsSmokeTest` (teleport, poison, Blaze, Drowned, Vex), CombatSmokeTest
   (the JSON trait keys)
 - `docs/CARDS.md` (table and open points), `docs/COMBAT.md` (rules)
+
+## Part 36 — Every card in 40-60% of bot matches
+
+- `card/BattleCard.java` and `card/*` JSON files: Ghast, Ravager, Freeze,
+  Enderman, Cave Spider, Creeper; `model_sources/card_art` (Freeze cost)
+- `card/CostFormula.java` (poison counts only until the next hit replaces it),
+  `card/SpellStats.java` (a second of freeze or stun is worth 2)
+- `bot/BotBrain.java` (freeze/stun only on fighting enemies, worth their
+  damage per second; Freeze on a tower that shoots own troops)
+- SpellSmokeTest, NewMobsSmokeTest (new numbers)
+- `docs/CARDS.md` ("Tuning into 40-60%"), `docs/BALANCE.md`, `docs/BOT.md`,
+  `docs/BALANCE_REPORT.md`

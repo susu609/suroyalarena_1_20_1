@@ -237,7 +237,7 @@ public final class SpellSmokeTest {
                 first.spellPulses().get(0).strikes().size() == 3,
                 "Lightning strikes three targets");
         near(golem.health(), 120.0D, "the Golem is struck");
-        near(ravager.health(), 70.0D, "the Ravager is struck");
+        near(ravager.health(), 60.0D, "the Ravager is struck");
         near(hoglin.health(), 5.0D, "the Hoglin is struck");
         near(zombie.health(), 20.0D, "the Zombie is spared");
         near(spider.health(), 10.0D, "the Spider is spared");
@@ -281,7 +281,7 @@ public final class SpellSmokeTest {
         for (int i = 0; i < 100; i++)
             engine.tick();
         near(low.health(), 4.0D, "Arrow Storm left 4");
-        near(scratched.health(), 16.0D, "Freeze left 16");
+        near(scratched.health(), 12.0D, "Freeze left 12");
         low.setPosition(-1.0D, 1.0D);
         scratched.setPosition(1.0D, 1.0D);
         engine.castSpell(TeamSide.BLUE, BattleCard.HEALING_POTION, 0.0D,
@@ -335,7 +335,7 @@ public final class SpellSmokeTest {
                 0.5D, 0.0D);
         otherEngine.castSpell(TeamSide.BLUE, BattleCard.FREEZE, 0.5D, 0.0D);
         otherEngine.tick();
-        near(enemy.health(), 16.0D, "Freeze deals 4 damage");
+        near(enemy.health(), 12.0D, "Freeze deals 8 damage");
         check(enemy.frozenTicks() == 80, "and freezes the troop");
         for (int i = 0; i < 79; i++)
             check(otherEngine.tick().moves().isEmpty(),

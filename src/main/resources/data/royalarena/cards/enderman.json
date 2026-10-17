@@ -7,7 +7,7 @@
   "model_scale": 1.0,
   "count": 1,
   "unit": {
-    "health": 50,
+    "health": 58,
     "damage": 6,
     "attack_interval_ticks": 24,
     "range": 1.2,

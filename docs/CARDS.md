@@ -66,7 +66,7 @@ circle, and enemy towers whose footprint touches it for **30%** of the damage
 | Fireball | **4** | Travels 1 s, explodes radius 2.5 blocks for **25** damage, knocks back 1 block, burns 1 damage/s for 3 s. |
 | Lightning | **6** | After 0.75 s, real (harmless) lightning bolts strike the **3** enemy troops or towers with the most health in a 3.5 block circle: **40** damage each (12 to a tower), and a 0.5 s stun that also restarts their attack. |
 | Potion of Healing | **3** | The King throws a splash potion of healing (0.5 s); for 4 s, every 0.5 s it heals each **own** troop inside a 3 block circle by 2: **16 total**, never above full health, never towers. |
-| Freeze | **4** | The King throws a snowball (0.5 s); every enemy troop and tower in a 3 block circle takes 4 damage and is **frozen for 4 s**: no walking, no attacking, their attack does not charge. Frozen mobs shake like in powder snow. |
+| Freeze | **3** | The King throws a snowball (0.5 s); every enemy troop and tower in a 3 block circle takes 8 damage and is **frozen for 4 s**: no walking, no attacking, their attack does not charge. Frozen mobs shake like in powder snow. |
 | TNT | **5** | Primed TNT falls from the sky for 1.5 s, then explodes in a 3 block circle: **30** damage, knocks back 2 blocks, and **50%** (15) to towers instead of 30%. |
 
 Burning troops are shown on fire; the burn damage comes from the engine (the
@@ -120,10 +120,10 @@ self-destruct x0.5 (`CostFormula`, balance.json).
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
-| Creeper | `minecraft:creeper` | 1 | 20 | 30 | 1.0 | 0.5 | 1.33 | explodes on its first hit, splash 2.5 (towers too), then dies | **3** |
+| Creeper | `minecraft:creeper` | 1 | 20 | 30 | 1.0 | 0.5 | 1.6 | explodes on its first hit, splash 2.5 (towers too), then dies | **3** |
 | Witch | `minecraft:witch` | 1 | 26 | 8 | 1.5 | 5.0 | 0.8 | thrown splash potion, splash 1.5 | **4** |
 | Wolves | `minecraft:wolf` | 3 | 8 | 3 | 0.8 | 1.2 | 1.6 | fast pack | **3** |
-| Ravager | `minecraft:ravager` | 1 | 110 | 8 | 1.6 | 1.5 | 1.0 | knocks its target back 1 block | **5** |
+| Ravager | `minecraft:ravager` | 1 | 100 | 8 | 1.6 | 1.5 | 1.0 | knocks its target back 1 block | **5** |
 
 Splash hits every other enemy whose body touches the circle around the
 target, and enemy towers whose footprint does (`TroopTraits`,
@@ -194,29 +194,33 @@ health scale like the rest. Elixir comes from `CostFormula`, and the band
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
-| Enderman | `minecraft:enderman` | 1 | 50 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 8 s; a blow is not dodged | **4** |
-| Cave Spider | `minecraft:cave_spider` | 4 | 5 | 1 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); the poison counts as damage in the cost | **3** |
+| Enderman | `minecraft:enderman` | 1 | 58 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 8 s; a blow is not dodged | **4** |
+| Cave Spider | `minecraft:cave_spider` | 4 | 6 | 1.5 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); a new bite replaces the poison, so the cost counts the 1 a bite adds before the next | **3** |
 | Vex | `minecraft:vex` | 3 | 4 | 16 | 1.0 | 1.2 | 2.0 | dies when it strikes: one big blow and gone | **2** |
-| Ghast | `minecraft:ghast` | 1 | 26 | 22 | 3.0 | 6.5 | 0.35 | slow, long-ranged fireball with a 2.5 blast; range stays under the Princess tower (7) | **5** |
+| Ghast | `minecraft:ghast` | 1 | 27 | 22 | 3.0 | 6.0 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **5** |
 | Drowned | `minecraft:drowned` | 1 | 22 | 4 | 2.0 | 5.0 | 1.0 | trident from 5 blocks; may also be played on the river | **2** |
 | Zombified Piglin | `minecraft:zombified_piglin` | 2 | 26 | 4 | 1.2 | 1.2 | 0.9 | a tougher Zombie: more health and hits harder, golden sword | **3** |
 | Blaze | `minecraft:blaze` | 1 | 30 | 8 | 2.0 | 6.5 | 1.0 | hovers 1.5 blocks up; crosses the river anywhere (no bridge); frost weakness: Freeze hits it twice as hard and freezes it twice as long; water weakness: 1.5x damage while on the river | **3** |
 
-Bot-versus-bot win rates over 500 matches (random balanced decks, both sides
-swapped): Ghast 67% (strong), Blaze 54%, Vex 50%, Zombified Piglin 47%,
-Drowned 47%, Cave Spider 46%, Enderman 43%. The 1-versus-1 push score
-(elixir ahead per fight): Cave Spider -1.14 (weakest, near the band's edge),
-Enderman -0.96, Vex +0.26, Ghast +0.77, Drowned +0.13, Zombified Piglin +0.07,
-Blaze +0.76.
+Bot-versus-bot win rates and fixes: see "Tuning into 40-60%" below.
 
-Open points, from the numbers above:
+## Tuning into 40-60%
 
-- **Ghast is strong in bot games.** Its blast hits every enemy in the circle
-  and it keeps firing as long as it lives. Options: a bigger cost factor for
-  large splash radii, or a shorter splash.
-- **Cave Spider** is the weakest card in the push measure. The poison pays
-  only while the spider lives, and it dies to the first tower shot. More
-  poison also makes the card dearer, because poison counts in the cost.
-- **Enderman** dodges only the shots that would land on it, and only once
-  every 8 s; in a push it loses most fights. It is safe from being overpowered.
+Goal: every card's deck wins 40-60% of bot-versus-bot matches
+(`BalanceReport`). Before, over 1000 matches: Ghast 63%, Ravager 60%,
+Freeze 24%; everything else 42-58%. Each change keeps the cost on the
+formula, and was measured over 2000-4000 matches.
+
+| Card | Change | Why | Win rate |
+|---|---|---|---|
+| Ghast | range 6.5 -> 6.0, blast 2.5 -> 1.5, HP 26 -> 27 (still 5) | It dealt the most damage and kills per elixir of any card. Range was the strong lever (range 5 alone: 51%); smaller shots at the same DPS changed nothing, and HP or blast size alone little. 6.0 is the Skeleton Archer's range. | 63% -> 56% |
+| Ravager | HP 110 -> 100 (still 5) | Was at the high edge. | 60% -> 55% |
+| Freeze | 4 -> 3 elixir, damage 4 -> 8 | A 6 s freeze won no more than 4 s, so a second of freeze now costs 2 instead of 4 in the spell formula. The bot also only counts a freeze on enemies fighting its own troops or towers (`docs/BOT.md`). | 24% -> 44% |
+| Enderman | HP 50 -> 58 (still 4) | Was at the low edge. | 42% -> 48% |
+| Cave Spider | HP 5 -> 6, bite 1 -> 1.5 (still 3) | The formula counted the full 3 poison per bite, but a new bite replaces the poison, so a bite adds 1. Now counted right, which left room for more. It deals the least damage per elixir of any troop. | 44% -> 43% |
+| Creeper | speed 1.33 -> 1.6 (still 3) | Already counted as fast in the formula; reaching its target sooner is free. HP did nothing. | 45% -> 43% |
+
+After (4000 matches): Skeleton Archer 58% is the highest, Cave Spider and
+Creeper 43% the lowest. 2000 matches give each card about +/-3%, 4000 about
++/-2%.
 
