@@ -28,25 +28,71 @@ public final class BalanceReport {
     private BalanceReport() {
     }
 
-    private static final class Tally {
+    /** One card over all the matches its deck played. */
+    static final class Tally {
         int games;
         double wins;
         int plays;
+
+        double rate() {
+            return games == 0 ? 0.0D : wins / games;
+        }
+
+        /** Half the 95% interval of {@link #rate()}. */
+        double margin() {
+            double r = rate();
+            return games == 0 ? 0.0D :
+                    1.96D * Math.sqrt(r * (1.0D - r) / games);
+        }
+    }
+
+    /** Everything a run of bot matches found. */
+    static final class Result {
+        final Map<BattleCard, Tally> cards = new EnumMap<>(BattleCard.class);
+        int matches;
+        int blueWins;
+        int draws;
+        int overtimes;
+        int kings;
+        long ticks;
+
+        int redWins() {
+            return matches - blueWins - draws;
+        }
+
+        double averageSeconds() {
+            return matches == 0 ? 0.0D : ticks / 20.0D / matches;
+        }
     }
 
     public static void main(String[] args) throws IOException {
         int matches = args.length > 0 ? Integer.parseInt(args[0]) : 200;
         Path out = Path.of(args.length > 1 ? args[1] :
                 "docs/BALANCE_REPORT.md");
-        Map<BattleCard, Tally> cards = new EnumMap<>(BattleCard.class);
+        long started = System.currentTimeMillis();
+        Result r = play(matches);
+        long seconds = (System.currentTimeMillis() - started) / 1000L;
+        String report = report(r.cards, matches, r.blueWins, r.draws) +
+                String.format(Locale.ROOT, "%nAverage match %.0f s; %d went " +
+                        "to overtime; %d ended with a King tower down.%n",
+                        r.averageSeconds(), r.overtimes, r.kings);
+        System.out.print(report);
+        System.out.println("Took " + seconds + " s.");
+        Files.createDirectories(out.toAbsolutePath().getParent());
+        Files.writeString(out, report);
+        System.out.println("Written to " + out.toAbsolutePath());
+    }
+
+    /**
+     * Plays {@code matches} bot-versus-bot matches with random balanced
+     * decks, every pairing twice with the sides swapped.
+     */
+    static Result play(int matches) {
+        Result result = new Result();
+        result.matches = matches;
+        Map<BattleCard, Tally> cards = result.cards;
         for (BattleCard card : BattleCard.values())
             cards.put(card, new Tally());
-        int blueWins = 0;
-        int draws = 0;
-        int overtimes = 0;
-        int kings = 0;
-        long ticks = 0L;
-        long started = System.currentTimeMillis();
         for (int i = 0; i < matches; i++) {
             int pair = i / 2;
             BattleDeck a = BotDeck.random(new Random(pair * 2L + 1L));
@@ -57,29 +103,20 @@ public final class BalanceReport {
             Map<BattleCard, Integer> plays = new EnumMap<>(BattleCard.class);
             Sim.Outcome outcome = Sim.botMatch(blue, red, 1000L + i, plays);
             TeamSide winner = outcome.winner();
-            ticks += outcome.ticks();
-            overtimes += outcome.overtime() ? 1 : 0;
-            kings += outcome.kingFell() ? 1 : 0;
+            result.ticks += outcome.ticks();
+            result.overtimes += outcome.overtime() ? 1 : 0;
+            result.kings += outcome.kingFell() ? 1 : 0;
             if (winner == TeamSide.BLUE)
-                blueWins++;
+                result.blueWins++;
             if (winner == null)
-                draws++;
+                result.draws++;
             count(cards, blue, winner == TeamSide.BLUE ? 1.0D :
                     winner == null ? 0.5D : 0.0D);
             count(cards, red, winner == TeamSide.RED ? 1.0D :
                     winner == null ? 0.5D : 0.0D);
             plays.forEach((card, n) -> cards.get(card).plays += n);
         }
-        long seconds = (System.currentTimeMillis() - started) / 1000L;
-        String report = report(cards, matches, blueWins, draws) +
-                String.format(Locale.ROOT, "%nAverage match %.0f s; %d went " +
-                        "to overtime; %d ended with a King tower down.%n",
-                        ticks / 20.0D / matches, overtimes, kings);
-        System.out.print(report);
-        System.out.println("Took " + seconds + " s.");
-        Files.createDirectories(out.toAbsolutePath().getParent());
-        Files.writeString(out, report);
-        System.out.println("Written to " + out.toAbsolutePath());
+        return result;
     }
 
     private static void count(Map<BattleCard, Tally> cards, BattleDeck deck,
@@ -110,12 +147,12 @@ public final class BalanceReport {
         List<Map.Entry<BattleCard, Tally>> rows =
                 new ArrayList<>(cards.entrySet());
         rows.removeIf(e -> e.getValue().games == 0);
-        rows.sort((p, q) -> Double.compare(rate(q.getValue()),
-                rate(p.getValue())));
+        rows.sort((p, q) -> Double.compare(q.getValue().rate(),
+                p.getValue().rate()));
         for (Map.Entry<BattleCard, Tally> row : rows) {
             Tally t = row.getValue();
-            double rate = rate(t);
-            double margin = 1.96D * Math.sqrt(rate * (1.0D - rate) / t.games);
+            double rate = t.rate();
+            double margin = t.margin();
             String flag = rate - margin > 0.6D ? "strong" :
                     rate + margin < 0.4D ? "weak" : "";
             s.append(String.format(Locale.ROOT,
@@ -131,9 +168,5 @@ public final class BalanceReport {
             s.append(String.format(Locale.ROOT, "%n%d cards never made a bot " +
                     "deck.%n", missing));
         return s.toString();
-    }
-
-    private static double rate(Tally t) {
-        return t.games == 0 ? 0.0D : t.wins / t.games;
     }
 }

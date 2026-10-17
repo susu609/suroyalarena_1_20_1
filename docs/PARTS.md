@@ -381,3 +381,11 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - Ravager 110 HP / 8 damage, Pillager 8 damage, Stray slows 1 s
 - `src/test/.../Sim.java`, `PowerCreepTest.java` (in `check`),
   `BalanceReport.java` (`gradlew balanceReport`), `docs/BALANCE_REPORT.md`
+
+## Part 33 — Phone stats page
+
+- `docs/stats/index.html` (static page: cards, compare, matchups, matches),
+  `docs/stats/README.md`, `docs/stats/data/` (generated)
+- `src/test/.../StatsReport.java` (`gradlew statsReport`),
+  `StatsServer.java` (`gradlew statsServe`), `Sim.solo`,
+  `BalanceReport.play`

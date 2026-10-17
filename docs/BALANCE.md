@@ -75,6 +75,13 @@ against each other, each pairing twice with the sides swapped, and writes
 often the bots play it, and how long matches last. About 1 s per 100
 matches. It is not part of `build`; run it after a balance change.
 
+## Stats page (`docs/stats/`)
+
+`gradlew statsReport` writes every card's numbers, the push matrix and the bot
+results to `docs/stats/data/`, keeping a history of runs; `docs/stats/index.html`
+shows them on a phone (`gradlew statsServe` on the same Wi-Fi). See
+`docs/stats/README.md`.
+
 ## Spell cost
 
 ```

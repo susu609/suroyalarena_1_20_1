@@ -170,6 +170,32 @@ tasks.register('balanceReport', JavaExec) {
             'docs/BALANCE_REPORT.md')
 }
 
+// Card statistics for the phone page docs/stats/: gradlew statsReport
+// [-Pmatches=500] writes docs/stats/data/ (and adds a run to its history).
+tasks.register('statsReport', JavaExec) {
+    dependsOn testClasses
+    group = 'verification'
+    description = 'Measures every card and writes docs/stats/data/ for the stats page'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'net.susu609.royalarena.StatsReport'
+    workingDir = projectDir
+    args((project.findProperty('matches') ?: '200').toString(),
+            'docs/stats/data')
+}
+
+// Serves docs/stats/ to phones on the same Wi-Fi: gradlew statsServe
+// [-Pport=8000]. Prints the address to open; Ctrl+C to stop.
+tasks.register('statsServe', JavaExec) {
+    dependsOn testClasses
+    group = 'verification'
+    description = 'Serves the stats page on the local network'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'net.susu609.royalarena.StatsServer'
+    workingDir = projectDir
+    standardInput = System.in
+    args((project.findProperty('port') ?: '8000').toString())
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }

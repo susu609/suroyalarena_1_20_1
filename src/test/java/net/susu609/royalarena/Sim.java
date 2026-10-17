@@ -151,14 +151,43 @@ final class Sim {
 
     /** Tower health one card alone takes off the tower it walks to. */
     static int soloTowerDamage(BattleCard card) {
+        return solo(card).towerDamage();
+    }
+
+    /**
+     * One card played at its own bridge with nobody defending: seconds until
+     * its first blow on the tower (-1 if it never lands one), the share of
+     * its health left then, the tower health it takes in all, and the second
+     * the tower falls (-1 if it stands).
+     */
+    record Solo(double reachSeconds, double healthOnArrival, int towerDamage,
+                double fallSeconds)
+    {
+    }
+
+    static Solo solo(BattleCard card) {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         spawn(engine, match, card, TeamSide.BLUE, -6.0D, 2.0D);
-        int before = match.tower(TowerId.RED_RIGHT).health();
-        for (int tick = 0; tick < 2400 && !engine.units().isEmpty() &&
-                !match.tower(TowerId.RED_RIGHT).isDestroyed(); tick++)
-            step(engine, match.arena());
-        return before - Math.max(0, match.tower(TowerId.RED_RIGHT).health());
+        TowerId tower = TowerId.RED_RIGHT;
+        int before = match.tower(tower).health();
+        int reach = -1;
+        double onArrival = 0.0D;
+        int tick = 0;
+        for (; tick < 2400 && !engine.units().isEmpty() &&
+                !match.tower(tower).isDestroyed(); tick++) {
+            TickResult result = step(engine, match.arena());
+            if (reach < 0 && result.attacks().stream().anyMatch(
+                    a -> a.attackerUnit() != null)) {
+                reach = tick;
+                onArrival = healthLeft(engine, TeamSide.BLUE) /
+                        cardHealth(card);
+            }
+        }
+        boolean fell = match.tower(tower).isDestroyed();
+        return new Solo(reach < 0 ? -1.0D : reach / 20.0D, onArrival,
+                before - Math.max(0, match.tower(tower).health()),
+                fell ? tick / 20.0D : -1.0D);
     }
 
     /** How a bot match went. */

@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Royal Arena · Thống kê</title>
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #6f6d68;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --pos: #2a78d6;
+  --neg: #e34948;
+  --mid: #f0efec;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --band: rgba(42, 120, 214, 0.08);
+  --warn: #fab219;
+  --elixir: #8e2fbf;
+  --focus: #2a78d6;
+  --shadow: 0 6px 24px rgba(11, 11, 11, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #232321;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #9d9b94;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --pos: #3987e5;
+    --neg: #e66767;
+    --mid: #383835;
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --band: rgba(57, 135, 229, 0.12);
+    --elixir: #a64fd6;
+    --focus: #3987e5;
+    --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #232321;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #9d9b94;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --pos: #3987e5;
+  --neg: #e66767;
+  --mid: #383835;
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --band: rgba(57, 135, 229, 0.12);
+  --elixir: #a64fd6;
+  --focus: #3987e5;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button, select, input { font: inherit; color: inherit; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 48px; }
+
+header.top { padding: 18px 0 10px; display: flex; align-items: flex-start; gap: 12px; }
+header.top h1 { font-size: 20px; line-height: 1.25; margin: 0; font-weight: 650; }
+header.top .meta { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+header.top .grow { flex: 1; min-width: 0; }
+.icon-btn {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 10px;
+  min-width: 40px; height: 40px; padding: 0 10px; cursor: pointer; font-size: 18px; line-height: 1;
+}
+
+nav.tabs {
+  position: sticky; top: 0; z-index: 5; background: var(--page);
+  display: flex; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--grid);
+}
+nav.tabs button {
+  flex: 1; border: 0; background: transparent; padding: 9px 4px; border-radius: 10px;
+  color: var(--ink-2); font-weight: 550; cursor: pointer; white-space: nowrap;
+}
+nav.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+section.panel { padding-top: 14px; }
+section.panel[hidden] { display: none; }
+h2 { font-size: 16px; margin: 22px 0 8px; font-weight: 650; }
+h2:first-child { margin-top: 4px; }
+p.note { color: var(--ink-2); font-size: 13px; margin: 4px 0 12px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.controls label { color: var(--ink-2); font-size: 13px; }
+select {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 10px;
+  padding: 8px 10px; max-width: 100%;
+}
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+  padding: 6px 12px; white-space: nowrap; cursor: pointer; font-size: 13px;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); }
+
+.card-list { display: flex; flex-direction: column; gap: 8px; }
+.card-row {
+  display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 10px; text-align: left; width: 100%; cursor: pointer;
+}
+.card-row:active { background: var(--surface-2); }
+.card-row .name { font-weight: 600; }
+.card-row .sub { color: var(--ink-2); font-size: 12.5px; }
+.card-row .bar-cell { grid-column: 1 / -1; }
+
+.portrait {
+  width: 44px; height: 55px; border-radius: 8px; overflow: hidden; background: var(--surface-2);
+  display: grid; place-items: center; color: var(--ink-2); font-weight: 650; font-size: 15px;
+  border: 1px solid var(--border); position: relative;
+}
+.portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.portrait.big { width: 88px; height: 110px; border-radius: 12px; font-size: 28px; }
+.cost {
+  display: inline-grid; place-items: center; min-width: 28px; height: 28px; border-radius: 50%;
+  background: var(--elixir); color: #fff; font-weight: 700; font-size: 14px;
+}
+.flag {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink);
+  border-radius: 999px; padding: 1px 8px 1px 6px; background: color-mix(in srgb, var(--warn) 22%, transparent);
+  margin-left: 6px; vertical-align: 1px;
+}
+.flag::before { content: "⚠"; font-size: 11px; }
+
+/* Diverging bar around a centre value (win rate around 50%, score around 0). */
+.dbar { display: grid; grid-template-columns: 1fr 52px; gap: 8px; align-items: center; }
+.dbar .track { position: relative; height: 18px; }
+.dbar .track::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--grid);
+}
+.dbar .zero { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--axis); }
+.dbar .fill { position: absolute; top: 3px; height: 12px; }
+.dbar .fill.pos { background: var(--pos); border-radius: 0 4px 4px 0; }
+.dbar .fill.neg { background: var(--neg); border-radius: 4px 0 0 4px; }
+.dbar .whisker { position: absolute; top: 8px; height: 2px; background: var(--ink-2); opacity: .55; }
+.dbar .band { position: absolute; top: 0; bottom: 0; background: var(--band); }
+.dbar .val { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink); }
+
+.rank { display: flex; flex-direction: column; gap: 2px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; }
+.rank-row { display: grid; grid-template-columns: 112px 1fr; gap: 8px; align-items: center;
+  padding: 5px 0; border-radius: 8px; cursor: default; }
+.rank-row:hover, .rank-row:focus-visible { background: var(--surface-2); }
+.rank-row .label { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.axis-row { display: grid; grid-template-columns: 112px 1fr 52px; gap: 8px; color: var(--muted); font-size: 11px; }
+.axis-row .ticks { position: relative; height: 14px; }
+.axis-row .ticks span { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+.tile .k { color: var(--ink-2); font-size: 12.5px; }
+.tile .v { font-size: 24px; font-weight: 650; line-height: 1.2; margin-top: 2px; }
+.tile .d { color: var(--ink-2); font-size: 12px; margin-top: 2px; }
+
+.box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 4px 12px; }
+dl.stats { margin: 0; }
+dl.stats div { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--grid); }
+dl.stats div:last-child { border-bottom: 0; }
+dl.stats dt { color: var(--ink-2); }
+dl.stats dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; }
+dl.stats dd small { color: var(--muted); display: block; font-size: 12px; }
+
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); }
+table.data { border-collapse: separate; border-spacing: 0; font-size: 13px; min-width: 100%; }
+table.data th, table.data td { padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; }
+table.data th { color: var(--ink-2); font-weight: 600; position: sticky; top: 0; background: var(--surface); }
+table.data th:first-child, table.data td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 1; }
+table.data tr:last-child td { border-bottom: 0; }
+table.data td.best { font-weight: 700; }
+table.data th button { border: 0; background: none; padding: 0; color: inherit; font-weight: inherit; cursor: pointer; }
+
+/* Matchup heat map */
+.heat { border-collapse: separate; border-spacing: 2px; font-size: 11px; }
+.heat th { color: var(--ink-2); font-weight: 600; padding: 2px 4px; }
+.heat thead th { height: 92px; vertical-align: bottom; }
+.heat thead th span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
+.heat tbody th { text-align: left; white-space: nowrap; position: sticky; left: 0; background: var(--surface); z-index: 1; padding-right: 8px; }
+.heat td {
+  width: 34px; min-width: 34px; height: 30px; border-radius: 4px; text-align: center;
+  font-variant-numeric: tabular-nums; cursor: pointer; padding: 0;
+}
+.heat td:hover, .heat td:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; }
+.heat td.self { background: transparent !important; color: var(--muted); }
+.legend { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 12px; margin: 8px 0; flex-wrap: wrap; }
+.legend .ramp { width: 160px; height: 10px; border-radius: 4px; }
+.legend .key { display: inline-flex; align-items: center; gap: 6px; }
+.legend .key i { display: inline-block; width: 16px; height: 2px; border-radius: 1px; }
+
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg.chart text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+svg.chart .grid { stroke: var(--grid); stroke-width: 1; }
+svg.chart .ref { stroke: var(--axis); stroke-width: 1; }
+svg.chart .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg.chart .cross { stroke: var(--axis); stroke-width: 1; }
+
+.tooltip {
+  position: fixed; z-index: 30; pointer-events: none; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow);
+  padding: 8px 10px; font-size: 13px; max-width: 260px; opacity: 0; transition: opacity .08s;
+}
+.tooltip.show { opacity: 1; }
+.tooltip .tv { font-weight: 700; font-size: 15px; }
+.tooltip .tl { color: var(--ink-2); }
+.tooltip .row { display: flex; align-items: center; gap: 6px; }
+.tooltip .row i { width: 12px; height: 2px; border-radius: 1px; display: inline-block; }
+
+/* Card detail sheet */
+.sheet { position: fixed; inset: 0; z-index: 20; background: var(--page); overflow-y: auto; }
+.sheet[hidden] { display: none; }
+.sheet .bar { position: sticky; top: 0; background: var(--page); display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--grid); z-index: 2; }
+.sheet .bar strong { flex: 1; font-size: 16px; }
+.hero { display: flex; gap: 14px; align-items: center; margin: 14px 0 6px; }
+.hero h3 { margin: 0 0 4px; font-size: 20px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-size: 12px; color: var(--ink-2); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
+
+.cmp { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+.cmp:last-child { border-bottom: 0; }
+.cmp .lab { color: var(--ink-2); font-size: 13.5px; }
+.cmp .num { text-align: right; font-variant-numeric: tabular-nums; }
+.cmp .num small { color: var(--muted); display: block; font-size: 12px; }
+.meter { grid-column: 1 / -1; position: relative; height: 8px; background: var(--surface-2); border-radius: 4px; }
+.meter .m { position: absolute; left: 0; top: 0; bottom: 0; background: var(--pos); border-radius: 4px; }
+.meter .avg { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink-2); border-radius: 1px; }
+
+.pickers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.pickers .p { display: flex; align-items: center; gap: 6px; }
+.pickers .p i { width: 14px; height: 3px; border-radius: 2px; flex: none; }
+.pickers select { width: 100%; }
+
+.empty { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-size: 13px; }
+@media (max-width: 420px) {
+  .rank-row { grid-template-columns: 92px 1fr; }
+  .axis-row { grid-template-columns: 92px 1fr 52px; }
+}
+@media (forced-colors: active) {
+  .dbar .fill, .meter .m { background: CanvasText; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="grow">
+      <h1>Royal Arena · Thống kê thẻ</h1>
+      <div class="meta" id="meta"></div>
+    </div>
+    <button class="icon-btn" id="theme" type="button" aria-label="Đổi giao diện sáng/tối"></button>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-cards" aria-controls="p-cards" aria-selected="true">Thẻ</button>
+    <button role="tab" id="tab-compare" aria-controls="p-compare" aria-selected="false">So sánh</button>
+    <button role="tab" id="tab-matchups" aria-controls="p-matchups" aria-selected="false">Đối đầu</button>
+    <button role="tab" id="tab-matches" aria-controls="p-matches" aria-selected="false">Trận</button>
+  </nav>
+
+  <section class="panel" id="p-cards" role="tabpanel" aria-labelledby="tab-cards">
+    <div class="controls">
+      <label for="sort">Sắp xếp</label>
+      <select id="sort"></select>
+      <button class="chip" id="view-table" type="button" aria-pressed="false">Dạng bảng</button>
+    </div>
+    <div class="chips" id="filters" role="group" aria-label="Lọc thẻ"></div>
+    <p class="note" id="sort-note"></p>
+    <div class="card-list" id="card-list"></div>
+    <div class="scroll-x" id="card-table" hidden></div>
+  </section>
+
+  <section class="panel" id="p-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+    <h2>So sánh tối đa 3 thẻ</h2>
+    <div class="pickers" id="pickers"></div>
+    <div class="scroll-x"><table class="data" id="compare-table"></table></div>
+    <h2>Tỉ lệ thắng qua các lần cân bằng</h2>
+    <p class="note">Mỗi điểm là một lần chạy <code>statsReport</code> (một commit). Đường ngang là 50%.</p>
+    <div class="box" id="compare-history"></div>
+  </section>
+
+  <section class="panel" id="p-matchups" role="tabpanel" aria-labelledby="tab-matchups" hidden>
+    <h2>Ai thắng ai</h2>
+    <p class="note">Hàng là thẻ <b>tấn công</b> qua cầu, cột là thẻ <b>phòng thủ</b> dưới tháp của nó.
+      Số là elixir bên tấn công lời (xanh) hay lỗ (đỏ), tính cả máu tháp phá được
+      (1 elixir cho mỗi <span id="hp-per-elixir"></span> máu tháp). Chạm vào ô để xem chi tiết.</p>
+    <div class="controls">
+      <button class="chip" id="heat-numbers" type="button" aria-pressed="false">Hiện số</button>
+    </div>
+    <div class="legend" id="heat-legend"></div>
+    <div class="scroll-x" style="padding:8px"><table class="heat" id="heat"></table></div>
+  </section>
+
+  <section class="panel" id="p-matches" role="tabpanel" aria-labelledby="tab-matches" hidden>
+    <h2>Trận bot đấu bot</h2>
+    <div class="tiles" id="match-tiles"></div>
+    <h2>Tỉ lệ thắng của deck có thẻ</h2>
+    <p class="note">Thanh xanh: deck có thẻ này thắng nhiều hơn 50%; đỏ: ít hơn. Vạch mảnh là khoảng tin cậy 95%.</p>
+    <div id="win-chart"></div>
+    <h2>Dải sức mạnh (điểm đấu)</h2>
+    <p class="note" id="band-note"></p>
+    <div id="score-chart"></div>
+    <h2>Quân chỉ đánh tháp</h2>
+    <div class="box" id="siege"></div>
+  </section>
+
+  <div class="empty" id="empty" hidden>
+    <b>Chưa có dữ liệu.</b>
+    <p>Ở thư mục repo, chạy <code>gradlew statsReport</code> rồi mở lại trang. Để xem trên điện thoại cùng Wi-Fi, chạy <code>gradlew statsServe</code> và mở địa chỉ nó in ra.</p>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="wrap">
+    <div class="bar">
+      <button class="icon-btn" id="sheet-back" type="button" aria-label="Quay lại">←</button>
+      <strong id="sheet-title"></strong>
+    </div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+<div class="tooltip" id="tip" role="tooltip"></div>
+
+<script src="data/stats.js"></script>
+<script>
+(function () {
+  "use strict";
+  var S = window.ROYAL_STATS;
+  var PORTRAITS = "../../src/main/resources/assets/royalarena/textures/gui/card/";
+  var NF1 = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 });
+  var NF2 = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 });
+  var NF0 = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
+
+  // ------------------------------------------------------------ theme
+  var root = document.documentElement;
+  function storedTheme() { try { return localStorage.getItem("ra-theme"); } catch (e) { return null; } }
+  function saveTheme(t) { try { localStorage.setItem("ra-theme", t); } catch (e) { /* private mode */ } }
+  var theme = storedTheme();
+  if (theme === "light" || theme === "dark") root.setAttribute("data-theme", theme);
+  var themeBtn = document.getElementById("theme");
+  function isDark() {
+    return root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function themeIcon() { themeBtn.textContent = isDark() ? "☀" : "☾"; }
+  themeIcon();
+  themeBtn.addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    saveTheme(next);
+    themeIcon();
+    if (S && S.cards) renderAll();
+  });
+
+  if (!S || !S.cards) {
+    document.getElementById("empty").hidden = false;
+    document.querySelector("nav.tabs").hidden = true;
+    document.querySelectorAll("section.panel").forEach(function (p) { p.hidden = true; });
+    return;
+  }
+
+  // ------------------------------------------------------------ helpers
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v == null || v === false) return;
+      if (k === "text") n.textContent = v;
+      else if (k === "class") n.className = v;
+      else if (k === "style") n.style.cssText = v;
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : v);
+    });
+    (kids || []).forEach(function (c) {
+      if (c == null) return;
+      n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return n;
+  }
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs) {
+    var n = document.createElementNS(SVGNS, tag);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+  function css(name) { return getComputedStyle(root).getPropertyValue(name).trim(); }
+  function pct(v) { return v == null ? "–" : NF1.format(v * 100) + "%"; }
+  function signed(v) { return v == null ? "–" : (v > 0 ? "+" : "") + NF2.format(v); }
+  function num(v, digits) {
+    if (v == null) return "–";
+    return (digits === 0 ? NF0 : digits === 2 ? NF2 : NF1).format(v);
+  }
+
+  var CARDS = S.cards;
+  var BY_ID = {};
+  CARDS.forEach(function (c) { BY_ID[c.id] = c; });
+  var BAND = S.meta.band;
+  var ROLE = {
+    spell: "Spell", tank: "Tank", ranged: "Tầm xa", swarm: "Bầy",
+    area: "Sát thương lan", melee: "Cận chiến", buildings: "Đánh tháp"
+  };
+  function roleText(c) { return c.roles.map(function (r) { return ROLE[r] || r; }).join(" · "); }
+  function isSiege(c) { return c.troop && c.troop.traits.buildingsOnly; }
+
+  /** Out of the power band (PowerCreepTest) or clearly off 50% in bot games. */
+  function flagOf(c) {
+    if (c.spell) {
+      var v = c.spell.valuePerElixir;
+      if (v > BAND.maxSpell) return "Quá mạnh";
+      if (v < BAND.minSpell) return "Quá yếu";
+    } else if (isSiege(c)) {
+      var s = c.solo.towerDamagePerElixir;
+      if (s > BAND.maxSiege) return "Quá mạnh";
+      if (s < BAND.minSiege) return "Quá yếu";
+    } else if (c.fight && c.fight.score != null) {
+      if (c.fight.score > BAND.maxScore) return "Quá mạnh";
+      if (c.fight.score < BAND.minScore) return "Quá yếu";
+    }
+    var b = c.bot;
+    if (b.winrate != null) {
+      if (b.winrate - b.margin > 0.6) return "Thắng nhiều";
+      if (b.winrate + b.margin < 0.4) return "Thắng ít";
+    }
+    return null;
+  }
+
+  // Metrics shared by sorting, the table and the comparison.
+  var METRICS = [
+    { key: "winrate", label: "Tỉ lệ thắng", get: function (c) { return c.bot.winrate; }, fmt: pct, up: true },
+    { key: "score", label: "Điểm đấu", get: function (c) { return c.fight ? c.fight.score : null; }, fmt: signed, up: true },
+    { key: "attack", label: "Điểm tấn công", get: function (c) { return c.fight ? c.fight.attack : null; }, fmt: signed, up: true },
+    { key: "defend", label: "Điểm phòng thủ", get: function (c) { return c.fight ? c.fight.defend : null; }, fmt: signed, up: true },
+    { key: "cost", label: "Elixir", get: function (c) { return c.cost; }, fmt: function (v) { return num(v, 0); }, up: false },
+    { key: "dps", label: "Sát thương/giây", get: function (c) { return c.troop ? c.troop.dps : null; }, fmt: function (v) { return num(v, 2); }, up: true },
+    { key: "dpsPerElixir", label: "Sát thương/giây mỗi elixir", get: function (c) { return c.troop ? c.troop.dpsPerElixir : null; }, fmt: function (v) { return num(v, 2); }, up: true },
+    { key: "totalHealth", label: "Tổng máu", get: function (c) { return c.troop ? c.troop.totalHealth : null; }, fmt: function (v) { return num(v, 0); }, up: true },
+    { key: "healthPerElixir", label: "Máu mỗi elixir", get: function (c) { return c.troop ? c.troop.healthPerElixir : null; }, fmt: function (v) { return num(v, 1); }, up: true },
+    { key: "tankSeconds", label: "Chịu tháp (giây)", get: function (c) { return c.troop ? c.troop.tankSeconds : null; }, fmt: function (v) { return num(v, 1) + " s"; }, up: true },
+    { key: "towerPerElixir", label: "Phá tháp mỗi elixir", get: function (c) { return c.solo ? c.solo.towerDamagePerElixir : null; }, fmt: function (v) { return num(v, 1); }, up: true },
+    { key: "reach", label: "Tới tháp sau", get: function (c) { return c.solo ? c.solo.reachSeconds : null; }, fmt: function (v) { return v == null ? "–" : num(v, 1) + " s"; }, up: false },
+    { key: "range", label: "Tầm", get: function (c) { return c.troop ? c.troop.range : null; }, fmt: function (v) { return num(v, 1); }, up: true },
+    { key: "speed", label: "Tốc độ", get: function (c) { return c.troop ? c.troop.speed : null; }, fmt: function (v) { return num(v, 2); }, up: true },
+    { key: "spellValue", label: "Giá trị spell mỗi elixir", get: function (c) { return c.spell ? c.spell.valuePerElixir : null; }, fmt: function (v) { return num(v, 2); }, up: true },
+    { key: "plays", label: "Lượt đánh mỗi trận", get: function (c) { return c.bot.playsPerGame; }, fmt: function (v) { return num(v, 1); }, up: true }
+  ];
+  var METRIC = {};
+  METRICS.forEach(function (m) {
+    var f = m.fmt;
+    m.fmt = function (v) { return v == null ? "–" : f(v); };
+    METRIC[m.key] = m;
+  });
+
+  /** Average of a metric over the other cards of the same kind and cost. */
+  function sameCostAverage(c, m) {
+    var sum = 0, n = 0;
+    CARDS.forEach(function (o) {
+      if (o === c || o.kind !== c.kind || o.cost !== c.cost) return;
+      var v = m.get(o);
+      if (v != null) { sum += v; n++; }
+    });
+    return n ? { value: sum / n, count: n } : null;
+  }
+
+  // ------------------------------------------------------------ tooltip
+  var tip = document.getElementById("tip");
+  var tipOwner = null;
+  function showTip(target, build, x, y) {
+    tip.textContent = "";
+    build(tip);
+    tip.classList.add("show");
+    tipOwner = target;
+    var r = target.getBoundingClientRect();
+    var px = x != null ? x : r.left + r.width / 2;
+    var py = y != null ? y : r.top;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.min(window.innerWidth - w - 8, Math.max(8, px - w / 2));
+    var top = py - h - 10;
+    if (top < 8) top = (y != null ? y : r.bottom) + 14;
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+  }
+  function hideTip() { tip.classList.remove("show"); tipOwner = null; }
+  document.addEventListener("pointerdown", function (e) {
+    if (tipOwner && !tipOwner.contains(e.target)) hideTip();
+  });
+  window.addEventListener("scroll", hideTip, { passive: true });
+  /** Hover, tap and keyboard focus all show the same tooltip. */
+  var shownAt = 0;
+  function withTip(node, build) {
+    node.tabIndex = 0;
+    function show() { showTip(node, build); shownAt = Date.now(); }
+    node.addEventListener("pointerenter", function (e) { if (e.pointerType === "mouse") show(); });
+    node.addEventListener("pointerleave", function (e) { if (e.pointerType === "mouse") hideTip(); });
+    // A tap focuses, then clicks: the focus already showed it, so the click
+    // right after must not toggle it off again. A second tap hides it.
+    node.addEventListener("click", function () {
+      if (tipOwner === node && Date.now() - shownAt > 350) hideTip();
+      else show();
+    });
+    node.addEventListener("focus", show);
+    node.addEventListener("blur", hideTip);
+    return node;
+  }
+  function tipLines(t, value, label, extra) {
+    t.appendChild(el("div", { class: "tv", text: value }));
+    t.appendChild(el("div", { class: "tl", text: label }));
+    (extra || []).forEach(function (line) { t.appendChild(el("div", { text: line })); });
+  }
+
+  // ------------------------------------------------------------ pieces
+  function portrait(c, big) {
+    var box = el("div", { class: "portrait" + (big ? " big" : ""), "aria-hidden": "true" });
+    var initials = c.name.split(" ").map(function (w) { return w[0]; }).join("").slice(0, 2);
+    if (c.portrait) {
+      var img = el("img", { src: PORTRAITS + c.portrait, alt: "", loading: "lazy" });
+      img.addEventListener("error", function () { box.textContent = initials; });
+      box.appendChild(img);
+    } else {
+      box.textContent = c.kind === "spell" ? "✦" : initials;
+    }
+    return box;
+  }
+  function cost(c) { return el("span", { class: "cost", title: c.cost + " elixir", text: String(c.cost) }); }
+
+  /**
+   * A diverging bar: value against a centre, drawn between lo and hi;
+   * margin (optional) is a whisker; band (optional) a shaded range.
+   */
+  function dbar(value, center, lo, hi, label, margin, band) {
+    var track = el("div", { class: "track" });
+    function x(v) { return (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * 100; }
+    if (band) track.appendChild(el("div", { class: "band", style: "left:" + x(band[0]) + "%;width:" + (x(band[1]) - x(band[0])) + "%" }));
+    track.appendChild(el("div", { class: "zero", style: "left:" + x(center) + "%" }));
+    if (value != null) {
+      var a = x(Math.min(value, center)), b = x(Math.max(value, center));
+      track.appendChild(el("div", {
+        class: "fill " + (value >= center ? "pos" : "neg"),
+        style: "left:" + a + "%;width:" + Math.max(0.6, b - a) + "%"
+      }));
+      if (margin) {
+        var m0 = x(value - margin), m1 = x(value + margin);
+        track.appendChild(el("div", { class: "whisker", style: "left:" + m0 + "%;width:" + (m1 - m0) + "%" }));
+      }
+    }
+    return el("div", { class: "dbar" }, [track, el("div", { class: "val", text: label })]);
+  }
+  function winBar(c) {
+    var b = c.bot;
+    return dbar(b.winrate, 0.5, 0.25, 0.75, pct(b.winrate), b.margin);
+  }
+
+  // ------------------------------------------------------------ tabs
+  var TABS = ["cards", "compare", "matchups", "matches"];
+  var current = "cards";
+  TABS.forEach(function (t) {
+    document.getElementById("tab-" + t).addEventListener("click", function () { selectTab(t); });
+  });
+  function selectTab(t) {
+    current = t;
+    TABS.forEach(function (o) {
+      document.getElementById("tab-" + o).setAttribute("aria-selected", o === t ? "true" : "false");
+      document.getElementById("p-" + o).hidden = o !== t;
+    });
+    hideTip();
+    // Charts measure their box, which is only laid out once shown.
+    if (t === "compare") renderCompare();
+    try { history.replaceState(null, "", "#" + t); } catch (e) { /* file:// */ }
+  }
+
+  // ------------------------------------------------------------ cards tab
+  var FILTERS = [
+    { key: "all", label: "Tất cả", test: function () { return true; } },
+    { key: "troop", label: "Quân", test: function (c) { return c.kind === "troop"; } },
+    { key: "spell", label: "Spell", test: function (c) { return c.kind === "spell"; } },
+    { key: "tank", label: "Tank", test: function (c) { return c.roles.indexOf("tank") >= 0; } },
+    { key: "ranged", label: "Tầm xa", test: function (c) { return c.roles.indexOf("ranged") >= 0; } },
+    { key: "swarm", label: "Bầy", test: function (c) { return c.roles.indexOf("swarm") >= 0; } },
+    { key: "area", label: "Lan", test: function (c) { return c.roles.indexOf("area") >= 0; } },
+    { key: "buildings", label: "Đánh tháp", test: function (c) { return c.roles.indexOf("buildings") >= 0; } },
+    { key: "flag", label: "⚠ Cần xem", test: function (c) { return flagOf(c) != null; } }
+  ];
+  var state = { sort: "winrate", filter: "all", table: false, tableSort: "winrate", tableDesc: true };
+  var sortSel = document.getElementById("sort");
+  ["winrate", "score", "cost", "dpsPerElixir", "healthPerElixir", "tankSeconds", "towerPerElixir", "plays"].forEach(function (k) {
+    sortSel.appendChild(el("option", { value: k, text: METRIC[k].label }));
+  });
+  sortSel.addEventListener("change", function () { state.sort = sortSel.value; renderCards(); });
+  var filterBox = document.getElementById("filters");
+  FILTERS.forEach(function (f) {
+    filterBox.appendChild(el("button", {
+      class: "chip", type: "button", "aria-pressed": f.key === state.filter ? "true" : "false",
+      "data-key": f.key, text: f.label,
+      onclick: function () {
+        state.filter = f.key;
+        filterBox.querySelectorAll(".chip").forEach(function (b) {
+          b.setAttribute("aria-pressed", b.getAttribute("data-key") === f.key ? "true" : "false");
+        });
+        renderCards();
+      }
+    }));
+  });
+  var viewBtn = document.getElementById("view-table");
+  viewBtn.addEventListener("click", function () {
+    state.table = !state.table;
+    viewBtn.setAttribute("aria-pressed", state.table ? "true" : "false");
+    renderCards();
+  });
+
+  function sorted(list, key, desc) {
+    var m = METRIC[key];
+    return list.slice().sort(function (a, b) {
+      var va = m.get(a), vb = m.get(b);
+      if (va == null && vb == null) return a.name.localeCompare(b.name);
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return desc ? vb - va : va - vb;
+    });
+  }
+
+  function renderCards() {
+    var f = FILTERS.filter(function (x) { return x.key === state.filter; })[0];
+    var list = CARDS.filter(f.test);
+    var m = METRIC[state.sort];
+    document.getElementById("sort-note").textContent = list.length + " thẻ · " + m.label +
+      (m.up ? ", cao xuống thấp" : ", thấp lên cao") + ". Chạm vào thẻ để xem chi tiết.";
+    var box = document.getElementById("card-list");
+    var tableBox = document.getElementById("card-table");
+    box.hidden = state.table;
+    tableBox.hidden = !state.table;
+    if (state.table) { renderTable(list); return; }
+    box.textContent = "";
+    sorted(list, state.sort, m.up).forEach(function (c) {
+      var flag = flagOf(c);
+      var shown = state.sort === "winrate" ? "Lượt đánh/trận " + num(c.bot.playsPerGame, 1)
+        : m.label + ": " + m.fmt(m.get(c));
+      var row = el("button", { class: "card-row", type: "button", onclick: function () { openCard(c.id); },
+        "aria-label": c.name + ", " + c.cost + " elixir, tỉ lệ thắng " + pct(c.bot.winrate) }, [
+        portrait(c),
+        el("div", null, [
+          el("div", { class: "name" }, [c.name, flag ? el("span", { class: "flag", text: flag }) : null]),
+          el("div", { class: "sub", text: roleText(c) + " · " + shown })
+        ]),
+        cost(c),
+        el("div", { class: "bar-cell" }, [winBar(c)])
+      ]);
+      box.appendChild(row);
+    });
+  }
+
+  var TABLE_KEYS = ["winrate", "score", "attack", "defend", "cost", "dps", "dpsPerElixir", "totalHealth",
+    "healthPerElixir", "tankSeconds", "towerPerElixir", "reach", "range", "speed", "spellValue", "plays"];
+  function renderTable(list) {
+    var box = document.getElementById("card-table");
+    box.textContent = "";
+    var table = el("table", { class: "data" });
+    var head = el("tr", null, [el("th", { text: "Thẻ" })]);
+    TABLE_KEYS.forEach(function (k) {
+      var arrow = state.tableSort === k ? (state.tableDesc ? " ↓" : " ↑") : "";
+      head.appendChild(el("th", { scope: "col" }, [el("button", { type: "button", text: METRIC[k].label + arrow,
+        onclick: function () {
+          if (state.tableSort === k) state.tableDesc = !state.tableDesc;
+          else { state.tableSort = k; state.tableDesc = METRIC[k].up; }
+          renderTable(list);
+        } })]));
+    });
+    table.appendChild(el("thead", null, [head]));
+    var body = el("tbody");
+    sorted(list, state.tableSort, state.tableDesc).forEach(function (c) {
+      var tr = el("tr", null, [el("td", null, [el("a", { href: "#card/" + c.id, text: c.name,
+        onclick: function (e) { e.preventDefault(); openCard(c.id); } })])]);
+      TABLE_KEYS.forEach(function (k) { tr.appendChild(el("td", { text: METRIC[k].fmt(METRIC[k].get(c)) })); });
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    box.appendChild(table);
+  }
+
+  // ------------------------------------------------------------ card sheet
+  var sheet = document.getElementById("sheet");
+  document.getElementById("sheet-back").addEventListener("click", closeCard);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !sheet.hidden) closeCard(); });
+  var lastFocus = null;
+  function closeCard() {
+    sheet.hidden = true;
+    document.body.style.overflow = "";
+    hideTip();
+    if (lastFocus) lastFocus.focus();
+    try { history.replaceState(null, "", "#" + current); } catch (e) { /* file:// */ }
+  }
+  function statRows(rows) {
+    return el("dl", { class: "stats" }, rows.filter(Boolean).map(function (r) {
+      return el("div", null, [el("dt", { text: r[0] }), el("dd", null, [r[1], r[2] ? el("small", { text: r[2] }) : null])]);
+    }));
+  }
+  function compareRow(c, key, label) {
+    var m = METRIC[key];
+    var v = m.get(c);
+    if (v == null) return null;
+    var avg = sameCostAverage(c, m);
+    var max = 0;
+    CARDS.forEach(function (o) { var x = m.get(o); if (x != null && x > max) max = x; });
+    var diff = avg && avg.value ? (v - avg.value) / Math.abs(avg.value) : null;
+    var note = avg ? "TB thẻ " + c.cost + " elixir: " + m.fmt(avg.value) +
+      (diff != null ? " (" + (diff >= 0 ? "+" : "") + NF0.format(diff * 100) + "%)" : "") : "Không có thẻ cùng giá";
+    var meter = el("div", { class: "meter", role: "img",
+      "aria-label": label + " " + m.fmt(v) + ". " + note }, [
+      el("div", { class: "m", style: "width:" + (max ? v / max * 100 : 0) + "%" }),
+      avg ? el("div", { class: "avg", style: "left:calc(" + (max ? avg.value / max * 100 : 0) + "% - 1px)" }) : null
+    ]);
+    return el("div", { class: "cmp" }, [
+      el("div", { class: "lab", text: label }),
+      el("div", { class: "num" }, [m.fmt(v), el("small", { text: note })]),
+      meter
+    ]);
+  }
+
+  function openCard(id) {
+    var c = BY_ID[id];
+    if (!c) return;
+    lastFocus = document.activeElement;
+    document.getElementById("sheet-title").textContent = c.name;
+    var body = document.getElementById("sheet-body");
+    body.textContent = "";
+    var flag = flagOf(c);
+    body.appendChild(el("div", { class: "hero" }, [
+      portrait(c, true),
+      el("div", null, [
+        el("h3", null, [c.name, flag ? el("span", { class: "flag", text: flag }) : null]),
+        el("div", { class: "tags" }, [cost(c)].concat(c.roles.map(function (r) { return el("span", { class: "tag", text: ROLE[r] || r }); })))
+      ])
+    ]));
+
+    var tiles = el("div", { class: "tiles" });
+    tiles.appendChild(tile("Tỉ lệ thắng", pct(c.bot.winrate), "± " + pct(c.bot.margin) + " · " + c.bot.decks + " deck"));
+    if (c.fight && c.fight.score != null)
+      tiles.appendChild(tile("Điểm đấu", signed(c.fight.score), "dải " + signed(BAND.minScore) + " … " + signed(BAND.maxScore)));
+    else if (isSiege(c))
+      tiles.appendChild(tile("Phá tháp mỗi elixir", num(c.solo.towerDamagePerElixir, 1), "dải " + BAND.minSiege + " … " + BAND.maxSiege));
+    else if (c.spell)
+      tiles.appendChild(tile("Giá trị mỗi elixir", num(c.spell.valuePerElixir, 2), "dải " + num(BAND.minSpell, 2) + " … " + num(BAND.maxSpell, 2)));
+    tiles.appendChild(tile("Lượt đánh mỗi trận", num(c.bot.playsPerGame, 1), "trong deck của bot"));
+    body.appendChild(tiles);
+
+    if (c.troop) troopDetail(c, body);
+    else spellDetail(c, body);
+
+    body.appendChild(el("h2", { text: "Tỉ lệ thắng qua các lần cân bằng" }));
+    var hist = el("div", { class: "box" });
+    body.appendChild(hist);
+    sheet.hidden = false;
+    document.body.style.overflow = "hidden";
+    sheet.scrollTop = 0;
+    historyChart(hist, [c.id]);
+    document.getElementById("sheet-back").focus();
+    try { history.replaceState(null, "", "#card/" + c.id); } catch (e) { /* file:// */ }
+  }
+  function tile(k, v, d) {
+    return el("div", { class: "tile" }, [el("div", { class: "k", text: k }), el("div", { class: "v", text: v }), d ? el("div", { class: "d", text: d }) : null]);
+  }
+
+  function troopDetail(c, body) {
+    var t = c.troop, tr = t.traits, s = c.solo;
+    body.appendChild(el("h2", { text: "Chỉ số" }));
+    body.appendChild(el("div", { class: "box" }, [statRows([
+      ["Số quân", num(t.count, 0)],
+      ["Máu mỗi con", num(t.health, 1)],
+      ["Tổng máu", num(t.totalHealth, 0), tr.splits ? "tính cả các con tách ra" : null],
+      ["Sát thương mỗi đòn", num(t.damage, 2)],
+      ["Nhịp đánh", num(t.interval, 2) + " s"],
+      ["Sát thương/giây (cả thẻ)", num(t.dps, 2)],
+      ["Tầm", num(t.range, 1) + " ô"],
+      ["Tốc độ", num(t.speed, 2) + " ô/s"],
+      ["Kích thước", NF0.format(t.modelScale * 100) + "%"],
+      ["Giá theo công thức", num(t.rawCost, 2), "làm tròn thành " + c.cost]
+    ])]));
+
+    var traits = [];
+    if (tr.weapon) traits.push(["Vũ khí", tr.weapon.replace(/_/g, " ")]);
+    if (tr.splash) traits.push(["Sát thương lan", num(tr.splash, 1) + " ô"]);
+    if (tr.selfDestruct) traits.push(["Tự nổ", "chết sau đòn đầu"]);
+    if (tr.knockback) traits.push(["Hất lùi", num(tr.knockback, 1) + " ô"]);
+    if (tr.slowSeconds) traits.push(["Làm chậm", num(tr.slowSeconds, 1) + " s"]);
+    if (tr.splits) traits.push(["Tách đôi khi chết", tr.splits + " lần"]);
+    if (tr.buildingsOnly) traits.push(["Chỉ đánh tháp", "bỏ qua quân địch"]);
+    if (traits.length) {
+      body.appendChild(el("h2", { text: "Đặc tính" }));
+      body.appendChild(el("div", { class: "box" }, [statRows(traits)]));
+    }
+
+    body.appendChild(el("h2", { text: "So với thẻ cùng giá" }));
+    body.appendChild(el("p", { class: "note", text: "Thanh so với thẻ cao nhất; vạch đứng là trung bình các thẻ quân cùng " + c.cost + " elixir." }));
+    body.appendChild(el("div", { class: "box" }, [
+      compareRow(c, "dpsPerElixir", "Sát thương/giây mỗi elixir"),
+      compareRow(c, "healthPerElixir", "Máu mỗi elixir"),
+      compareRow(c, "tankSeconds", "Chịu được tháp công chúa"),
+      compareRow(c, "towerPerElixir", "Phá tháp mỗi elixir")
+    ]));
+
+    body.appendChild(el("h2", { text: "Đi một mình tới tháp" }));
+    body.appendChild(el("p", { class: "note", text: "Đặt ở đầu cầu bên mình, không ai chặn; tháp công chúa bắn " + num(S.meta.towerDps, 2) + " sát thương/giây." }));
+    body.appendChild(el("div", { class: "box" }, [statRows([
+      ["Đánh tháp sau", s.reachSeconds == null ? "không tới được" : num(s.reachSeconds, 1) + " s"],
+      ["Máu còn khi tới", s.reachSeconds == null ? "–" : pct(s.healthOnArrival)],
+      ["Máu tháp phá được", num(s.towerDamage, 0) + " / " + S.meta.towerHealth],
+      ["Tháp sập", s.fallSeconds == null ? "không" : "giây " + num(s.fallSeconds, 1)]
+    ])]));
+
+    if (c.fight) {
+      body.appendChild(el("h2", { text: "Đối đầu" }));
+      var mu = S.matchups, row = mu.attackers.indexOf(c.id);
+      var pairs = mu.defenders.map(function (d, i) { return { id: d, v: mu.values[row][i] }; })
+        .filter(function (p) { return p.id !== c.id; })
+        .sort(function (a, b) { return b.v - a.v; });
+      var best = pairs.slice(0, 3), worst = pairs.slice(-3).reverse();
+      body.appendChild(el("div", { class: "box" }, [statRows([
+        ["Điểm tấn công", signed(c.fight.attack), "trung bình khi đánh vào mọi thẻ phòng thủ"],
+        c.fight.defend != null ? ["Điểm phòng thủ", signed(c.fight.defend), "trung bình khi giữ tháp"] : null,
+        ["Tấn công tốt nhất vào", best.map(function (p) { return BY_ID[p.id].name + " " + signed(p.v); }).join(", ")],
+        ["Tấn công tệ nhất vào", worst.map(function (p) { return BY_ID[p.id].name + " " + signed(p.v); }).join(", ")]
+      ])]));
+    }
+  }
+
+  function spellDetail(c, body) {
+    var s = c.spell;
+    body.appendChild(el("h2", { text: "Chỉ số" }));
+    body.appendChild(el("div", { class: "box" }, [statRows([
+      ["Bán kính", num(s.radius, 1) + " ô"],
+      ["Bay tới sau", num(s.castSeconds, 2) + " s"],
+      s.pulses > 1 ? ["Số đợt", s.pulses + " đợt trong " + num(s.durationSeconds, 2) + " s"] : null,
+      [s.heal ? "Hồi máu mỗi mục tiêu" : "Sát thương mỗi mục tiêu", num(s.perTarget, 1)],
+      s.heal ? null : ["Tháp nhận", NF0.format(s.towerShare * 100) + "%"],
+      s.maxTargets ? ["Số mục tiêu", "tối đa " + s.maxTargets + " (nhiều máu nhất)"] : null,
+      s.stunSeconds ? ["Choáng", num(s.stunSeconds, 2) + " s"] : null,
+      s.freezeSeconds ? ["Đóng băng", num(s.freezeSeconds, 1) + " s"] : null,
+      s.knockback ? ["Hất lùi", num(s.knockback, 1) + " ô"] : null,
+      s.burnSeconds ? ["Cháy", num(s.burnSeconds, 1) + " s"] : null,
+      ["Giá theo công thức", num(s.rawCost, 2), "làm tròn thành " + c.cost]
+    ])]));
+  }
+
+  // ------------------------------------------------------------ history chart
+  var SERIES = ["--s1", "--s2", "--s3"];
+  function historyChart(box, ids) {
+    box.textContent = "";
+    var runs = S.history || [];
+    if (runs.length < 2) {
+      box.appendChild(el("p", { class: "note", text: "Mới có " + runs.length + " lần chạy. Chạy lại statsReport sau mỗi lần cân bằng để thấy đường thay đổi." }));
+    }
+    if (!runs.length) return;
+    var W = Math.max(280, Math.round(box.clientWidth - 24)), H = 200, L = 40, R = 92, T = 12, B = 26;
+    var values = [];
+    ids.forEach(function (id) { runs.forEach(function (r) { var v = r.cards[id] && r.cards[id].winrate; if (v != null) values.push(v); }); });
+    var lo = Math.min(0.4, Math.min.apply(null, values.concat([0.5])) - 0.02);
+    var hi = Math.max(0.6, Math.max.apply(null, values.concat([0.5])) + 0.02);
+    lo = Math.floor(lo * 20) / 20; hi = Math.ceil(hi * 20) / 20;
+    function x(i) { return L + (runs.length === 1 ? (W - L - R) / 2 : i / (runs.length - 1) * (W - L - R)); }
+    function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+    var s = svg("svg", { class: "chart", viewBox: "0 0 " + W + " " + H, width: W, height: H, role: "img",
+      "aria-label": "Tỉ lệ thắng qua " + runs.length + " lần chạy" });
+    for (var g = lo; g <= hi + 1e-9; g += 0.05) {
+      s.appendChild(svg("line", { class: Math.abs(g - 0.5) < 1e-9 ? "ref" : "grid", x1: L, x2: W - R, y1: y(g), y2: y(g) }));
+      var tx = svg("text", { x: L - 6, y: y(g) + 4, "text-anchor": "end" });
+      tx.textContent = NF0.format(g * 100) + "%";
+      s.appendChild(tx);
+    }
+    [0, runs.length - 1].forEach(function (i, k) {
+      if (k === 1 && runs.length === 1) return;
+      var t = svg("text", { x: x(i), y: H - 6, "text-anchor": k === 0 ? "start" : "end" });
+      t.textContent = runs[i].commit;
+      s.appendChild(t);
+    });
+    var surface = css("--surface");
+    ids.forEach(function (id, n) {
+      var color = css(SERIES[n]);
+      var pts = [];
+      runs.forEach(function (r, i) { var v = r.cards[id] && r.cards[id].winrate; if (v != null) pts.push([x(i), y(v), v]); });
+      if (!pts.length) return;
+      if (pts.length > 1)
+        s.appendChild(svg("path", { class: "line", stroke: color, d: pts.map(function (p, i) { return (i ? "L" : "M") + p[0] + " " + p[1]; }).join(" ") }));
+      var last = pts[pts.length - 1];
+      s.appendChild(svg("circle", { cx: last[0], cy: last[1], r: 4, fill: color, stroke: surface, "stroke-width": 2 }));
+      var label = svg("text", { x: last[0] + 8, y: last[1] + 4 });
+      label.style.fill = css("--ink-2");
+      var short = BY_ID[id].name.length > 9 ? BY_ID[id].name.slice(0, 8) + "…" : BY_ID[id].name;
+      label.textContent = (ids.length > 1 ? short + " " : "") + NF0.format(last[2] * 100) + "%";
+      s.appendChild(label);
+    });
+    // Crosshair: snaps to the nearest run; one tooltip lists every card.
+    var cross = svg("line", { class: "cross", y1: T, y2: H - B, x1: 0, x2: 0, visibility: "hidden" });
+    s.appendChild(cross);
+    var hit = svg("rect", { x: L, y: 0, width: W - L - R, height: H, fill: "transparent" });
+    s.appendChild(hit);
+    function at(e) {
+      var r = s.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width * W;
+      var i = runs.length === 1 ? 0 : Math.round((px - L) / (W - L - R) * (runs.length - 1));
+      i = Math.max(0, Math.min(runs.length - 1, i));
+      cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i));
+      cross.setAttribute("visibility", "visible");
+      var run = runs[i];
+      showTip(s, function (t) {
+        t.appendChild(el("div", { class: "tl", text: run.commit + " · " + new Date(run.date).toLocaleDateString("vi-VN") + " · " + run.matches + " trận" }));
+        ids.forEach(function (id, n) {
+          var v = run.cards[id];
+          t.appendChild(el("div", { class: "row" }, [el("i", { style: "background:" + css(SERIES[n]) }),
+            el("b", { text: v && v.winrate != null ? pct(v.winrate) : "–" }),
+            el("span", { class: "tl", text: BY_ID[id].name + (v ? " · " + v.cost + " elixir" : "") })]));
+        });
+      }, e.clientX, r.top + y(0.5) / H * r.height);
+    }
+    hit.addEventListener("pointermove", at);
+    hit.addEventListener("pointerdown", at);
+    hit.addEventListener("pointerleave", function () { cross.setAttribute("visibility", "hidden"); hideTip(); });
+    box.appendChild(s);
+  }
+
+  // ------------------------------------------------------------ compare tab
+  var picks = [];
+  var byWin = sorted(CARDS, "winrate", true);
+  picks = [byWin[0].id, byWin[byWin.length - 1].id, byWin[Math.floor(byWin.length / 2)].id];
+  function renderCompare() {
+    var box = document.getElementById("pickers");
+    box.textContent = "";
+    picks.forEach(function (id, n) {
+      var sel = el("select", { "aria-label": "Thẻ " + (n + 1) });
+      sel.appendChild(el("option", { value: "", text: "—" }));
+      CARDS.forEach(function (c) { var o = el("option", { value: c.id, text: c.name }); if (c.id === id) o.selected = true; sel.appendChild(o); });
+      sel.addEventListener("change", function () { picks[n] = sel.value || null; renderCompare(); });
+      box.appendChild(el("div", { class: "p" }, [el("i", { style: "background:" + css(SERIES[n]) }), sel]));
+    });
+    var chosen = picks.filter(Boolean).map(function (id) { return BY_ID[id]; });
+    var table = document.getElementById("compare-table");
+    table.textContent = "";
+    var head = el("tr", null, [el("th", { text: "Chỉ số" })]);
+    chosen.forEach(function (c) { head.appendChild(el("th", { scope: "col", text: c.name })); });
+    table.appendChild(el("thead", null, [head]));
+    var body = el("tbody");
+    TABLE_KEYS.forEach(function (k) {
+      var m = METRIC[k];
+      var vals = chosen.map(function (c) { return m.get(c); });
+      if (vals.every(function (v) { return v == null; })) return;
+      var real = vals.filter(function (v) { return v != null; });
+      var best = real.length > 1 ? (m.up ? Math.max.apply(null, real) : Math.min.apply(null, real)) : null;
+      var tr = el("tr", null, [el("td", { text: m.label })]);
+      vals.forEach(function (v) { tr.appendChild(el("td", { class: v != null && v === best ? "best" : null, text: m.fmt(v) })); });
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    historyChart(document.getElementById("compare-history"), chosen.map(function (c) { return c.id; }));
+  }
+
+  // ------------------------------------------------------------ matchups tab
+  var showNumbers = false;
+  document.getElementById("heat-numbers").addEventListener("click", function () {
+    showNumbers = !showNumbers;
+    this.setAttribute("aria-pressed", showNumbers ? "true" : "false");
+    renderHeat();
+  });
+  function mix(a, b, t) {
+    function rgb(h) { h = h.replace("#", ""); return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
+    var A = rgb(a), B = rgb(b);
+    return "rgb(" + A.map(function (v, i) { return Math.round(v + (B[i] - v) * t); }).join(",") + ")";
+  }
+  function inkOn(color) {
+    var m = color.match(/\d+/g).map(Number);
+    var l = (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255;
+    return l > 0.55 ? "#0b0b0b" : "#ffffff";
+  }
+  function renderHeat() {
+    var mu = S.matchups;
+    document.getElementById("hp-per-elixir").textContent = S.meta.towerHpPerElixir;
+    var mags = [];
+    mu.values.forEach(function (r) { r.forEach(function (v) { mags.push(Math.abs(v)); }); });
+    mags.sort(function (a, b) { return a - b; });
+    // Most cells get a visible colour; the few beyond the cap stay at full.
+    var p90 = mags[Math.floor(mags.length * 0.9)] || 1;
+    var cap = Math.max(0.5, Math.round(p90 * 2) / 2);
+    var pos = css("--pos"), neg = css("--neg"), midc = css("--mid");
+    function color(v) {
+      var t = Math.min(1, Math.abs(v) / cap);
+      return mix(midc, v >= 0 ? pos : neg, t);
+    }
+    var leg = document.getElementById("heat-legend");
+    leg.textContent = "";
+    leg.appendChild(el("span", { text: "−" + NF1.format(cap) + " lỗ" }));
+    leg.appendChild(el("span", { class: "ramp", style: "background:linear-gradient(90deg," + neg + "," + midc + "," + pos + ")" }));
+    leg.appendChild(el("span", { text: "+" + NF1.format(cap) + " lời (hoặc hơn)" }));
+    var table = document.getElementById("heat");
+    table.textContent = "";
+    var head = el("tr", null, [el("th", { text: "Tấn công ↓ / Thủ →" })]);
+    mu.defenders.forEach(function (d) { head.appendChild(el("th", { scope: "col" }, [el("span", { text: BY_ID[d].name })])); });
+    table.appendChild(el("thead", null, [head]));
+    var body = el("tbody");
+    mu.attackers.forEach(function (a, i) {
+      var tr = el("tr", null, [el("th", { scope: "row", text: BY_ID[a].name })]);
+      mu.defenders.forEach(function (d, j) {
+        var v = mu.values[i][j];
+        var c = color(v);
+        var td = el("td", { style: "background:" + c + ";color:" + inkOn(c), text: showNumbers ? signed(v) : "",
+          "aria-label": BY_ID[a].name + " tấn công " + BY_ID[d].name + ": " + signed(v) + " elixir" });
+        if (a === d) td.className = "self";
+        withTip(td, function (t) {
+          tipLines(t, signed(v) + " elixir", BY_ID[a].name + " tấn công " + BY_ID[d].name,
+            [v > 0.3 ? "Bên tấn công lời" : v < -0.3 ? "Bên phòng thủ lời" : "Gần như hòa"]);
+        });
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+  }
+
+  // ------------------------------------------------------------ matches tab
+  function rankChart(box, list, value, center, lo, hi, fmt, extra, band) {
+    box.textContent = "";
+    var wrap = el("div", { class: "rank" });
+    list.forEach(function (c) {
+      var v = value(c);
+      var row = el("div", { class: "rank-row", "aria-label": c.name + ": " + fmt(v) }, [
+        el("div", { class: "label", text: c.name }),
+        dbar(v, center, lo, hi, fmt(v), extra.margin ? extra.margin(c) : null, band)
+      ]);
+      withTip(row, function (t) { tipLines(t, fmt(v), c.name, extra.lines(c)); });
+      wrap.appendChild(row);
+    });
+    var ticks = el("div", { class: "ticks" });
+    extra.ticks.forEach(function (t) {
+      ticks.appendChild(el("span", { style: "left:" + (t - lo) / (hi - lo) * 100 + "%", text: fmt(t) }));
+    });
+    wrap.appendChild(el("div", { class: "axis-row" }, [el("span"), ticks, el("span")]));
+    box.appendChild(wrap);
+  }
+  function renderMatches() {
+    var m = S.matches;
+    var tiles = document.getElementById("match-tiles");
+    tiles.textContent = "";
+    tiles.appendChild(tile("Số trận", num(m.count, 0), "mỗi cặp deck đấu 2 lần, đổi bên"));
+    tiles.appendChild(tile("Xanh / Đỏ thắng", m.blueWins + " / " + m.redWins, m.draws + " hòa"));
+    tiles.appendChild(tile("Thời lượng TB", Math.floor(m.averageSeconds / 60) + ":" + String(Math.round(m.averageSeconds % 60)).padStart(2, "0"), "phút:giây"));
+    tiles.appendChild(tile("Vào hiệp phụ", pct(m.overtimes / m.count), m.overtimes + " trận"));
+    tiles.appendChild(tile("Tháp King bị phá", num(m.kingFalls, 0), "trận kết thúc vì mất King"));
+
+    var played = sorted(CARDS.filter(function (c) { return c.bot.winrate != null; }), "winrate", true);
+    rankChart(document.getElementById("win-chart"), played, function (c) { return c.bot.winrate; }, 0.5, 0.25, 0.75, pct, {
+      margin: function (c) { return c.bot.margin; },
+      lines: function (c) { return ["± " + pct(c.bot.margin) + " (95%)", c.bot.decks + " deck · " + num(c.bot.playsPerGame, 1) + " lượt/trận", c.cost + " elixir"]; },
+      ticks: [0.25, 0.5, 0.75]
+    });
+
+    document.getElementById("band-note").textContent = "Điểm đấu = elixir lời trung bình khi tấn công vào và phòng thủ trước mọi quân đánh nhau. " +
+      "Vùng tô nhạt là dải cho phép (" + signed(BAND.minScore) + " … " + signed(BAND.maxScore) + "); ra ngoài thì build báo lỗi.";
+    var fighters = sorted(CARDS.filter(function (c) { return c.fight && c.fight.score != null; }), "score", true);
+    rankChart(document.getElementById("score-chart"), fighters, function (c) { return c.fight.score; }, 0, -2, 2, signed, {
+      lines: function (c) { return ["Tấn công " + signed(c.fight.attack) + " · Phòng thủ " + signed(c.fight.defend), c.cost + " elixir"]; },
+      ticks: [-2, -1, 0, 1, 2]
+    }, [BAND.minScore, BAND.maxScore]);
+
+    var siege = document.getElementById("siege");
+    siege.textContent = "";
+    siege.appendChild(statRows(CARDS.filter(isSiege).map(function (c) {
+      return [c.name + " (" + c.cost + " elixir)", num(c.solo.towerDamagePerElixir, 1) + " máu tháp/elixir",
+        "dải " + BAND.minSiege + " … " + BAND.maxSiege + " · tháp sập " + (c.solo.fallSeconds == null ? "không" : "giây " + num(c.solo.fallSeconds, 1))];
+    })));
+  }
+
+  // ------------------------------------------------------------ boot
+  function renderAll() {
+    renderCards();
+    renderCompare();
+    renderHeat();
+    renderMatches();
+  }
+  var d = new Date(S.meta.date);
+  document.getElementById("meta").textContent = "Bản " + S.meta.commit + " · " +
+    d.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) + " · " + S.meta.botMatches + " trận bot";
+  renderAll();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { themeIcon(); renderAll(); });
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      renderCompare();
+      if (!sheet.hidden && location.hash.indexOf("#card/") === 0) openCard(location.hash.slice(6));
+    }, 200);
+  });
+  var hash = location.hash.slice(1);
+  if (TABS.indexOf(hash) >= 0) selectTab(hash);
+  else if (hash.indexOf("card/") === 0) openCard(hash.slice(5));
+})();
+</script>
+</body>
+</html>
