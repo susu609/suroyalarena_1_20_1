@@ -72,10 +72,10 @@ public final class ArenaLayout {
      * Whether a floor block is part of the dirt road, as in Clash Royale: on
      * each half a 2-wide lane from each bridge up to the Princess towers, a
      * 2-row road across the front of the towers joining the two lanes, and a
-     * approach from that road to the King tower, and a 1-wide ring
-     * around every tower (the rings of a Princess tower and its King touch,
-     * so the road also links the towers along the back). Mirrored on both
-     * axes; never in the river or under a tower.
+     * 1-wide ring around every tower. The rings of a Princess tower and its
+     * King touch, so the King is reached along them; a grass row is left
+     * between the road and the King's ring. Mirrored on both axes; never in
+     * the river or under a tower.
      */
     public boolean isPath(int worldX, int worldZ) {
         if (isRiver(worldZ))
@@ -89,11 +89,7 @@ public final class ArenaLayout {
                 depth <= roadBack;
         boolean road = depth >= roadFront && depth <= roadBack &&
                 rx >= -LANE_OFFSET - 1 && rx <= LANE_OFFSET;
-        int kingFront = KING_CENTER_Z - KING_SIZE / 2;
-        // As wide as the King's ring, so no grass is left between them.
-        boolean approach = rx >= -KING_SIZE / 2 - 1 && rx <= KING_SIZE / 2 &&
-                depth >= roadFront && depth < kingFront;
-        return lane || road || approach || aroundTower(worldX, worldZ);
+        return lane || road || aroundTower(worldX, worldZ);
     }
 
     /** In the 1-block ring around a tower's footprint. */
