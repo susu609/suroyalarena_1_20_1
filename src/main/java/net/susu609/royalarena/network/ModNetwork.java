@@ -12,19 +12,21 @@ import net.susu609.royalarena.network.c2s.C2SDeckRequestPacket;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
 import net.susu609.royalarena.network.c2s.C2SJoinQueuePacket;
 import net.susu609.royalarena.network.c2s.C2SLeaveQueuePacket;
+import net.susu609.royalarena.network.c2s.C2SResultDonePacket;
 import net.susu609.royalarena.network.c2s.C2SSaveDeckPacket;
 import net.susu609.royalarena.network.c2s.C2SStartPracticePacket;
 import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
 import net.susu609.royalarena.network.s2c.S2CBotDragPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CDeckPacket;
+import net.susu609.royalarena.network.s2c.S2CMatchResultPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.network.s2c.S2CQueueStatusPacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
 
 public final class ModNetwork {
-    private static final String PROTOCOL = "9";
+    private static final String PROTOCOL = "10";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
                     RL.of(RoyalArena.MOD_ID, "main"),
@@ -113,7 +115,7 @@ public final class ModNetwork {
                 .decoder(S2CBurnPacket::decode)
                 .consumerMainThread(S2CBurnPacket::handle).add();
         CHANNEL.messageBuilder(
-                        S2CBotDragPacket.class, id,
+                        S2CBotDragPacket.class, id++,
                         NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(S2CBotDragPacket::encode)
                 .decoder(S2CBotDragPacket::decode)
@@ -124,6 +126,18 @@ public final class ModNetwork {
                 .encoder(S2CShakePacket::encode)
                 .decoder(S2CShakePacket::decode)
                 .consumerMainThread(S2CShakePacket::handle).add();
+        CHANNEL.messageBuilder(
+                        S2CMatchResultPacket.class, id++,
+                        NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(S2CMatchResultPacket::encode)
+                .decoder(S2CMatchResultPacket::decode)
+                .consumerMainThread(S2CMatchResultPacket::handle).add();
+        CHANNEL.messageBuilder(
+                        C2SResultDonePacket.class, id++,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SResultDonePacket::encode)
+                .decoder(C2SResultDonePacket::decode)
+                .consumerMainThread(C2SResultDonePacket::handle).add();
     }
 
     public static void sendToServer(Object packet) {

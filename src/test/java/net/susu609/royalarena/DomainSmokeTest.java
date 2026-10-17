@@ -44,6 +44,7 @@ public final class DomainSmokeTest {
         MatchLogSmokeTest.run();
         NewMobsSmokeTest.run();
         MobsWave2SmokeTest.run();
+        ResultScreenSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

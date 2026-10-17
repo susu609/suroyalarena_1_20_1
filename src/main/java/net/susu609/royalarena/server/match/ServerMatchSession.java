@@ -8,7 +8,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.item.FireworkRocketItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.fml.ModList;
@@ -24,6 +30,7 @@ import net.susu609.royalarena.entity.building.TowerVisualType;
 import net.susu609.royalarena.match.*;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CBotDragPacket;
+import net.susu609.royalarena.network.s2c.S2CMatchResultPacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
 import net.susu609.royalarena.server.arena.ArenaBuilder;
@@ -38,7 +45,13 @@ import java.util.*;
 
 public final class ServerMatchSession {
     private static final int COUNTDOWN_TICKS = 20 * 3;
-    private static final int FINISH_DISPLAY_TICKS = 20 * 3;
+    /**
+     * Longest the result screen is shown before the players are sent home
+     * anyway; OK sends a player home sooner.
+     */
+    private static final int RESULT_MAX_TICKS = 20 * 15;
+    /** Ticks after the end at which a firework goes up over the winner. */
+    private static final int[] FIREWORK_TICKS = {28, 36, 46};
 
     private final MatchInstance match;
     private final ServerLevel arenaLevel;
@@ -59,6 +72,10 @@ public final class ServerMatchSession {
     private boolean complete;
     private long startedMillis = System.currentTimeMillis();
     private boolean logged;
+    /** Players who closed the result screen (sent home already). */
+    private final Set<UUID> done = new HashSet<>();
+    /** Players who asked for another match against the bot. */
+    private final List<UUID> rematch = new ArrayList<>();
 
     /** {@code bot} plays for its side; null when both sides are players. */
     public ServerMatchSession(MatchInstance match, ServerLevel arenaLevel,
@@ -286,14 +303,104 @@ public final class ServerMatchSession {
 
         if (match.state() == MatchState.FINISHED) {
             finishedTicks++;
-            if (finishedTicks == 1)
+            if (finishedTicks == 1) {
                 logMatch();
-            if (finishedTicks == 1)
                 sync(server);
-            if (finishedTicks >= FINISH_DISPLAY_TICKS) {
-                endAndRestore(server);
+                sendResult(server);
             }
+            for (int at : FIREWORK_TICKS) {
+                if (finishedTicks == at)
+                    fireworkOverWinner();
+            }
+            if (finishedTicks >= RESULT_MAX_TICKS || everyoneDone(server))
+                endAndRestore(server);
         }
+    }
+
+    /** Opens the result screen of every player in the match. */
+    private void sendResult(MinecraftServer server) {
+        MatchResult result = MatchResult.of(match, battle.engine().stats(),
+                bot != null);
+        String[] names = new String[2];
+        for (TeamSide side : TeamSide.values()) {
+            ServerPlayer player = server.getPlayerList()
+                    .getPlayer(match.player(side).playerId());
+            names[side.ordinal()] = bot != null && bot.side() == side ?
+                    "Bot" :
+                    player != null ? player.getGameProfile().getName() :
+                            "Player";
+        }
+        for (TeamSide side : TeamSide.values()) {
+            ServerPlayer player = server.getPlayerList()
+                    .getPlayer(match.player(side).playerId());
+            if (player != null)
+                ModNetwork.sendToPlayer(player, new S2CMatchResultPacket(
+                        result, side, names[0], names[1],
+                        match.blue().playerId(), match.red().playerId()));
+        }
+    }
+
+    /**
+     * A player closed the result screen: they go home now, and with
+     * {@code again} a new match against the bot starts once this one is
+     * cleared away.
+     */
+    public void resultDone(MinecraftServer server, UUID playerId,
+            boolean again)
+    {
+        if (complete || match.state() != MatchState.FINISHED ||
+                !done.add(playerId))
+            return;
+        if (again && bot != null)
+            rematch.add(playerId);
+        ServerPlayer player = server.getPlayerList().getPlayer(playerId);
+        if (player != null)
+            restore(server, player);
+        if (everyoneDone(server))
+            endAndRestore(server);
+    }
+
+    /** Players who asked for a rematch; read once the session is complete. */
+    public List<UUID> rematchPlayers() {
+        return Collections.unmodifiableList(rematch);
+    }
+
+    /** Every player still online has closed the result screen. */
+    private boolean everyoneDone(MinecraftServer server) {
+        for (TeamSide side : TeamSide.values()) {
+            UUID id = match.player(side).playerId();
+            if (server.getPlayerList().getPlayer(id) != null &&
+                    !done.contains(id))
+                return false;
+        }
+        return true;
+    }
+
+    /** A rocket bursting in the winner's colour over their King tower. */
+    private void fireworkOverWinner() {
+        TeamSide winner = match.winner();
+        if (winner == null)
+            return;
+        ArenaPoint king = match.arena().towerPoint(TowerId.king(winner));
+        CompoundTag explosion = new CompoundTag();
+        explosion.putByte(FireworkRocketItem.TAG_EXPLOSION_TYPE,
+                (byte) FireworkRocketItem.Shape.LARGE_BALL.getId());
+        explosion.putIntArray(FireworkRocketItem.TAG_EXPLOSION_COLORS,
+                winner == TeamSide.BLUE ? new int[] {0x3C8DFF, 0xFFD84A} :
+                        new int[] {0xFF4E4E, 0xFFD84A});
+        explosion.putBoolean(FireworkRocketItem.TAG_EXPLOSION_TRAIL, true);
+        ListTag explosions = new ListTag();
+        explosions.add(explosion);
+        CompoundTag fireworks = new CompoundTag();
+        fireworks.putByte(FireworkRocketItem.TAG_FLIGHT, (byte) 1);
+        fireworks.put(FireworkRocketItem.TAG_EXPLOSIONS, explosions);
+        ItemStack rocket = new ItemStack(Items.FIREWORK_ROCKET);
+        rocket.getOrCreateTag().put(FireworkRocketItem.TAG_FIREWORKS,
+                fireworks);
+        double spread = (arenaLevel.random.nextDouble() - 0.5D) * 4.0D;
+        arenaLevel.addFreshEntity(new FireworkRocketEntity(arenaLevel,
+                king.x() + 0.5D + spread, king.y() + 6.0D, king.z() + 0.5D,
+                rocket));
     }
     /**
      * A tower fell: remove its model, leave a pile of rubble where it stood,
@@ -340,25 +447,31 @@ public final class ServerMatchSession {
         }
         towerHitboxes.clear();
         for (TeamSide side : TeamSide.values()) {
-            UUID id = match.player(side).playerId();
-            ServerPlayer player = server.getPlayerList().getPlayer(id);
-            if (player == null)
-                continue;
-            PlayerReturnState state = returnStates.get(id);
-            if (state != null) {
-                ServerLevel targetLevel = server.getLevel(state.dimension());
-                if (targetLevel != null) {
-                    player.teleportTo(
-                            targetLevel, state.x(), state.y(), state.z(),
-                            state.yaw(), state.pitch());
-                }
-                player.setGameMode(state.gameType());
-            }
-            ModNetwork.sendToPlayer(
-                    player,
-                    new S2CMatchSnapshotPacket(MatchSnapshot.inactive()));
+            ServerPlayer player = server.getPlayerList()
+                    .getPlayer(match.player(side).playerId());
+            if (player != null)
+                restore(server, player);
         }
         ArenaBuilder.clear(arenaLevel, match.arena());
         complete = true;
+    }
+
+    /**
+     * Sends a player back where they were before the match (once) and tells
+     * their client the match is over.
+     */
+    private void restore(MinecraftServer server, ServerPlayer player) {
+        PlayerReturnState state = returnStates.remove(player.getUUID());
+        if (state == null)
+            return;
+        ServerLevel targetLevel = server.getLevel(state.dimension());
+        if (targetLevel != null) {
+            player.teleportTo(
+                    targetLevel, state.x(), state.y(), state.z(),
+                    state.yaw(), state.pitch());
+        }
+        player.setGameMode(state.gameType());
+        ModNetwork.sendToPlayer(
+                player, new S2CMatchSnapshotPacket(MatchSnapshot.inactive()));
     }
 }

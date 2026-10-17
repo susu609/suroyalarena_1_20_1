@@ -14,8 +14,10 @@ import net.susu609.royalarena.server.arena.ArenaDimension;
 import net.susu609.royalarena.server.arena.ArenaReservation;
 import net.susu609.royalarena.server.deck.DeckStorage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -25,6 +27,8 @@ public final class MatchManager {
 
     private final Map<UUID, ServerMatchSession> matches = new HashMap<>();
     private final Map<UUID, UUID> playerToMatch = new HashMap<>();
+    /** Players to start a new bot match for on the next tick. */
+    private final List<UUID> rematches = new ArrayList<>();
 
     private MatchManager() {
     }
@@ -103,8 +107,26 @@ public final class MatchManager {
                 playerToMatch.remove(session.match().red().playerId());
                 ArenaAllocator.INSTANCE.release(session.reservation());
                 it.remove();
+                rematches.addAll(session.rematchPlayers());
             }
         }
+        // "Play again" on the result screen: a new bot match once the old
+        // one is cleared away.
+        while (!rematches.isEmpty()) {
+            ServerPlayer player =
+                    server.getPlayerList().getPlayer(rematches.remove(0));
+            if (player != null)
+                startPractice(player);
+        }
+    }
+
+    /** A player closed the result screen (OK, or Play again). */
+    public void resultDone(ServerPlayer player, boolean again) {
+        UUID matchId = playerToMatch.get(player.getUUID());
+        ServerMatchSession session = matchId == null ? null :
+                matches.get(matchId);
+        if (session != null)
+            session.resultDone(player.getServer(), player.getUUID(), again);
     }
     public void onPlayerLoggedOut(UUID playerId) {
         UUID matchId = playerToMatch.get(playerId);

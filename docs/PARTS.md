@@ -449,3 +449,18 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `MobsWave2SmokeTest`, CombatSmokeTest (roles and the new JSON keys)
 - `docs/CARDS.md`, `docs/COMBAT.md`, `docs/BALANCE.md`, `docs/UI.md`
 
+## Part 38 — Result screen
+
+- `match/MatchResult.java` (winner, crowns, end reason, length, MVP per
+  side), `match/ResultTimeline.java` (animation order, sizes and sound cues)
+- `network/s2c/S2CMatchResultPacket.java`,
+  `network/c2s/C2SResultDonePacket.java`, `network/ModNetwork.java`
+  (protocol 10; also fixes `S2CBotDragPacket` sharing an id with
+  `S2CShakePacket`)
+- `client/screen/ResultScreen.java`, `client/hud/BattleHudOverlay.java`
+  (hidden under it), `textures/gui/result/` (ribbons, rays)
+- `server/match/ServerMatchSession.java` (sends the result, fireworks over
+  the winner, each player goes home on OK or after 15 s),
+  `server/match/MatchManager.java` (`resultDone`, Play again)
+- `ResultScreenSmokeTest`; `docs/UI.md` (Result screen)
+

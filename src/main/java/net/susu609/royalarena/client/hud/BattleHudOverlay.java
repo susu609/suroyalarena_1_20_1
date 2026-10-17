@@ -11,6 +11,7 @@ import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.HudLayout.Rect;
+import net.susu609.royalarena.client.screen.ResultScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
@@ -71,6 +72,9 @@ public final class BattleHudOverlay implements IGuiOverlay {
         if (!ClientMatchState.active())
             return;
         Minecraft mc = Minecraft.getInstance();
+        // The result screen shows the end of the match on its own.
+        if (mc.screen instanceof ResultScreen)
+            return;
         HudLayout layout = HudLayout.of(screenWidth, screenHeight);
 
         watchPhase();

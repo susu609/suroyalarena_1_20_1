@@ -127,5 +127,33 @@ library below shows every card (all cards are unlocked).
   (`data/royalarena_decks.dat`). **Random** fills a balanced random deck,
   **Starter** the starter deck; neither is saved until you press Save.
 
+## Result screen
+
+When a match ends the server sends `S2CMatchResultPacket` and every player
+in it sees `ResultScreen` over the dimmed arena (design:
+https://claude.ai/artifact/RacR1QSbNCJp9kgUspzSsC). The animation
+(`ResultTimeline`, about 2 s; a click or a key skips it):
+
+1. The arena dims (35% -> 62%) and the name ribbons slide in: the opponent's
+   red one on top, yours blue below, each with the face from the player's
+   skin (a Zombie face for the bot). Sound: toast in.
+2. The crowns pop one by one, the opponent's first, then yours left, right,
+   King; each grows to 125% and settles. Sound: experience orb, a little
+   higher each time.
+3. VICTORY! (gold), DEFEAT (red) or DRAW (white) zooms in at three times the
+   font size; light rays turn behind the winner's King crown (faint and in
+   the middle on a draw). Sound: challenge complete, or beacon off. The
+   server fires rockets in the winner's colours over their King tower.
+4. Your MVP (the card that dealt the most damage to troops and towers) on a
+   toast, then **Play again** (bot matches only) and **OK**.
+
+Textures: vanilla Advancement challenge frames (gold when the crown was
+won, grey when not) with the golden helmet as the crown for now, the toast,
+the buttons and the font with its shadow; ours are the ribbons and the rays
+(`textures/gui/result/`). The battle HUD hides while the screen is open.
+
+OK (or Esc) sends you home at once (`C2SResultDonePacket`); Play again also
+starts a new bot match. Players who do nothing are sent home after 15 s.
+
 Every match starts from a shuffle of the saved deck. A player who never saved
 a deck plays the starter deck.
