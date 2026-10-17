@@ -52,8 +52,10 @@ Split rules for implementation:
 ## Spells
 
 Spells deal damage by server-side area checks on a tick schedule
-(`CombatEngine.castSpell`, stats in `SpellStats`); the arrows and the fireball
-are particles only. A spell can be played **anywhere on the arena**, including
+(`CombatEngine.castSpell`, stats in `SpellStats`). The arrows and the fireball
+are drawn by the clients as real 3D models (`ProjectileRenderer`): the
+fireball arcs from the caster's King tower and lands as the spell does, and
+each Arrow Storm volley lands with a damage pulse. A spell can be played **anywhere on the arena**, including
 the enemy half and the river. It hits enemy units whose body touches the
 circle, and enemy towers whose footprint touches it for **30%** of the damage
 (a hit King tower wakes up). Own troops and towers are never hit.

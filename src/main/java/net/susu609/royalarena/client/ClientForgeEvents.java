@@ -16,6 +16,7 @@ import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.BattleHudOverlay;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.render.DeployPreviewRenderer;
+import net.susu609.royalarena.client.render.ProjectileRenderer;
 import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.client.screen.MatchingScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
@@ -39,6 +40,7 @@ public final class ClientForgeEvents {
             return;
         Minecraft mc = Minecraft.getInstance();
         ClientMatchState.tick();
+        ProjectileRenderer.tick();
 
         while (RoyalArenaKeyMappings.OPEN_MATCHING.consumeClick()) {
             if (!ClientMatchState.active() && mc.screen == null)
@@ -61,6 +63,7 @@ public final class ClientForgeEvents {
     @SubscribeEvent
     public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         ArenaCameraController.release();
+        ProjectileRenderer.clear();
         ClientMatchState.reset();
         ClientQueueState.reset();
     }
@@ -77,6 +80,7 @@ public final class ClientForgeEvents {
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
         DeployPreviewRenderer.render(event);
+        ProjectileRenderer.render(event);
     }
 
     @SubscribeEvent

@@ -280,3 +280,13 @@ card list matches `BattleCard`.
 
 Needs sumodlib with `VoidWorlds` (the `sumodlib:void` dimension type and
 world preset).
+
+## Part 24 — Arrows you can see, damage on arrival
+
+- `combat/CombatEngine.java` (shots in flight, `flightTicks`),
+  `combat/TickResult.java` (`Attack.flightTicks`, `landed`)
+- `network/s2c/S2CProjectilePacket.java` (protocol 5),
+  `network/ModNetwork.java` (`sendNear`)
+- `client/render/ProjectileRenderer.java` (3D arrows and fireballs)
+- `server/battle/BattleField.java` (launch on fire, effects on landing,
+  Arrow Storm volleys, Fireball flight)

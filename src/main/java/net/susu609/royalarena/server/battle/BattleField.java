@@ -1,7 +1,6 @@
 package net.susu609.royalarena.server.battle;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -38,12 +37,16 @@ import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
+import net.susu609.royalarena.network.ModNetwork;
+import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.tower.TowerId;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -55,7 +58,10 @@ import java.util.function.Consumer;
  * engine.
  */
 public final class BattleField {
-    private static final double LINE_STEP = 0.6D;
+    /** Players this close to a shot see its arrow. */
+    private static final double PROJECTILE_VIEW_RANGE = 96.0D;
+    /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
+    private static final int VOLLEY_ARROWS = 5;
 
     private final ServerLevel level;
     private final MatchInstance match;
@@ -64,6 +70,8 @@ public final class BattleField {
     private final Consumer<TowerId> onTowerDestroyed;
     /** Ticks each troop has wanted to walk without moving (debug log). */
     private final Map<UUID, Integer> stuckTicks = new HashMap<>();
+    /** Pending spells whose flight has already been shown. */
+    private final Set<String> launched = new HashSet<>();
 
     public BattleField(ServerLevel level, MatchInstance match,
             Consumer<TowerId> onTowerDestroyed)
@@ -199,6 +207,8 @@ public final class BattleField {
             playSpell(pulse);
         for (TickResult.Attack attack : result.attacks())
             playAttack(attack);
+        for (TickResult.Attack attack : result.landed())
+            playHit(attack);
         mirrorHealth();
         for (TickResult.Death death : result.deaths())
             removeDead(death);
@@ -342,28 +352,58 @@ public final class BattleField {
      * tower to its target; arrows mark the circle they are about to hit.
      */
     public void showFlights(List<PendingDeploy> pending) {
+        Set<String> current = new HashSet<>();
         for (PendingDeploy deploy : pending) {
             if (!deploy.card().isSpell())
                 continue;
+            String key = deploy.side() + ":" + deploy.card() + ":" +
+                    deploy.x() + ":" + deploy.z();
+            current.add(key);
+            if (!launched.add(key))
+                continue;
+            // First tick in the air: launch what lands when the spell does.
             double tx = deploy.x() + 0.5D;
             double tz = deploy.z() + 0.5D;
             double floor = arena.floorY() + 1.0D;
             if (deploy.card() == BattleCard.FIREBALL) {
-                ArenaPoint from = arena.towerPoint(TowerId.king(deploy.side()));
-                double t = deploy.progress();
-                double x = Mth.lerp(t, from.x(), tx);
-                double z = Mth.lerp(t, from.z(), tz);
-                double y = Mth.lerp(t, from.y() + 4.0D, floor) +
-                        Math.sin(Math.PI * t) * 3.0D;
-                level.sendParticles(ParticleTypes.FLAME, x, y, z, 6, 0.15D,
-                        0.15D, 0.15D, 0.01D);
-                level.sendParticles(ParticleTypes.LARGE_SMOKE, x, y, z, 1,
-                        0.1D, 0.1D, 0.1D, 0.0D);
-            } else if (level.getGameTime() % 2 == 0) {
-                ring(tx, floor + 0.1D, tz, deploy.card().spell().radius(),
-                        ParticleTypes.CRIT, 16);
+                ArenaPoint king = arena.towerPoint(TowerId.king(deploy.side()));
+                sendProjectile(S2CProjectilePacket.Kind.FIREBALL,
+                        new double[] {king.x(), king.y() + 4.0D, king.z()},
+                        new double[] {tx, floor + 0.5D, tz},
+                        deploy.ticksLeft(), 3.0F);
+                level.playSound(null, king.x(), king.y() + 4.0D, king.z(),
+                        SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.8F,
+                        1.0F);
+            } else {
+                arrowVolley(deploy.side(), deploy.card(), tx, tz,
+                        deploy.ticksLeft());
             }
         }
+        launched.retainAll(current);
+    }
+
+    /**
+     * Arrow Storm arrows coming down on random points of the circle from the
+     * caster's side, landing in {@code ticks}.
+     */
+    private void arrowVolley(TeamSide side, BattleCard card, double x,
+            double z, int ticks)
+    {
+        double floor = arena.floorY() + 1.0D;
+        double radius = card.spell().radius();
+        int sign = ArenaLayout.sideSign(side);
+        for (int i = 0; i < VOLLEY_ARROWS; i++) {
+            double angle = level.random.nextDouble() * Math.PI * 2.0D;
+            double r = Math.sqrt(level.random.nextDouble()) * radius;
+            double tx = x + Math.cos(angle) * r;
+            double tz = z + Math.sin(angle) * r;
+            double[] from = {tx + (level.random.nextDouble() - 0.5D) * 2.0D,
+                    floor + 9.0D, tz + sign * 5.0D};
+            sendProjectile(S2CProjectilePacket.Kind.ARROW, from,
+                    new double[] {tx, floor + 0.1D, tz}, ticks, 1.0F);
+        }
+        level.playSound(null, x, floor + 6.0D, z, SoundEvents.ARROW_SHOOT,
+                SoundSource.HOSTILE, 0.5F, 0.8F);
     }
 
     private void playSpell(TickResult.SpellPulse pulse) {
@@ -379,46 +419,30 @@ public final class BattleField {
                     1.2F);
             return;
         }
-        // Arrow Storm: a volley falls on random points of the circle.
-        for (int i = 0; i < 8; i++) {
-            double angle = level.random.nextDouble() * Math.PI * 2.0D;
-            double r = Math.sqrt(level.random.nextDouble()) * radius;
-            level.sendParticles(ParticleTypes.CRIT,
-                    pulse.x() + Math.cos(angle) * r, floor + 5.0D,
-                    pulse.z() + Math.sin(angle) * r, 0, 0.0D, -1.0D, 0.0D,
-                    1.5D);
-        }
-        if (pulse.index() == 0)
-            ring(pulse.x(), floor + 0.1D, pulse.z(), radius,
-                    ParticleTypes.CRIT, 24);
+        // Arrow Storm: this pulse's arrows land now; launch the next volley
+        // so it lands with the next pulse.
+        var spell = pulse.card().spell();
+        if (pulse.index() + 1 < spell.pulses())
+            arrowVolley(pulse.side(), pulse.card(), pulse.x(), pulse.z(),
+                    spell.pulseInterval());
+        level.sendParticles(ParticleTypes.CRIT, pulse.x(), floor + 0.2D,
+                pulse.z(), 6, radius * 0.5D, 0.05D, radius * 0.5D, 0.05D);
         if (pulse.index() % 2 == 0)
             level.playSound(null, pulse.x(), floor, pulse.z(),
                     SoundEvents.ARROW_HIT, SoundSource.HOSTILE, 0.5F,
                     0.9F + level.random.nextFloat() * 0.3F);
     }
 
-    private void ring(double x, double y, double z, double radius,
-            ParticleOptions particle, int points)
-    {
-        for (int i = 0; i < points; i++) {
-            double angle = Math.PI * 2.0D * i / points;
-            level.sendParticles(particle, x + Math.cos(angle) * radius, y,
-                    z + Math.sin(angle) * radius, 1, 0.0D, 0.0D, 0.0D, 0.0D);
-        }
-    }
-
     // ------------------------------------------------------------- effects
 
+    /** A blow struck or a shot fired: turn, swing, and launch the arrow. */
     private void playAttack(TickResult.Attack attack) {
         double[] from = attack.attackerUnit() != null ?
                 unitPoint(attack.attackerUnit()) :
                 towerPoint(attack.attackerTower(), 3.5D);
-        double[] to = attack.victimUnit() != null ?
-                unitPoint(attack.victimUnit()) :
-                towerPoint(attack.victimTower(), 2.0D);
+        double[] to = target(attack);
         if (from == null || to == null)
             return;
-
         if (attack.attackerUnit() != null) {
             Entity attacker = level.getEntity(attack.attackerUnit());
             if (attacker != null) {
@@ -427,40 +451,49 @@ public final class BattleField {
                     living.swing(InteractionHand.MAIN_HAND);
             }
         }
+        if (!attack.ranged())
+            return;
+        double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
+        sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
+                attack.flightTicks(), (float) (distance * 0.12D));
+        level.playSound(null, from[0], from[1], from[2],
+                attack.attackerTower() != null ? SoundEvents.CROSSBOW_SHOOT :
+                        SoundEvents.ARROW_SHOOT, SoundSource.HOSTILE, 0.6F,
+                1.0F);
+    }
+
+    /** Damage applied this tick: a melee blow, or an arrow arriving. */
+    private void playHit(TickResult.Attack attack) {
+        double[] to = target(attack);
+        if (to == null)
+            return;
         if (attack.victimUnit() != null) {
             Entity victim = level.getEntity(attack.victimUnit());
             if (victim != null)
                 level.broadcastEntityEvent(victim, (byte) 2);
         }
-
-        if (attack.ranged()) {
-            drawLine(from, to);
-            level.playSound(null, from[0], from[1], from[2],
-                    attack.attackerTower() != null ?
-                            SoundEvents.CROSSBOW_SHOOT :
-                            SoundEvents.ARROW_SHOOT, SoundSource.HOSTILE,
-                    0.6F, 1.0F);
-        } else {
-            level.playSound(null, to[0], to[1], to[2],
-                    SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.HOSTILE,
-                    0.6F, 1.0F);
-        }
+        level.playSound(null, to[0], to[1], to[2],
+                attack.ranged() ? SoundEvents.ARROW_HIT :
+                        SoundEvents.PLAYER_ATTACK_STRONG,
+                SoundSource.HOSTILE, 0.6F, 1.0F);
         level.sendParticles(ParticleTypes.CRIT, to[0], to[1], to[2], 3, 0.2D,
                 0.2D, 0.2D, 0.1D);
     }
 
-    private void drawLine(double[] from, double[] to) {
-        double dx = to[0] - from[0];
-        double dy = to[1] - from[1];
-        double dz = to[2] - from[2];
-        double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        int steps = Math.max(1, (int) (length / LINE_STEP));
-        for (int i = 1; i < steps; i++) {
-            double t = i / (double) steps;
-            level.sendParticles(ParticleTypes.CRIT, from[0] + dx * t,
-                    from[1] + dy * t, from[2] + dz * t, 1, 0.0D, 0.0D, 0.0D,
-                    0.0D);
-        }
+    private double[] target(TickResult.Attack attack) {
+        return attack.victimUnit() != null ? unitPoint(attack.victimUnit()) :
+                towerPoint(attack.victimTower(), 2.0D);
+    }
+
+    private void sendProjectile(S2CProjectilePacket.Kind kind, double[] from,
+            double[] to, int ticks, float arc)
+    {
+        ModNetwork.sendNear(level, (from[0] + to[0]) / 2.0D, from[1],
+                (from[2] + to[2]) / 2.0D, PROJECTILE_VIEW_RANGE,
+                new S2CProjectilePacket(kind, (float) from[0],
+                        (float) from[1], (float) from[2], (float) to[0],
+                        (float) to[1], (float) to[2], Math.max(1, ticks),
+                        arc));
     }
 
     private double[] unitPoint(UUID id) {

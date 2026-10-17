@@ -41,17 +41,26 @@ nudged, so nobody is pushed into the water. A unit anywhere over the width of
 its bridge counts as lined up to cross, and one at the bank slides sideways
 instead of walking back, so crowds at the bridge mouth do not stall.
 
-## In the world
+## Arrows in flight
+
+Ranged attacks (archers and towers) fire arrows that fly at 0.8 blocks per
+tick (16 blocks/s), 2 to 15 ticks depending on the distance
+(`CombatEngine.flightTicks`). The damage lands when the arrow arrives
+(`TickResult.landed`), as in Clash Royale: a shooter that dies after firing
+still lands its arrow, and an arrow whose target died meanwhile is lost.
+Melee blows land on the tick they are struck.
+
 
 `BattleField` runs once per tick: copy each mob's position into the engine,
-run the tick, set mob velocities toward the waypoints, then play the hits
-(swing, hurt flash, hit particles; arrows and tower shots draw a particle
-line), copy engine health onto the mobs so health bars follow it, discard the
+run the tick, move the mobs toward the waypoints, then play the attacks (turn
+and swing; a shot sends `S2CProjectilePacket` and the clients draw a real 3D
+arrow flying along a slight arc, `ProjectileRenderer`) and the hits that land
+(hurt flash, hit sound, a few crit particles), copy engine health onto the mobs so health bars follow it, discard the
 dead and spawn slime children. Mobs have no vanilla AI, are invulnerable to
 vanilla damage and are discarded (not killed) so vanilla slime splitting never
 adds to the card's own.
 
 ## Not built yet
 
-Arrow Storm and Fireball, flying and building-only troops, hit knockback,
+Flying and building-only troops, hit knockback,
 tower-count scoring and overtime.

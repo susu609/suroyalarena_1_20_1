@@ -1,5 +1,6 @@
 package net.susu609.royalarena.network;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
@@ -14,11 +15,12 @@ import net.susu609.royalarena.network.c2s.C2SLeaveQueuePacket;
 import net.susu609.royalarena.network.c2s.C2SSaveDeckPacket;
 import net.susu609.royalarena.network.c2s.C2SStartPracticePacket;
 import net.susu609.royalarena.network.s2c.S2CDeckPacket;
+import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.network.s2c.S2CQueueStatusPacket;
 
 public final class ModNetwork {
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "5";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
                     RL.of(RoyalArena.MOD_ID, "main"),
@@ -83,15 +85,30 @@ public final class ModNetwork {
                 .decoder(C2SSaveDeckPacket::decode)
                 .consumerMainThread(C2SSaveDeckPacket::handle).add();
         CHANNEL.messageBuilder(
-                        S2CDeckPacket.class, id,
+                        S2CDeckPacket.class, id++,
                         NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(S2CDeckPacket::encode)
                 .decoder(S2CDeckPacket::decode)
                 .consumerMainThread(S2CDeckPacket::handle).add();
+        CHANNEL.messageBuilder(
+                        S2CProjectilePacket.class, id,
+                        NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(S2CProjectilePacket::encode)
+                .decoder(S2CProjectilePacket::decode)
+                .consumerMainThread(S2CProjectilePacket::handle).add();
     }
 
     public static void sendToServer(Object packet) {
         CHANNEL.sendToServer(packet);
+    }
+
+    /** Sends to every player within {@code radius} blocks in that level. */
+    public static void sendNear(ServerLevel level, double x, double y,
+            double z, double radius, Object packet)
+    {
+        CHANNEL.send(PacketDistributor.NEAR.with(
+                () -> new PacketDistributor.TargetPoint(x, y, z, radius,
+                        level.dimension())), packet);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

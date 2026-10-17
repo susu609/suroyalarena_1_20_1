@@ -40,6 +40,10 @@ public final class CombatEngine {
     /** A chased enemy is only dropped once it is this much farther than sight. */
     private static final double LEASH_FACTOR = 1.25D;
     private static final double EPSILON = 1.0E-6D;
+    /** Arrow speed in blocks per tick (16 blocks per second). */
+    public static final double PROJECTILE_SPEED = 0.8D;
+    public static final int MIN_FLIGHT_TICKS = 2;
+    public static final int MAX_FLIGHT_TICKS = 15;
 
     private final MatchInstance match;
     private final ArenaLayout arena;
@@ -49,6 +53,8 @@ public final class CombatEngine {
     private final Map<TowerId, UUID> towerTarget =
             new EnumMap<>(TowerId.class);
     private final List<ActiveSpell> spells = new ArrayList<>();
+    /** Shots in the air, with the ticks until they land. */
+    private final List<InFlight> flying = new ArrayList<>();
     private double speedMultiplier = 1.0D;
 
     /** A spell that has landed and still has pulses to deal. */
@@ -65,6 +71,16 @@ public final class CombatEngine {
             this.card = card;
             this.x = x;
             this.z = z;
+        }
+    }
+
+    private static final class InFlight {
+        final Attack attack;
+        int ticksLeft;
+
+        InFlight(Attack attack) {
+            this.attack = attack;
+            this.ticksLeft = attack.flightTicks();
         }
     }
 
@@ -149,13 +165,28 @@ public final class CombatEngine {
         List<Hit> hits = planSpells(pulses);
 
         List<TowerId> destroyed = new ArrayList<>();
-        applyDamage(attacks, destroyed);
+        List<Attack> landed = new ArrayList<>();
+        // Shots already in the air land first; this tick's shots take off.
+        for (int i = 0; i < flying.size(); i++) {
+            InFlight shot = flying.get(i);
+            if (--shot.ticksLeft <= 0) {
+                landed.add(shot.attack);
+                flying.remove(i--);
+            }
+        }
+        for (Attack attack : attacks) {
+            if (attack.flightTicks() > 0)
+                flying.add(new InFlight(attack));
+            else
+                landed.add(attack);
+        }
+        applyDamage(landed, destroyed);
         applyBurns();
         List<Push> pushes = new ArrayList<>();
         applySpellHits(hits, destroyed, pushes);
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
-                pushes);
+                pushes, landed);
     }
 
     /** Whether a King tower may shoot: it was hit, or a Princess tower fell. */
@@ -203,12 +234,14 @@ public final class CombatEngine {
             return;
         unit.startCooldown();
         boolean ranged = !stats.melee();
+        int flight = ranged ? flightTicks(unit.x(), unit.z(), targetX,
+                targetZ) : 0;
         if (enemy != null) {
             attacks.add(new Attack(unit.id(), null, enemy.id(), null,
-                    unit.damage(), ranged));
+                    unit.damage(), ranged, flight));
         } else {
             attacks.add(new Attack(unit.id(), null, null, tower,
-                    unit.damage(), ranged));
+                    unit.damage(), ranged, flight));
         }
     }
 
@@ -262,6 +295,20 @@ public final class CombatEngine {
         return locked;
     }
 
+    /** Ticks an arrow needs from (fx, fz) to (tx, tz). */
+    public static int flightTicks(double fx, double fz, double tx,
+            double tz)
+    {
+        int ticks = (int) Math.round(Math.hypot(tx - fx, tz - fz) /
+                PROJECTILE_SPEED);
+        return Math.max(MIN_FLIGHT_TICKS, Math.min(MAX_FLIGHT_TICKS, ticks));
+    }
+
+    /** Shots still in the air. */
+    public int shotsInFlight() {
+        return flying.size();
+    }
+
     private static double distance(CombatUnit a, CombatUnit b) {
         return Math.hypot(a.x() - b.x(), a.z() - b.z());
     }
@@ -295,8 +342,11 @@ public final class CombatEngine {
             if (target == null)
                 continue;
             towerCooldown.put(id, id.kind().attackTicks());
+            ArenaPoint from = arena.towerPoint(id);
             attacks.add(new Attack(null, id, target.id(), null,
-                    id.kind().damage(), true));
+                    id.kind().damage(), true,
+                    flightTicks(from.x(), from.z(), target.x(),
+                            target.z())));
         }
     }
 

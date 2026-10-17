@@ -327,6 +327,17 @@ public final class CombatSmokeTest {
         TickResult result = hold(engine);
         check(result.attacks().size() == 1 && result.attacks().get(0).ranged(),
                 "archer fires a ranged attack over the river");
+        int flight = result.attacks().get(0).flightTicks();
+        check(flight == CombatEngine.flightTicks(0.0D, 3.0D, 0.0D, -1.5D) &&
+                flight >= 2, "the arrow flies for its distance: " + flight);
+        check(result.landed().isEmpty() && engine.shotsInFlight() == 1,
+                "the arrow is in the air");
+        near(red.health(), 20.0D, "no damage before the arrow lands");
+        for (int i = 1; i < flight; i++)
+            check(hold(engine).landed().isEmpty(), "still flying");
+        TickResult hit = hold(engine);
+        check(hit.landed().size() == 1 && hit.landed().get(0).ranged(),
+                "the arrow lands after its flight");
         near(red.health(), 16.0D, "archer arrow does 4 damage");
     }
 
@@ -461,12 +472,22 @@ public final class CombatSmokeTest {
         check(first.attacks().stream().anyMatch(
                 a -> TowerId.BLUE_LEFT.equals(a.attackerTower())),
                 "Princess tower fires at an enemy in range");
-        near(red.health(), 16.0D, "tower shot does 4 damage");
-        for (int tick = 2; tick <= 16; tick++)
+        int flight = first.attacks().get(0).flightTicks();
+        near(red.health(), 20.0D, "the arrow is still in the air");
+        // Shot on tick 1 lands on tick 1 + flight; the next shot on tick 17.
+        int tick = 1;
+        while (tick < 1 + flight) {
             hold(engine);
+            tick++;
+        }
+        near(red.health(), 16.0D, "tower shot does 4 damage on landing");
+        while (tick < 16 + flight) {
+            hold(engine);
+            tick++;
+        }
         near(red.health(), 16.0D, "no second shot before 16 ticks");
         hold(engine);
-        near(red.health(), 12.0D, "second shot on tick 17");
+        near(red.health(), 12.0D, "second shot fired on tick 17 lands");
 
         CombatUnit out = spawn(engine, BattleCard.ZOMBIE, TeamSide.RED,
                 -6.0D, 0.5D);
@@ -480,7 +501,9 @@ public final class CombatSmokeTest {
                 TeamSide.RED, -6.0D, 3.0D);
         CombatUnit zombie = spawn(duelEngine, BattleCard.ZOMBIE,
                 TeamSide.RED, -6.0D, 4.0D);
-        hold(duelEngine);
+        TickResult shot = hold(duelEngine);
+        for (int i = 0; i < shot.attacks().get(0).flightTicks(); i++)
+            hold(duelEngine);
         near(zombie.health(), 16.0D,
                 "tower picks the nearest enemy when several are in range");
         near(archer.health(), 20.0D, "farther enemy is untouched");

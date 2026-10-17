@@ -7,10 +7,16 @@ import net.susu609.royalarena.tower.TowerId;
 import java.util.List;
 import java.util.UUID;
 
-/** Everything one combat tick decided, for the world layer to act out. */
+/**
+ * Everything one combat tick decided, for the world layer to act out:
+ * {@code attacks} are the blows struck and shots fired this tick,
+ * {@code landed} the ones whose damage was applied this tick (melee blows of
+ * this tick and arrows arriving now).
+ */
 public record TickResult(List<Move> moves, List<Attack> attacks,
                          List<Death> deaths, List<TowerId> destroyedTowers,
-                         List<SpellPulse> spellPulses, List<Push> pushes)
+                         List<SpellPulse> spellPulses, List<Push> pushes,
+                         List<Attack> landed)
 {
     /**
      * A spell struck at (x, z) this tick: pulse {@code index} of
@@ -30,12 +36,15 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
     }
 
     /**
-     * A hit. Exactly one of {@code attackerUnit}/{@code attackerTower} and
-     * one of {@code victimUnit}/{@code victimTower} is set.
+     * A blow or a shot. Exactly one of {@code attackerUnit}/{@code
+     * attackerTower} and one of {@code victimUnit}/{@code victimTower} is
+     * set. A melee blow lands at once ({@code flightTicks} 0); a ranged shot
+     * flies for {@code flightTicks} and its damage lands then (see
+     * {@link TickResult#landed}).
      */
     public record Attack(UUID attackerUnit, TowerId attackerTower,
                          UUID victimUnit, TowerId victimTower, double damage,
-                         boolean ranged)
+                         boolean ranged, int flightTicks)
     {
     }
 
