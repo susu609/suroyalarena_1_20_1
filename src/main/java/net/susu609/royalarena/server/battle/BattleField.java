@@ -489,7 +489,8 @@ public final class BattleField {
     private void playAttack(TickResult.Attack attack) {
         double[] from = attack.attackerUnit() != null ?
                 unitPoint(attack.attackerUnit()) :
-                towerPoint(attack.attackerTower(), 3.5D);
+                towerPoint(attack.attackerTower(),
+                        attack.attackerTower().kind().shotHeight());
         double[] to = target(attack);
         if (from == null || to == null)
             return;

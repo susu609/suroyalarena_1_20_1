@@ -70,6 +70,11 @@ public final class ClientMatchState {
                 BattleCard.byId(snapshot.nextCard()) : null;
     }
 
+    /** The player whose skin the King of {@code side} wears. */
+    public static java.util.UUID player(TeamSide side) {
+        return snapshot.player(side);
+    }
+
     public static int towerHealth(TowerId id) {
         int[] hp = snapshot.towerHealth();
         return id.ordinal() < hp.length ? hp[id.ordinal()] : 0;

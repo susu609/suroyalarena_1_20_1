@@ -19,11 +19,13 @@ public final class KingTowerRenderer extends EntityRenderer<KingTowerEntity> {
             RL.of(RoyalArena.MOD_ID, "textures/entity/tower/tower_blocks.png");
 
     private final KingTowerModel<KingTowerEntity> model;
+    private final KingFigure king;
 
     public KingTowerRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.model = new KingTowerModel<>(
                 context.bakeLayer(KingTowerModel.LAYER_LOCATION));
+        this.king = new KingFigure(context);
         this.shadowRadius = 2.0F;
     }
 
@@ -42,6 +44,8 @@ public final class KingTowerRenderer extends EntityRenderer<KingTowerEntity> {
                 poseStack, consumer, packedLight, OverlayTexture.NO_OVERLAY,
                 1.0F, 1.0F, 1.0F, 1.0F);
         poseStack.popPose();
+        king.render(entity, entityYaw, partialTick, poseStack, buffer,
+                packedLight);
         WorldHealthBar.renderTower(entity, poseStack, buffer);
         super.render(
                 entity, entityYaw, partialTick, poseStack, buffer, packedLight);

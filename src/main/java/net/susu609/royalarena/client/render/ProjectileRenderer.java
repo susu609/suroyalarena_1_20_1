@@ -11,6 +11,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.susu609.royalarena.client.render.entity.KingFigure;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket.Kind;
 
@@ -56,6 +57,7 @@ public final class ProjectileRenderer {
     }
 
     public static void add(S2CProjectilePacket p) {
+        KingFigure.onProjectile(p);
         FLIGHTS.add(new Flight(p.kind(),
                 new Vec3(p.fromX(), p.fromY(), p.fromZ()),
                 new Vec3(p.toX(), p.toY(), p.toZ()), clientTicks, p.ticks(),

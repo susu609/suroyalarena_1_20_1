@@ -51,6 +51,8 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
             buffer.writeInt(deploy.z());
             buffer.writeVarInt(deploy.ticksLeft());
         }
+        buffer.writeUUID(s.bluePlayer());
+        buffer.writeUUID(s.redPlayer());
     }
 
     public static S2CMatchSnapshotPacket decode(FriendlyByteBuf buffer) {
@@ -82,11 +84,13 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
                     buffer.readEnum(TeamSide.class), buffer.readInt(),
                     buffer.readInt(), buffer.readVarInt()));
         }
+        UUID bluePlayer = buffer.readUUID();
+        UUID redPlayer = buffer.readUUID();
         return new S2CMatchSnapshotPacket(
                 new MatchSnapshot(
                         true, matchId, state, side, center, ticks, elixir,
                         List.copyOf(hand), next, towerHp, winner,
-                        List.copyOf(pending)));
+                        List.copyOf(pending), bluePlayer, redPlayer));
     }
 
     public static void handle(S2CMatchSnapshotPacket packet,

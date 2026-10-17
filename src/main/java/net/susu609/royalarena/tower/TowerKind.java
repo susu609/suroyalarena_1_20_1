@@ -25,6 +25,13 @@ public enum TowerKind {
     public int attackTicks() {
         return attackTicks;
     }
+    /**
+     * Height above the tower's base its arrows leave from: the top of a
+     * Princess tower, the hand of the player standing on a King tower.
+     */
+    public double shotHeight() {
+        return this == KING ? 5.4D : 3.5D;
+    }
     /** Attack range from the tower edge to the target edge, in blocks. */
     public double range() {
         return range;
