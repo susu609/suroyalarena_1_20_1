@@ -168,7 +168,8 @@ What changed:
   the walk. The 110 HP stays.
 - **Iron Golem** 4 -> **5** elixir: 160 HP (was 100), 12 damage (was 8),
   speed 0.9 (was 0.67), targets towers only.
-- **Ravager** 130 HP (was 100), speed 1.0 (was 0.75), still 5 elixir.
+- **Ravager** 130 HP (was 100), speed 1.0 (was 0.75), still 5 elixir (later
+  110 HP and 8 damage, see the power band in `docs/BALANCE.md`).
 - **Big Slime** speed 0.85 (was 0.67). **Creeper** speed 1.33 (was 1.0).
 
 ## Model size
