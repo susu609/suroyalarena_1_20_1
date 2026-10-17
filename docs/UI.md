@@ -30,7 +30,9 @@ resource pack (ids: `zombie`, `skeleton_archer`, `spider`, `skeletons`,
 `fireball`; a new card's id is its
 lower-case enum name).
 Any size works, the image is stretched over the card face (31:39, so 124x156 or
-248x312 is a good size); press F3+T after adding one. See `CardArt`. Cards that
+248x312 is a good size); press F3+T after adding one. See `CardArt`. The
+Blockbench plugin in `model_sources/card_art/` renders portraits in this
+format from a mob model. Cards that
 cost more than the current elixir are greyed out. A hovered card rises 3 units
 with a light frame and tint; the selected card rises 8 units with a gold frame
 and glow. The rise is animated (eases out over about 45 ms,

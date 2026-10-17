@@ -31,6 +31,7 @@ public final class DomainSmokeTest {
         towerVisualTypesMatchUploadedModels();
         kingTowerEndsMatch();
         noRawResourceLocationConstructors();
+        cardArtPluginKnowsEveryCard();
         CombatSmokeTest.run();
         BotSmokeTest.run();
         SpellSmokeTest.run();
@@ -404,6 +405,30 @@ public final class DomainSmokeTest {
         check(offenders.isEmpty(),
                 "use RL.of/RL.require (net.susu609.modlib.resource.RL) " +
                         "instead of new ResourceLocation(...): " + offenders);
+    }
+
+    /** The Blockbench card art plugin lists every card with its cost. */
+    private static void cardArtPluginKnowsEveryCard() {
+        java.nio.file.Path plugin = java.nio.file.Path.of(
+                "model_sources/card_art/card_art_renderer.js");
+        if (!java.nio.file.Files.exists(plugin))
+            return;
+        String js;
+        try {
+            js = java.nio.file.Files.readString(plugin);
+        } catch (java.io.IOException e) {
+            throw new AssertionError(e);
+        }
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("'([a-z_]+)': (\\d+),").matcher(js);
+        java.util.Map<String, Integer> listed = new java.util.LinkedHashMap<>();
+        while (m.find())
+            listed.put(m.group(1), Integer.parseInt(m.group(2)));
+        java.util.Map<String, Integer> cards = new java.util.LinkedHashMap<>();
+        for (BattleCard card : BattleCard.values())
+            cards.put(card.id(), card.cost());
+        check(listed.equals(cards), "card art plugin lists every card and " +
+                "cost: " + listed + " vs " + cards);
     }
 
     private static void check(boolean condition, String name) {

@@ -248,3 +248,13 @@ and reload when the file is saved.
 
 The two spells replace Stray and Vindicator in the starter deck. See
 `docs/CARDS.md` for the numbers.
+
+## Part 21 — Card art template for Blockbench
+
+- `model_sources/card_art/card_art_renderer.js` (Blockbench plugin)
+- `model_sources/card_art/README.md`
+
+Renders the open model as a 31:39 card portrait with the same framing and
+background on every card, previews it with the in-game card edge and cost
+badge, and saves `<card id>.png`. `DomainSmokeTest` checks that the plugin's
+card list matches `BattleCard`.
