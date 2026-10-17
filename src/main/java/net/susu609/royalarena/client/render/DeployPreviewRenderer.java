@@ -194,7 +194,6 @@ public final class DeployPreviewRenderer {
             GHOSTS.clear();
             ghostLevel = mc.level;
         }
-            return;
         Entity entity = GHOSTS.computeIfAbsent(card,
                 c -> createGhost(mc.level, c));
         if (entity == null)
