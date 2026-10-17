@@ -15,14 +15,17 @@ import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
  * While a spell card is selected, outlines (vanilla glowing outline, on this
  * client only) every enemy troop and tower the spell would hit where the
  * cursor points: troops whose body touches the circle, towers whose
- * footprint does, like {@code CombatEngine}.
+ * footprint does, like {@code CombatEngine}; only the strongest few for
+ * Lightning, and the own troops a healing potion would heal.
  */
 public final class SpellTargetHighlighter {
     private static final Set<Entity> GLOWING = new HashSet<>();
@@ -66,24 +69,43 @@ public final class SpellTargetHighlighter {
             double z, Set<Entity> out)
     {
         ArenaLayout arena = ClientMatchState.arena();
-        TeamSide enemy = ClientMatchState.side().opponent();
+        // A healing potion lights up the own troops it would heal.
+        TeamSide target = spell.heal() ? ClientMatchState.side() :
+                ClientMatchState.side().opponent();
+        List<Entity> hits = new ArrayList<>();
+        List<Double> health = new ArrayList<>();
         for (Entity entity : mc.level.entitiesForRendering()) {
             if (entity instanceof CrownTowerEntity ||
                     entity instanceof KingTowerEntity) {
                 TowerId id = arena.towerAt(entity.getX(), entity.getZ());
-                if (id != null && id.side() == enemy &&
+                if (!spell.heal() && id != null && id.side() == target &&
                         ClientMatchState.towerHealth(id) > 0 &&
-                        arena.distanceToTower(x, z, id) <= spell.radius())
-                    out.add(entity);
+                        arena.distanceToTower(x, z, id) <= spell.radius()) {
+                    hits.add(entity);
+                    health.add((double) ClientMatchState.towerHealth(id));
+                }
                 continue;
             }
-            if (!(entity instanceof LivingEntity) || !entity.isAlive() ||
-                    TroopVisuals.sideOf(entity) != enemy)
+            if (!(entity instanceof LivingEntity living) || !entity.isAlive() ||
+                    TroopVisuals.sideOf(entity) != target)
                 continue;
             double reach = spell.radius() +
                     entity.getBbWidth() * TroopVisuals.scale(entity) / 2.0D;
-            if (Math.hypot(entity.getX() - x, entity.getZ() - z) <= reach)
-                out.add(entity);
+            if (Math.hypot(entity.getX() - x, entity.getZ() - z) <= reach) {
+                hits.add(entity);
+                health.add((double) living.getHealth());
+            }
         }
+        if (spell.maxTargets() <= 0 || hits.size() <= spell.maxTargets()) {
+            out.addAll(hits);
+            return;
+        }
+        // Lightning: only the ones with the most health, like the engine.
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < hits.size(); i++)
+            order.add(i);
+        order.sort((a, b) -> Double.compare(health.get(b), health.get(a)));
+        for (int i = 0; i < spell.maxTargets(); i++)
+            out.add(hits.get(order.get(i)));
     }
 }

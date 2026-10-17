@@ -9,6 +9,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.projectile.ThrownPotion;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.susu609.royalarena.client.render.entity.KingFigure;
@@ -21,7 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Draws the arrows and fireballs the server announces with
+ * Draws the arrows, fireballs, potions, snowballs and TNT the server
+ * announces with
  * {@link S2CProjectilePacket}: real 3D vanilla models flying along an arc,
  * pointing where they fly. They are client-only entities that are never
  * added to the level, so they have no physics, collisions or sounds.
@@ -68,7 +75,7 @@ public final class ProjectileRenderer {
         FLIGHTS.clear();
     }
 
-    /** Once per client tick: drop landed flights, trail the fireballs. */
+    /** Once per client tick: drop landed flights, trail what needs it. */
     public static void tick() {
         clientTicks++;
         FLIGHTS.removeIf(f -> clientTicks - f.start() > f.ticks());
@@ -78,13 +85,20 @@ public final class ProjectileRenderer {
             return;
         }
         for (Flight f : FLIGHTS) {
-            if (f.kind() != Kind.FIREBALL)
-                continue;
             Vec3 p = f.at(f.progress(clientTicks, 0.0F));
-            mc.level.addParticle(ParticleTypes.FLAME, p.x, p.y, p.z, 0.0D,
-                    0.02D, 0.0D);
-            mc.level.addParticle(ParticleTypes.SMOKE, p.x, p.y, p.z, 0.0D,
-                    0.01D, 0.0D);
+            if (f.kind() == Kind.FIREBALL) {
+                mc.level.addParticle(ParticleTypes.FLAME, p.x, p.y, p.z, 0.0D,
+                        0.02D, 0.0D);
+                mc.level.addParticle(ParticleTypes.SMOKE, p.x, p.y, p.z, 0.0D,
+                        0.01D, 0.0D);
+            } else if (f.kind() == Kind.TNT) {
+                // The fuse burning on top of the falling block.
+                mc.level.addParticle(ParticleTypes.SMOKE, p.x, p.y + 1.0D, p.z,
+                        0.0D, 0.02D, 0.0D);
+            } else if (f.kind() == Kind.HEALING_POTION) {
+                mc.level.addParticle(ParticleTypes.EFFECT, p.x, p.y, p.z, 0.0D,
+                        0.0D, 0.0D);
+            }
         }
     }
 
@@ -127,6 +141,10 @@ public final class ProjectileRenderer {
             model.setXRot(pitch);
             model.xRotO = pitch;
             model.tickCount = 10;
+            if (model instanceof PrimedTnt tnt) {
+                // Flashes faster as it comes down, like a lit fuse.
+                tnt.setFuse(Math.max(1, f.ticks() - (clientTicks - f.start())));
+            }
             int light = LevelRenderer.getLightColor(mc.level,
                     BlockPos.containing(p));
             mc.getEntityRenderDispatcher().render(model, p.x, p.y, p.z, yaw,
@@ -139,12 +157,17 @@ public final class ProjectileRenderer {
     private static Entity create(ClientLevel level, Kind kind) {
         EntityType<?> type = switch (kind) {
             case FIREBALL -> EntityType.FIREBALL;
-            case POTION -> EntityType.POTION;
+            case POTION, HEALING_POTION -> EntityType.POTION;
+            case SNOWBALL -> EntityType.SNOWBALL;
+            case TNT -> EntityType.TNT;
             case ARROW -> EntityType.ARROW;
         };
         Entity entity = type.create(level);
         if (entity != null)
             entity.setSilent(true);
+        if (kind == Kind.HEALING_POTION && entity instanceof ThrownPotion potion)
+            potion.setItem(PotionUtils.setPotion(
+                    new ItemStack(Items.SPLASH_POTION), Potions.HEALING));
         return entity;
     }
 }

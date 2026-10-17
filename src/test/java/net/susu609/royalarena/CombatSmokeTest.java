@@ -182,13 +182,24 @@ public final class CombatSmokeTest {
                     s.pulses() * s.pulseInterval(), id + " duration");
             near(number(json, "pulse_interval_ticks"), s.pulseInterval(),
                     id + " pulse interval");
-            near(number(json, "damage_per_pulse"), s.damagePerPulse(),
+            near(number(json, s.heal() ? "heal_per_pulse" :
+                    "damage_per_pulse"), s.damagePerPulse(),
                     id + " pulse damage");
         } else {
             near(number(json, "damage"), s.damagePerPulse(), id + " damage");
         }
         if (json.contains("\"knockback\""))
             near(number(json, "knockback"), s.knockback(), id + " knockback");
+        check(s.heal() == json.contains("heal_per_pulse"), id + " heals");
+        near(json.contains("\"tower_multiplier\"") ?
+                number(json, "tower_multiplier") : s.heal() ? 0.0D : 0.3D,
+                s.towerMultiplier(), id + " tower multiplier");
+        near(json.contains("\"max_targets\"") ? number(json, "max_targets")
+                : 0.0D, s.maxTargets(), id + " max targets");
+        near(json.contains("\"stun_ticks\"") ? number(json, "stun_ticks")
+                : 0.0D, s.stunTicks(), id + " stun");
+        near(json.contains("\"freeze_ticks\"") ? number(json, "freeze_ticks")
+                : 0.0D, s.freezeTicks(), id + " freeze");
         if (s.burnTicks() > 0) {
             near(number(json, "damage_per_second"), s.burnPerSecond(),
                     id + " burn");
@@ -580,8 +591,8 @@ public final class CombatSmokeTest {
     private static void troopsDestroyTowersAndRetargetKing() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
-        match.damageTower(TowerId.RED_LEFT, 100.0D);
-        check(match.tower(TowerId.RED_LEFT).health() == 10, "10 HP left");
+        match.damageTower(TowerId.RED_LEFT, 95.0D);
+        check(match.tower(TowerId.RED_LEFT).health() == 15, "15 HP left");
         CombatUnit blue = spawn(engine, BattleCard.VINDICATOR, TeamSide.BLUE,
                 6.0D, -8.2D);
 
@@ -591,17 +602,17 @@ public final class CombatSmokeTest {
         check(first.attacks().stream().anyMatch(
                 a -> TowerId.RED_LEFT.equals(a.victimTower())),
                 "vindicator hits the tower");
-        check(match.tower(TowerId.RED_LEFT).health() == 3, "7 damage dealt");
+        check(match.tower(TowerId.RED_LEFT).health() == 3, "12 damage dealt");
 
         TickResult destroyed = null;
-        for (int tick = 2; tick <= 29 && destroyed == null; tick++) {
+        for (int tick = 2; tick <= 49 && destroyed == null; tick++) {
             TickResult result = hold(engine);
             if (!result.destroyedTowers().isEmpty())
                 destroyed = result;
         }
         check(destroyed != null &&
                 destroyed.destroyedTowers().contains(TowerId.RED_LEFT),
-                "tower is destroyed on the second swing (tick 29)");
+                "tower is destroyed on the second axe swing (tick 49)");
         check(match.tower(TowerId.RED_LEFT).isDestroyed(),
                 "tower state is destroyed");
         check(blue.alive(), "vindicator survived the tower");

@@ -20,11 +20,17 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
 {
     /**
      * A spell struck at (x, z) this tick: pulse {@code index} of
-     * {@code card.spell().pulses()}, hitting {@code hits} units and towers.
+     * {@code card.spell().pulses()}, hitting (or healing) {@code hits} units
+     * and towers, which stood at {@code strikes}.
      */
     public record SpellPulse(TeamSide side, BattleCard card, double x,
-                             double z, int index, int hits)
+                             double z, int index, int hits,
+                             List<Strike> strikes)
     {
+    }
+
+    /** Where a spell hit one unit or tower ({@code unit} null for a tower). */
+    public record Strike(UUID unit, TowerId tower, double x, double z) {
     }
 
     /** A unit knocked back by (dx, dz); the engine already moved it. */

@@ -1,0 +1,11 @@
+{
+  "id": "tnt",
+  "type": "spell",
+  "display_name": "TNT",
+  "elixir": 5,
+  "radius": 3.0,
+  "travel_ticks": 30,
+  "damage": 30,
+  "knockback": 2.0,
+  "tower_multiplier": 0.5
+}

@@ -8,18 +8,30 @@ import net.susu609.royalarena.client.render.AoeFlashRenderer;
 
 import java.util.function.Supplier;
 
-/** Area damage just landed: flash a red circle on the floor. */
-public record S2CAoeFlashPacket(float x, float y, float z, float radius) {
+/**
+ * Area damage (or healing, or freezing) just landed: flash a circle of
+ * {@code rgb} on the floor.
+ */
+public record S2CAoeFlashPacket(float x, float y, float z, float radius,
+                                int rgb)
+{
+    public static final int RED = 0xFF3030;
+    public static final int YELLOW = 0xFFE040;
+    public static final int GREEN = 0x40FF60;
+    public static final int ICE = 0x80D8FF;
+
     public static void encode(S2CAoeFlashPacket p, FriendlyByteBuf buffer) {
         buffer.writeFloat(p.x);
         buffer.writeFloat(p.y);
         buffer.writeFloat(p.z);
         buffer.writeFloat(p.radius);
+        buffer.writeInt(p.rgb);
     }
 
     public static S2CAoeFlashPacket decode(FriendlyByteBuf buffer) {
         return new S2CAoeFlashPacket(buffer.readFloat(), buffer.readFloat(),
-                buffer.readFloat(), Math.min(16.0F, buffer.readFloat()));
+                buffer.readFloat(), Math.min(16.0F, buffer.readFloat()),
+                buffer.readInt() & 0xFFFFFF);
     }
 
     public static void handle(S2CAoeFlashPacket packet,

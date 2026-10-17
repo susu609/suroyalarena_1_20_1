@@ -1,0 +1,12 @@
+{
+  "id": "lightning",
+  "type": "spell",
+  "display_name": "Lightning",
+  "elixir": 6,
+  "radius": 3.5,
+  "travel_ticks": 15,
+  "damage": 40,
+  "max_targets": 3,
+  "stun_ticks": 10,
+  "tower_multiplier": 0.3
+}

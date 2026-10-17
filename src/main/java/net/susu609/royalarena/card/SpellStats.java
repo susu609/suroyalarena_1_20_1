@@ -8,18 +8,47 @@ package net.susu609.royalarena.card;
  * whose footprint touches the circle take {@code towerMultiplier} of that.
  * Units hit are pushed {@code knockback} blocks away from the centre and burn
  * for {@code burnTicks} ticks at {@code burnPerSecond}.
+ *
+ * @param maxTargets  only this many targets with the most health are hit
+ *                    (Lightning); 0 = everything in the circle
+ * @param stunTicks   targets hit stop and restart their attack (Lightning)
+ * @param freezeTicks targets hit, towers too, cannot move or attack for this
+ *                    long (Freeze)
+ * @param heal        the spell heals its caster's own troops by
+ *                    {@code damagePerPulse} each pulse instead of hurting
+ *                    the enemy (Potion of Healing)
  */
 public record SpellStats(double radius, int castTicks, int pulses,
                          int pulseInterval, double damagePerPulse,
                          double towerMultiplier, double knockback,
-                         double burnPerSecond, int burnTicks)
+                         double burnPerSecond, int burnTicks, int maxTargets,
+                         int stunTicks, int freezeTicks, boolean heal)
 {
     /** Spells deal this share of their damage to towers (balance.json). */
     public static final double TOWER_MULTIPLIER = 0.3D;
+    /** A second of a target frozen or stunned counts as this much damage. */
+    public static final double CONTROL_VALUE_PER_SECOND = 4.0D;
 
-    /** Damage one unit takes if it stays inside for the whole spell. */
+    public SpellStats(double radius, int castTicks, int pulses,
+            int pulseInterval, double damagePerPulse, double towerMultiplier,
+            double knockback, double burnPerSecond, int burnTicks)
+    {
+        this(radius, castTicks, pulses, pulseInterval, damagePerPulse,
+                towerMultiplier, knockback, burnPerSecond, burnTicks, 0, 0, 0,
+                false);
+    }
+
+    /**
+     * Damage one unit takes if it stays inside for the whole spell (health
+     * it gets back for a healing spell).
+     */
     public double damagePerTarget() {
         return damagePerPulse * pulses + burnPerSecond * burnTicks / 20.0D;
+    }
+
+    /** What freezing or stunning one target is worth, in damage. */
+    public double controlValue() {
+        return (stunTicks + freezeTicks) / 20.0D * CONTROL_VALUE_PER_SECOND;
     }
 
     /** Ticks from the first pulse to the last. */

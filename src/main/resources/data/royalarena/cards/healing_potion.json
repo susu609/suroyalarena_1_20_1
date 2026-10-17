@@ -1,0 +1,12 @@
+{
+  "id": "healing_potion",
+  "type": "spell",
+  "display_name": "Potion of Healing",
+  "elixir": 3,
+  "radius": 3.0,
+  "travel_ticks": 10,
+  "duration_ticks": 80,
+  "pulse_interval_ticks": 10,
+  "heal_per_pulse": 2,
+  "targets": "own troops"
+}

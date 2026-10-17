@@ -29,6 +29,7 @@ public final class CombatUnit {
     private UUID target;
     private int burnTicks;
     private double burnPerTick;
+    private int frozenTicks;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -92,6 +93,13 @@ public final class CombatUnit {
     public int burnTicks() {
         return burnTicks;
     }
+    /** Ticks the unit stays frozen or stunned (Freeze, Lightning). */
+    public int frozenTicks() {
+        return frozenTicks;
+    }
+    public boolean frozen() {
+        return frozenTicks > 0;
+    }
     /** Enemy unit currently chased, or null when heading for a tower. */
     public UUID target() {
         return target;
@@ -111,10 +119,32 @@ public final class CombatUnit {
     }
 
     void tickTimers() {
-        if (cooldown > 0)
-            cooldown--;
         if (invulnerableTicks > 0)
             invulnerableTicks--;
+        // A frozen unit's attack does not charge.
+        if (frozenTicks > 0)
+            frozenTicks--;
+        else if (cooldown > 0)
+            cooldown--;
+    }
+
+    /** Heals up to the unit's starting health. */
+    boolean heal(double amount) {
+        if (amount <= 0.0D || !alive() || health >= maxHealth)
+            return false;
+        health = Math.min(maxHealth, health + amount);
+        return true;
+    }
+
+    /** Stops the unit for {@code ticks}; a longer freeze wins. */
+    void freeze(int ticks) {
+        frozenTicks = Math.max(frozenTicks, ticks);
+    }
+
+    /** Stops the unit for {@code ticks} and restarts its attack. */
+    void stun(int ticks) {
+        freeze(ticks);
+        startCooldown();
     }
 
     /** Kills the unit outright (a Creeper that has exploded). */

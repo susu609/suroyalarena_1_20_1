@@ -5,6 +5,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
+import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.match.MatchInstance;
@@ -15,6 +16,7 @@ import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerState;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -140,18 +142,20 @@ public final class BotBrain {
             if (!card.isSpell() || !me.elixir().canSpend(card.cost()))
                 continue;
             double needed = card.cost() * SPELL_VALUE_PER_ELIXIR;
+            boolean heal = card.spell().heal();
             for (CombatUnit aim : engine.units()) {
-                if (aim.side() == side || !aim.alive())
+                // A healing potion goes on own troops, the rest on enemies.
+                if ((aim.side() == side) != heal || !aim.alive())
                     continue;
-                // Units walk toward this side while the card is dragged and
-                // the spell is in flight.
+                // Enemies walk toward this side (own troops away from it)
+                // while the card is dragged and the spell is in flight.
                 double lead = aim.stats().speed() *
                         (card.spell().castTicks() + DRAG_TICKS) / 20.0D * 0.5D;
+                int sign = ArenaLayout.sideSign(side) * (heal ? -1 : 1);
                 int x = clamp((int) Math.floor(aim.x()), arena.minX(),
                         arena.maxX());
-                int z = clamp((int) Math.floor(aim.z() +
-                        ArenaLayout.sideSign(side) * lead), arena.minZ(),
-                        arena.maxZ());
+                int z = clamp((int) Math.floor(aim.z() + sign * lead),
+                        arena.minZ(), arena.maxZ());
                 double value = spellValue(engine, card, x + 0.5D, z + 0.5D);
                 if (value >= needed && value > bestValue) {
                     best = new Play(slot, x, z);
@@ -162,23 +166,38 @@ public final class BotBrain {
         return best;
     }
 
-    /** Enemy health a spell centred on (x, z) would remove; 0 below 2 hits. */
+    /**
+     * What a spell centred on (x, z) is worth: the enemy health it would
+     * remove plus {@link SpellStats#controlValue} for each unit it freezes or
+     * stuns (only the strongest few for a spell with {@code maxTargets}), or
+     * the health a healing potion would give back to own troops. 0 below 2
+     * units.
+     */
     private double spellValue(CombatEngine engine, BattleCard card, double x,
             double z)
     {
-        double perTarget = card.spell().damagePerTarget();
-        double value = 0.0D;
-        int hits = 0;
+        SpellStats spell = card.spell();
+        double perTarget = spell.damagePerTarget();
+        List<Double> values = new ArrayList<>();
         for (CombatUnit unit : engine.units()) {
-            if (unit.side() == side || !unit.alive())
+            if ((unit.side() == side) != spell.heal() || !unit.alive())
                 continue;
-            if (Math.hypot(unit.x() - x, unit.z() - z) <=
-                    card.spell().radius() + unit.radius()) {
-                value += Math.min(unit.health(), perTarget);
-                hits++;
-            }
+            if (Math.hypot(unit.x() - x, unit.z() - z) >
+                    spell.radius() + unit.radius())
+                continue;
+            values.add(spell.heal() ?
+                    Math.min(unit.maxHealth() - unit.health(), perTarget) :
+                    Math.min(unit.health(), perTarget) + spell.controlValue());
         }
-        return hits >= 2 ? value : 0.0D;
+        if (values.size() < 2)
+            return 0.0D;
+        values.sort(Collections.reverseOrder());
+        int count = spell.maxTargets() > 0 ?
+                Math.min(spell.maxTargets(), values.size()) : values.size();
+        double value = 0.0D;
+        for (int i = 0; i < count; i++)
+            value += values.get(i);
+        return value;
     }
 
     private static int clamp(int value, int min, int max) {

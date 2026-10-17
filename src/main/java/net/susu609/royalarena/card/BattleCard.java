@@ -16,7 +16,7 @@ public enum BattleCard {
     SPIDER("Spider", 3, "minecraft:spider", null, 0,
             new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.45D)),
     SKELETONS("Skeletons", 2, "minecraft:skeleton", "minecraft:stone_sword", 0,
-            new TroopStats(3, 10, 2, 24, 1.2D, 1.33D, 0.24D)),
+            new TroopStats(3, 10, 1.5D, 18, 1.2D, 1.33D, 0.24D)),
     BIG_SLIME("Big Slime", 3, "minecraft:slime", null, 4,
             new TroopStats(1, 20, 5, 28, 1.2D, 0.85D, 1.0D,
                     new SplitRule(2, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
@@ -24,7 +24,7 @@ public enum BattleCard {
             new TroopStats(1, 20, 3, 24, 6.0D, 1.0D, 0.3D)),
     VINDICATOR("Vindicator", 2, "minecraft:vindicator",
             "minecraft:iron_axe", 0,
-            new TroopStats(1, 24, 7, 28, 1.2D, 1.1D, 0.3D)),
+            new TroopStats(1, 24, 12, 48, 1.2D, 1.1D, 0.3D)),
     IRON_GOLEM("Iron Golem", 5, "minecraft:iron_golem", null, 0,
             new TroopStats(1, 160, 12, 32, 1.5D, 0.9D, 0.7D,
                     TroopTraits.BUILDINGS)),
@@ -43,7 +43,7 @@ public enum BattleCard {
             new TroopStats(1, 45, 8, 28, 1.2D, 1.6D, 0.65D,
                     TroopTraits.BUILDINGS)),
     PILLAGER("Pillager", 3, "minecraft:pillager", "minecraft:crossbow", 0,
-            new TroopStats(1, 30, 7, 28, 6.5D, 1.0D, 0.3D)),
+            new TroopStats(1, 30, 10, 40, 6.5D, 1.0D, 0.3D)),
     MAGMA_CUBE("Magma Cube", 4, "minecraft:magma_cube", null, 4,
             new TroopStats(1, 36, 7, 28, 1.2D, 0.83D, 1.0D,
                     new SplitRule(1, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
@@ -52,7 +52,19 @@ public enum BattleCard {
                     0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
             new SpellStats(2.5D, 20, 1, 1, 25.0D, SpellStats.TOWER_MULTIPLIER,
-                    1.0D, 1.0D, 60));
+                    1.0D, 1.0D, 60)),
+    LIGHTNING("Lightning", 6, "minecraft:lightning_rod",
+            new SpellStats(3.5D, 15, 1, 1, 40.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0, 3, 10, 0, false)),
+    HEALING_POTION("Potion of Healing", 3, "minecraft:splash_potion",
+            new SpellStats(3.0D, 10, 8, 10, 2.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
+                    0, true)),
+    FREEZE("Freeze", 4, "minecraft:powder_snow_bucket",
+            new SpellStats(3.0D, 10, 1, 1, 4.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0, 0, 0, 80, false)),
+    TNT("TNT", 5, "minecraft:tnt",
+            new SpellStats(3.0D, 30, 1, 1, 30.0D, 0.5D, 2.0D, 0.0D, 0, 0, 0,
+                    0, false));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;

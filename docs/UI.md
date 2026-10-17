@@ -28,7 +28,7 @@ charge for Fireball). Portraits are optional and live at
 resource pack (ids: `zombie`, `skeleton_archer`, `spider`, `skeletons`,
 `big_slime`, `stray`, `vindicator`, `iron_golem`, `creeper`, `witch`,
 `wolves`, `ravager`, `hoglin`, `pillager`, `magma_cube`, `arrow_storm`,
-`fireball`; a new card's id is its
+`fireball`, `lightning`, `healing_potion`, `freeze`, `tnt`; a new card's id is its
 lower-case enum name).
 Any size works, the image is stretched over the card face (31:39, so 124x156 or
 248x312 is a good size); press F3+T after adding one. See `CardArt`. The
@@ -59,13 +59,23 @@ still lands under the cursor.
 
 ## Health bars
 
-- Towers: always shown, ten segments plus the remaining HP, team coloured.
+- Towers: always shown, a long 16-segment bar (almost twice a troop's)
+  with "health/max" written on it, team coloured. The King's floats above
+  the player standing on the tower.
 - Troops: shown once damaged. The troop's custom name is coloured by team on
   the server (entity tags are not synced to clients), and the bar takes that
   colour.
 
 Bars are billboards drawn like vanilla name tags (text backgrounds), with
 filled and empty segments side by side so they never overlap.
+
+## The King
+
+A player model stands on top of each King tower (`KingFigure`, drawn by
+`KingTowerRenderer`): it wears the skin of that side's player (the bot is
+Steve or Alex), breathes, looks around, and throws its arm forward every time
+its tower shoots; the King's arrows leave from its hand. The snapshot packet
+carries both players' ids for this.
 
 ## Deploy preview and delay
 

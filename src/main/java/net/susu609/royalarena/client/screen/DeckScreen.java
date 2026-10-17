@@ -354,20 +354,32 @@ public final class DeckScreen extends Screen {
             SpellStats s = card.spell();
             lines.add(line("Radius %.1f blocks, lands after %.1f s",
                     s.radius(), s.castTicks() / 20.0D));
+            String effect = s.heal() ? "healing" : "damage";
             if (s.pulses() > 1)
-                lines.add(line("%.0f damage over %.1f s (%.0f every %.2f s)",
-                        s.damagePerPulse() * s.pulses(),
+                lines.add(line("%.0f " + effect + " over %.1f s (%.0f every " +
+                                "%.2f s)", s.damagePerPulse() * s.pulses(),
                         s.pulses() * s.pulseInterval() / 20.0D,
                         s.damagePerPulse(), s.pulseInterval() / 20.0D));
             else
-                lines.add(line("%.0f damage", s.damagePerPulse()));
+                lines.add(line("%.0f " + effect, s.damagePerPulse()));
+            if (s.heal())
+                lines.add(line("Heals your own troops, never towers"));
+            if (s.maxTargets() > 0)
+                lines.add(line("Strikes the %d targets with the most health",
+                        s.maxTargets()));
+            if (s.stunTicks() > 0)
+                lines.add(line("Stuns for %.1f s", s.stunTicks() / 20.0D));
+            if (s.freezeTicks() > 0)
+                lines.add(line("Freezes troops and towers for %.0f s",
+                        s.freezeTicks() / 20.0D));
             if (s.knockback() > 0)
                 lines.add(line("Knocks back %.1f block", s.knockback()));
             if (s.burnTicks() > 0)
                 lines.add(line("Burns %.0f/s for %.0f s", s.burnPerSecond(),
                         s.burnTicks() / 20.0D));
-            lines.add(line("%.0f%% damage to towers",
-                    s.towerMultiplier() * 100));
+            if (!s.heal())
+                lines.add(line("%.0f%% damage to towers",
+                        s.towerMultiplier() * 100));
             return lines;
         }
         TroopStats s = card.stats();

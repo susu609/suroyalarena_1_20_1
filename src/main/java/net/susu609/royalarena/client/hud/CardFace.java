@@ -9,6 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.card.BattleCard;
@@ -97,7 +99,12 @@ public final class CardFace {
             if (c.isSpell()) {
                 Item item = ForgeRegistries.ITEMS.getValue(
                         RL.require(c.iconItemId()));
-                return new ItemStack(item == null ? Items.PAPER : item);
+                ItemStack stack = new ItemStack(item == null ? Items.PAPER :
+                        item);
+                // A plain splash potion is "uncraftable"; show healing.
+                if (c == BattleCard.HEALING_POTION)
+                    PotionUtils.setPotion(stack, Potions.HEALING);
+                return stack;
             }
             EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
                     RL.require(c.entityId()));

@@ -55,19 +55,27 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 ## Spell cost
 
 ```
-elixir = round(1 + damagePerTarget * radius / spell_cost_divisor)
+value  = damagePerTarget + (stun + freeze seconds) * 4
+share  = min(1, maxTargets / 4)        (1 when the spell hits everything)
+elixir = round(1 + value * radius * share / spell_cost_divisor)
 spell_cost_divisor = 20.8
 ```
 
 The divisor is anchored on a 4-elixir fireball (325 damage, radius 2.5 in the
-reference data, i.e. 270 / 13). Burn damage is not counted.
+reference data, i.e. 270 / 13). Burn damage is not counted. A second of
+freeze or stun is worth 4 damage per target; healing counts like damage.
 
 | Spell | Damage per target | Radius | Raw | Elixir |
 |---|---|---|---|---|
 | Arrow Storm | 16 | 3.0 | 3.31 | 3 |
 | Fireball | 25 | 2.5 | 4.00 | 4 |
+| Lightning | 40 + 0.5 s stun (42), 3 targets | 3.5 | 6.30 | 6 |
+| Potion of Healing | 16 healing | 3.0 | 3.31 | 3 |
+| Freeze | 4 + 4 s freeze (20) | 3.0 | 3.88 | 4 |
+| TNT | 30 | 3.0 | 5.33 | 5 |
 
-All spells deal 30% damage to towers (`spell_tower_damage_multiplier`).
+Spells deal 30% damage to towers (`spell_tower_damage_multiplier`); TNT
+deals 50%, and a healing potion never touches towers.
 
 ## Towers
 

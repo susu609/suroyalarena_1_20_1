@@ -331,3 +331,20 @@ hops and squish, spider pounce; troops turn toward what they fight. See
 - `CombatSmokeTest.tanksReachTheTowerHealthy`, `TraitSmokeTest`
 
 See `docs/CARDS.md` (Rebalance) for the before/after numbers.
+
+## Part 29 — Scenery, the King on its tower, weapons, four new spells
+
+- `arena/ArenaScenery.java`, `server/arena/ArenaBuilder.java` (hills and
+  forest), `mixin/MobDespawnMixin.java` (no despawn on peaceful)
+- `client/render/entity/KingFigure.java`, `KingTowerRenderer.java`,
+  `client/render/WorldHealthBar.java`, `match/MatchSnapshot.java`
+  (players' ids, protocol 7), `tower/TowerKind.java` (`shotHeight`)
+- `card/SpellStats.java` (`maxTargets`, `stunTicks`, `freezeTicks`, `heal`),
+  `card/CostFormula.java`, `card/BattleCard.java` (Lightning, Potion of
+  Healing, Freeze, TNT; axe, sword and crossbow timings)
+- `combat/CombatEngine.java`, `combat/CombatUnit.java`,
+  `combat/TickResult.java` (`Strike`), `bot/BotBrain.java`
+- `server/battle/BattleField.java`, `client/render/ProjectileRenderer.java`,
+  `AoeFlashRenderer.java`, `SpellTargetHighlighter.java`,
+  `network/s2c/S2CAoeFlashPacket.java` (colour), `S2CProjectilePacket.java`
+- `SpellSmokeTest` (Lightning, healing, Freeze, TNT)

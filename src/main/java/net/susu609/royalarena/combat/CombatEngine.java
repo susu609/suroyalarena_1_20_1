@@ -53,6 +53,9 @@ public final class CombatEngine {
             new EnumMap<>(TowerId.class);
     private final Map<TowerId, UUID> towerTarget =
             new EnumMap<>(TowerId.class);
+    /** Ticks each frozen (or stunned) tower stays silent. */
+    private final Map<TowerId, Integer> towerFrozen =
+            new EnumMap<>(TowerId.class);
     private final List<ActiveSpell> spells = new ArrayList<>();
     /** Shots in the air, with the ticks until they land. */
     private final List<InFlight> flying = new ArrayList<>();
@@ -204,6 +207,9 @@ public final class CombatEngine {
             List<Attack> attacks)
     {
         TroopStats stats = unit.stats();
+        // Frozen or stunned: no walking, no attacking, the same target.
+        if (unit.frozen())
+            return;
         CombatUnit enemy = pickEnemy(unit);
         unit.setTarget(enemy == null ? null : enemy.id());
 
@@ -335,6 +341,11 @@ public final class CombatEngine {
                 continue;
             if (id.kind() == TowerKind.KING && !kingAwake(id.side()))
                 continue;
+            int frozen = towerFrozen.getOrDefault(id, 0);
+            if (frozen > 0) {
+                towerFrozen.put(id, frozen - 1);
+                continue;
+            }
             int cooldown = towerCooldown.getOrDefault(id, 0);
             if (cooldown > 0) {
                 towerCooldown.put(id, cooldown - 1);
@@ -380,6 +391,11 @@ public final class CombatEngine {
         return best;
     }
 
+    /** Ticks a tower stays frozen or stunned (0 when it can shoot). */
+    public int towerFrozenTicks(TowerId id) {
+        return towerFrozen.getOrDefault(id, 0);
+    }
+
     // --------------------------------------------------------------- spells
 
     /** Pulses every landed spell whose wait ran out; drops finished ones. */
@@ -392,31 +408,84 @@ public final class CombatEngine {
                 continue;
             }
             SpellStats spell = active.card.spell();
-            int before = hits.size();
-            for (CombatUnit unit : units) {
-                if (unit.side() == active.side || !unit.alive())
-                    continue;
-                double reach = spell.radius() + unit.radius();
-                if (Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
-                        reach + EPSILON)
-                    hits.add(new Hit(unit, null, spell.damagePerPulse(),
-                            active));
+            List<Hit> pulseHits = spell.heal() ? healTargets(active) :
+                    spellTargets(active);
+            List<TickResult.Strike> strikes = new ArrayList<>();
+            for (Hit hit : pulseHits) {
+                if (hit.unit() != null) {
+                    strikes.add(new TickResult.Strike(hit.unit().id(), null,
+                            hit.unit().x(), hit.unit().z()));
+                } else {
+                    ArenaPoint p = arena.towerPoint(hit.tower());
+                    strikes.add(new TickResult.Strike(null, hit.tower(),
+                            p.x(), p.z()));
+                }
             }
-            for (TowerId id : TowerId.values()) {
-                if (id.side() == active.side ||
-                        match.tower(id).isDestroyed())
-                    continue;
-                if (distanceToTower(active.x, active.z, id) <=
-                        spell.radius() + EPSILON)
-                    hits.add(new Hit(null, id, spell.damagePerPulse() *
-                            spell.towerMultiplier(), active));
-            }
+            hits.addAll(pulseHits);
             pulses.add(new SpellPulse(active.side, active.card, active.x,
-                    active.z, active.pulsesDone, hits.size() - before));
+                    active.z, active.pulsesDone, pulseHits.size(),
+                    List.copyOf(strikes)));
             active.pulsesDone++;
             active.wait = spell.pulseInterval() - 1;
             if (active.pulsesDone >= spell.pulses())
                 spells.remove(i--);
+        }
+        return hits;
+    }
+
+    /**
+     * Enemy units whose body touches the circle and enemy towers whose
+     * footprint does; a spell with {@code maxTargets} keeps only that many,
+     * those with the most health.
+     */
+    private List<Hit> spellTargets(ActiveSpell active) {
+        SpellStats spell = active.card.spell();
+        List<Hit> hits = new ArrayList<>();
+        List<Double> health = new ArrayList<>();
+        for (CombatUnit unit : units) {
+            if (unit.side() == active.side || !unit.alive())
+                continue;
+            double reach = spell.radius() + unit.radius();
+            if (Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
+                    reach + EPSILON) {
+                hits.add(new Hit(unit, null, spell.damagePerPulse(), active));
+                health.add(unit.health());
+            }
+        }
+        for (TowerId id : TowerId.values()) {
+            if (id.side() == active.side || match.tower(id).isDestroyed())
+                continue;
+            if (distanceToTower(active.x, active.z, id) <=
+                    spell.radius() + EPSILON) {
+                hits.add(new Hit(null, id, spell.damagePerPulse() *
+                        spell.towerMultiplier(), active));
+                health.add((double) match.tower(id).health());
+            }
+        }
+        if (spell.maxTargets() <= 0 || hits.size() <= spell.maxTargets())
+            return hits;
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < hits.size(); i++)
+            order.add(i);
+        // Most health first; ties keep the scan order.
+        order.sort((a, b) -> Double.compare(health.get(b), health.get(a)));
+        List<Hit> kept = new ArrayList<>();
+        for (int i = 0; i < spell.maxTargets(); i++)
+            kept.add(hits.get(order.get(i)));
+        return kept;
+    }
+
+    /** The caster's own units inside the circle (towers are not healed). */
+    private List<Hit> healTargets(ActiveSpell active) {
+        SpellStats spell = active.card.spell();
+        List<Hit> hits = new ArrayList<>();
+        for (CombatUnit unit : units) {
+            if (unit.side() != active.side || !unit.alive())
+                continue;
+            double reach = spell.radius() + unit.radius();
+            if (Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
+                    reach + EPSILON)
+                hits.add(new Hit(unit, null, spell.damagePerPulse(), active));
         }
         return hits;
     }
@@ -428,11 +497,26 @@ public final class CombatEngine {
             SpellStats spell = hit.spell().card.spell();
             if (hit.tower() != null) {
                 hitTower(hit.tower(), hit.damage(), destroyed);
+                int stop = Math.max(spell.freezeTicks(), spell.stunTicks());
+                if (stop > 0) {
+                    towerFrozen.merge(hit.tower(), stop, Math::max);
+                    if (spell.stunTicks() > 0)
+                        towerCooldown.put(hit.tower(),
+                                hit.tower().kind().attackTicks());
+                }
                 continue;
             }
             CombatUnit unit = hit.unit();
+            if (spell.heal()) {
+                unit.heal(hit.damage());
+                continue;
+            }
             if (!unit.hurt(hit.damage()))
                 continue;
+            if (spell.freezeTicks() > 0)
+                unit.freeze(spell.freezeTicks());
+            if (spell.stunTicks() > 0)
+                unit.stun(spell.stunTicks());
             unit.ignite(spell.burnTicks(), spell.burnPerSecond());
             if (spell.knockback() > 0.0D && unit.alive())
                 knockBack(unit, hit.spell().x, hit.spell().z,

@@ -1,0 +1,11 @@
+{
+  "id": "freeze",
+  "type": "spell",
+  "display_name": "Freeze",
+  "elixir": 4,
+  "radius": 3.0,
+  "travel_ticks": 10,
+  "damage": 4,
+  "freeze_ticks": 80,
+  "tower_multiplier": 0.3
+}

@@ -30,6 +30,10 @@ public final class SpellSmokeTest {
         fireballHitsHardKnocksBackAndBurns();
         spellsDealThirtyPercentToTowers();
         botCastsASpellOnAGroup();
+        lightningStrikesTheThreeStrongest();
+        healingPotionHealsOwnTroops();
+        freezeStopsTroopsAndTowers();
+        tntHitsHardAndPushesFar();
         System.out.println("RoyalArena spell smoke tests: PASS");
     }
 
@@ -211,6 +215,157 @@ public final class SpellSmokeTest {
                 check(!lone.red().deck().cardAt(p.slot()).isSpell(),
                         "no spell wasted on a single unit");
         }
+    }
+
+    private static void lightningStrikesTheThreeStrongest() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit golem = unit(engine, BattleCard.IRON_GOLEM, TeamSide.RED,
+                0.5D, 0.0D);
+        CombatUnit ravager = unit(engine, BattleCard.RAVAGER, TeamSide.RED,
+                2.5D, 1.0D);
+        CombatUnit hoglin = unit(engine, BattleCard.HOGLIN, TeamSide.RED,
+                -1.5D, -1.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                -1.0D, 1.5D);
+        CombatUnit spider = unit(engine, BattleCard.SPIDER, TeamSide.RED,
+                1.5D, -1.5D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.LIGHTNING, 0.5D, 0.0D);
+        TickResult first = engine.tick();
+        check(first.spellPulses().size() == 1 &&
+                first.spellPulses().get(0).hits() == 3 &&
+                first.spellPulses().get(0).strikes().size() == 3,
+                "Lightning strikes three targets");
+        near(golem.health(), 120.0D, "the Golem is struck");
+        near(ravager.health(), 90.0D, "the Ravager is struck");
+        near(hoglin.health(), 5.0D, "the Hoglin is struck");
+        near(zombie.health(), 20.0D, "the Zombie is spared");
+        near(spider.health(), 10.0D, "the Spider is spared");
+        check(golem.frozen() && !zombie.frozen(), "struck units are stunned");
+        for (int i = 0; i < 9; i++) {
+            TickResult r = engine.tick();
+            check(r.moves().stream().noneMatch(
+                    m -> m.unit().equals(golem.id())) &&
+                    r.attacks().stream().noneMatch(
+                            a -> golem.id().equals(a.attackerUnit())),
+                    "a stunned unit neither walks nor attacks");
+        }
+        engine.tick();
+        check(!golem.frozen(), "the stun lasts half a second");
+
+        MatchInstance siege = battle();
+        CombatEngine siegeEngine = new CombatEngine(siege);
+        ArenaPoint princess = siege.arena().towerPoint(TowerId.RED_LEFT);
+        siegeEngine.castSpell(TeamSide.BLUE, BattleCard.LIGHTNING,
+                princess.x(), princess.z() + 3.5D);
+        siegeEngine.tick();
+        check(siege.tower(TowerId.RED_LEFT).health() == 110 - 12,
+                "Lightning deals 30% of 40 to a tower: " +
+                        siege.tower(TowerId.RED_LEFT).health());
+        check(siegeEngine.towerFrozenTicks(TowerId.RED_LEFT) > 0,
+                "and stuns it");
+    }
+
+    private static void healingPotionHealsOwnTroops() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit low = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                -4.0D, 1.0D);
+        CombatUnit scratched = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                4.0D, 1.0D);
+        CombatUnit enemy = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, -1.0D);
+        // The enemy hurts them first: Arrow Storm on one, Freeze on the other.
+        engine.castSpell(TeamSide.RED, BattleCard.ARROW_STORM, -4.0D, 1.0D);
+        engine.castSpell(TeamSide.RED, BattleCard.FREEZE, 4.0D, 1.0D);
+        for (int i = 0; i < 100; i++)
+            engine.tick();
+        near(low.health(), 4.0D, "Arrow Storm left 4");
+        near(scratched.health(), 16.0D, "Freeze left 16");
+        low.setPosition(-1.0D, 1.0D);
+        scratched.setPosition(1.0D, 1.0D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.HEALING_POTION, 0.0D,
+                1.0D);
+        int pulses = 0;
+        for (int i = 0; i < 100; i++) {
+            TickResult r = engine.tick();
+            for (TickResult.SpellPulse p : r.spellPulses()) {
+                pulses++;
+                check(p.hits() == 2, "both own Zombies are healed");
+            }
+        }
+        check(pulses == 8, "8 healing pulses: " + pulses);
+        near(low.health(), 20.0D, "4 + 8 x 2 = 20");
+        near(scratched.health(), 20.0D, "healing stops at full health");
+        near(enemy.health(), 20.0D, "enemies are not touched");
+    }
+
+    private static void freezeStopsTroopsAndTowers() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        ArenaPoint princess = match.arena().towerPoint(TowerId.RED_LEFT);
+        // In front of the tower, in its range, so the tower would shoot.
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                princess.x(), princess.z() + 4.0D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.FREEZE, princess.x(),
+                princess.z() + 3.0D);
+        // The tower may fire on this very tick, before the freeze lands.
+        engine.tick();
+        double health = zombie.health();
+        check(match.tower(TowerId.RED_LEFT).health() < 110,
+                "Freeze damages the tower a little");
+        check(engine.towerFrozenTicks(TowerId.RED_LEFT) == 80,
+                "and freezes it for 4 s");
+        for (int i = 0; i < 79; i++) {
+            TickResult r = engine.tick();
+            check(r.attacks().stream().noneMatch(
+                    a -> TowerId.RED_LEFT.equals(a.attackerTower())),
+                    "a frozen tower does not shoot (tick " + i + ")");
+        }
+        boolean shot = false;
+        for (int i = 0; i < 40 && !shot; i++)
+            shot = engine.tick().attacks().stream().anyMatch(
+                    a -> TowerId.RED_LEFT.equals(a.attackerTower()));
+        check(shot, "the tower shoots again after the freeze");
+        check(zombie.health() <= health, "the own Zombie is not frozen");
+
+        MatchInstance other = battle();
+        CombatEngine otherEngine = new CombatEngine(other);
+        CombatUnit enemy = unit(otherEngine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, 0.0D);
+        otherEngine.castSpell(TeamSide.BLUE, BattleCard.FREEZE, 0.5D, 0.0D);
+        otherEngine.tick();
+        near(enemy.health(), 16.0D, "Freeze deals 4 damage");
+        check(enemy.frozenTicks() == 80, "and freezes the troop");
+        for (int i = 0; i < 79; i++)
+            check(otherEngine.tick().moves().isEmpty(),
+                    "a frozen troop stands still");
+        check(!otherEngine.tick().moves().isEmpty(),
+                "it walks again after 4 s");
+    }
+
+    private static void tntHitsHardAndPushesFar() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit golem = unit(engine, BattleCard.IRON_GOLEM, TeamSide.RED,
+                1.5D, 0.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                -1.0D, 0.5D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.TNT, 0.0D, 0.0D);
+        TickResult first = engine.tick();
+        check(first.deaths().stream().anyMatch(
+                d -> d.unit().equals(zombie.id())), "TNT kills a Zombie");
+        near(golem.health(), 130.0D, "30 damage on the Golem");
+        near(golem.x(), 3.5D, "and a 2 block push");
+
+        MatchInstance siege = battle();
+        CombatEngine siegeEngine = new CombatEngine(siege);
+        ArenaPoint princess = siege.arena().towerPoint(TowerId.RED_LEFT);
+        siegeEngine.castSpell(TeamSide.BLUE, BattleCard.TNT, princess.x(),
+                princess.z() + 3.5D);
+        siegeEngine.tick();
+        check(siege.tower(TowerId.RED_LEFT).health() == 110 - 15,
+                "TNT deals half its damage to towers");
     }
 
     private static void near(double actual, double expected, String name) {

@@ -29,6 +29,11 @@ It thinks every 10 ticks and never plays twice within 40 ticks.
   sturdiest troop card it can afford (most total health; troops that only
   target towers, Iron Golem and Hoglin, are never used to defend) three blocks behind that
   unit, in the same lane.
+- **Newer spells.** The same rule: each is cast where it is worth 8
+  health per elixir over at least two units. Freeze and Lightning count 4 per
+  second of freeze or stun on each unit, Lightning only its 3 strongest
+  targets, and a healing potion goes on its own damaged troops (the health
+  it would give back).
 - **Attack.** Otherwise, once it has 7 elixir, it plays a random affordable
   troop card near the back of the lane whose enemy Princess tower is weaker (or the
   surviving lane when one has fallen, or a random lane when equal).

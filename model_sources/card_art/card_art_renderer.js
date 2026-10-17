@@ -37,6 +37,10 @@
         'magma_cube': 4,
         'arrow_storm': 3,
         'fireball': 4,
+        'lightning': 6,
+        'healing_potion': 3,
+        'freeze': 4,
+        'tnt': 5,
     };
     const CARD_IDS = Object.keys(CARDS);
 

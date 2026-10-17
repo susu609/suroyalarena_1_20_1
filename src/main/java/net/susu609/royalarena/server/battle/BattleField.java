@@ -10,6 +10,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Mob;
@@ -44,6 +45,7 @@ import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.tower.TowerId;
+import net.susu609.royalarena.tower.TowerKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -219,6 +221,7 @@ public final class BattleField {
         for (TickResult.Attack attack : result.landed())
             playHit(attack);
         mirrorHealth();
+        showFrozenTowers();
         for (TickResult.Death death : result.deaths())
             removeDead(death);
         for (TowerId id : result.destroyedTowers())
@@ -414,17 +417,46 @@ public final class BattleField {
             double tx = deploy.x() + 0.5D;
             double tz = deploy.z() + 0.5D;
             double floor = arena.floorY() + 1.0D;
-            if (deploy.card() == BattleCard.FIREBALL) {
-                ArenaPoint king = arena.towerPoint(TowerId.king(deploy.side()));
-                sendProjectile(S2CProjectilePacket.Kind.FIREBALL,
-                        new double[] {king.x(), king.y() + 4.0D, king.z()},
-                        new double[] {tx, floor + 0.5D, tz},
-                        deploy.ticksLeft(), 3.0F);
-                level.playSound(null, king.x(), king.y() + 4.0D, king.z(),
-                        SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.8F,
-                        1.0F);
-            } else {
-                arrowVolley(deploy.side(), deploy.card(), tx, tz,
+            ArenaPoint king = arena.towerPoint(TowerId.king(deploy.side()));
+            double[] hand = {king.x(), king.y() + TowerKind.KING.shotHeight(),
+                    king.z()};
+            switch (deploy.card()) {
+                case FIREBALL -> {
+                    sendProjectile(S2CProjectilePacket.Kind.FIREBALL, hand,
+                            new double[] {tx, floor + 0.5D, tz},
+                            deploy.ticksLeft(), 3.0F);
+                    level.playSound(null, hand[0], hand[1], hand[2],
+                            SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.8F,
+                            1.0F);
+                }
+                case HEALING_POTION, FREEZE -> {
+                    // The King throws a splash potion or a snowball.
+                    sendProjectile(deploy.card() == BattleCard.FREEZE ?
+                                    S2CProjectilePacket.Kind.SNOWBALL :
+                                    S2CProjectilePacket.Kind.HEALING_POTION,
+                            hand, new double[] {tx, floor + 0.3D, tz},
+                            deploy.ticksLeft(), 4.0F);
+                    level.playSound(null, hand[0], hand[1], hand[2],
+                            deploy.card() == BattleCard.FREEZE ?
+                                    SoundEvents.SNOWBALL_THROW :
+                                    SoundEvents.SPLASH_POTION_THROW,
+                            SoundSource.HOSTILE, 0.8F, 1.0F);
+                }
+                case TNT -> {
+                    // Dropped from high above, primed and flashing.
+                    sendProjectile(S2CProjectilePacket.Kind.TNT,
+                            new double[] {tx, floor + 16.0D, tz},
+                            new double[] {tx, floor, tz}, deploy.ticksLeft(),
+                            0.0F);
+                    level.playSound(null, tx, floor + 8.0D, tz,
+                            SoundEvents.TNT_PRIMED, SoundSource.HOSTILE, 1.0F,
+                            1.0F);
+                }
+                case LIGHTNING -> level.sendParticles(
+                        ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 30,
+                        deploy.card().spell().radius() * 0.5D, 0.1D,
+                        deploy.card().spell().radius() * 0.5D, 0.05D);
+                default -> arrowVolley(deploy.side(), deploy.card(), tx, tz,
                         deploy.ticksLeft());
             }
         }
@@ -457,30 +489,89 @@ public final class BattleField {
 
     private void playSpell(TickResult.SpellPulse pulse) {
         double floor = arena.floorY() + 1.0D;
-        double radius = pulse.card().spell().radius();
-        flash(pulse.x(), pulse.z(), radius);
-        if (pulse.card() == BattleCard.FIREBALL) {
-            level.sendParticles(ParticleTypes.EXPLOSION, pulse.x(), floor + 0.5D,
-                    pulse.z(), 4, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
-            level.sendParticles(ParticleTypes.FLAME, pulse.x(), floor + 0.3D,
-                    pulse.z(), 40, radius * 0.5D, 0.2D, radius * 0.5D, 0.05D);
-            level.playSound(null, pulse.x(), floor, pulse.z(),
-                    SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 0.8F,
-                    1.2F);
-            return;
-        }
-        // Arrow Storm: this pulse's arrows land now; launch the next volley
-        // so it lands with the next pulse.
         var spell = pulse.card().spell();
-        if (pulse.index() + 1 < spell.pulses())
-            arrowVolley(pulse.side(), pulse.card(), pulse.x(), pulse.z(),
-                    spell.pulseInterval());
-        level.sendParticles(ParticleTypes.CRIT, pulse.x(), floor + 0.2D,
-                pulse.z(), 6, radius * 0.5D, 0.05D, radius * 0.5D, 0.05D);
-        if (pulse.index() % 2 == 0)
-            level.playSound(null, pulse.x(), floor, pulse.z(),
-                    SoundEvents.ARROW_HIT, SoundSource.HOSTILE, 0.5F,
-                    0.9F + level.random.nextFloat() * 0.3F);
+        double radius = spell.radius();
+        double x = pulse.x();
+        double z = pulse.z();
+        switch (pulse.card()) {
+            case FIREBALL -> {
+                flash(x, z, radius, S2CAoeFlashPacket.RED);
+                level.sendParticles(ParticleTypes.EXPLOSION, x, floor + 0.5D,
+                        z, 4, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
+                level.sendParticles(ParticleTypes.FLAME, x, floor + 0.3D, z,
+                        40, radius * 0.5D, 0.2D, radius * 0.5D, 0.05D);
+                level.playSound(null, x, floor, z, SoundEvents.GENERIC_EXPLODE,
+                        SoundSource.HOSTILE, 0.8F, 1.2F);
+            }
+            case TNT -> {
+                flash(x, z, radius, S2CAoeFlashPacket.RED);
+                level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, x,
+                        floor + 0.5D, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                level.sendParticles(ParticleTypes.EXPLOSION, x, floor + 0.5D,
+                        z, 10, radius * 0.5D, 0.4D, radius * 0.5D, 0.0D);
+                level.sendParticles(ParticleTypes.LARGE_SMOKE, x, floor + 0.5D,
+                        z, 30, radius * 0.5D, 0.3D, radius * 0.5D, 0.05D);
+                level.playSound(null, x, floor, z, SoundEvents.GENERIC_EXPLODE,
+                        SoundSource.HOSTILE, 1.2F, 0.8F);
+            }
+            case LIGHTNING -> {
+                // A real (harmless) bolt on every unit and tower struck.
+                for (TickResult.Strike strike : pulse.strikes()) {
+                    LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
+                    if (bolt == null)
+                        continue;
+                    bolt.moveTo(strike.x(), floor, strike.z());
+                    bolt.setVisualOnly(true);
+                    level.addFreshEntity(bolt);
+                    flash(strike.x(), strike.z(), 1.2D,
+                            S2CAoeFlashPacket.YELLOW);
+                }
+                if (pulse.strikes().isEmpty())
+                    flash(x, z, radius, S2CAoeFlashPacket.YELLOW);
+            }
+            case FREEZE -> {
+                flash(x, z, radius, S2CAoeFlashPacket.ICE);
+                level.sendParticles(ParticleTypes.SNOWFLAKE, x, floor + 0.5D,
+                        z, 60, radius * 0.5D, 0.4D, radius * 0.5D, 0.02D);
+                level.sendParticles(ParticleTypes.ITEM_SNOWBALL, x,
+                        floor + 0.3D, z, 20, radius * 0.4D, 0.1D, radius * 0.4D,
+                        0.1D);
+                level.playSound(null, x, floor, z, SoundEvents.GLASS_BREAK,
+                        SoundSource.HOSTILE, 0.8F, 1.4F);
+                level.playSound(null, x, floor, z, SoundEvents.POWDER_SNOW_PLACE,
+                        SoundSource.HOSTILE, 1.0F, 0.8F);
+            }
+            case HEALING_POTION -> {
+                if (pulse.index() % 2 == 0)
+                    flash(x, z, radius, S2CAoeFlashPacket.GREEN);
+                if (pulse.index() == 0) {
+                    level.sendParticles(ParticleTypes.EFFECT, x, floor + 0.3D,
+                            z, 40, radius * 0.5D, 0.2D, radius * 0.5D, 0.1D);
+                    level.playSound(null, x, floor, z,
+                            SoundEvents.SPLASH_POTION_BREAK,
+                            SoundSource.HOSTILE, 0.8F, 1.0F);
+                }
+                for (TickResult.Strike strike : pulse.strikes()) {
+                    level.sendParticles(ParticleTypes.HEART, strike.x(),
+                            floor + 1.6D, strike.z(), 1, 0.2D, 0.1D, 0.2D,
+                            0.0D);
+                }
+            }
+            default -> {
+                // Arrow Storm: this pulse's arrows land now; launch the next
+                // volley so it lands with the next pulse.
+                flash(x, z, radius, S2CAoeFlashPacket.RED);
+                if (pulse.index() + 1 < spell.pulses())
+                    arrowVolley(pulse.side(), pulse.card(), x, z,
+                            spell.pulseInterval());
+                level.sendParticles(ParticleTypes.CRIT, x, floor + 0.2D, z, 6,
+                        radius * 0.5D, 0.05D, radius * 0.5D, 0.05D);
+                if (pulse.index() % 2 == 0)
+                    level.playSound(null, x, floor, z, SoundEvents.ARROW_HIT,
+                            SoundSource.HOSTILE, 0.5F,
+                            0.9F + level.random.nextFloat() * 0.3F);
+            }
+        }
     }
 
     // ------------------------------------------------------------- effects
@@ -528,10 +619,15 @@ public final class BattleField {
 
     /** A red circle flashing on the floor where area damage lands. */
     private void flash(double x, double z, double radius) {
+        flash(x, z, radius, S2CAoeFlashPacket.RED);
+    }
+
+    /** A circle of {@code rgb} flashing on the floor. */
+    private void flash(double x, double z, double radius, int rgb) {
         double floor = arena.floorY() + 1.0D;
         ModNetwork.sendNear(level, x, floor, z, PROJECTILE_VIEW_RANGE,
                 new S2CAoeFlashPacket((float) x, (float) floor, (float) z,
-                        (float) radius));
+                        (float) radius, rgb));
     }
 
     /** A Creeper going off: blast particles over its splash circle. */
@@ -619,6 +715,9 @@ public final class BattleField {
             if (entity instanceof LivingEntity living &&
                     living.getHealth() != (float) unit.health())
                 living.setHealth((float) unit.health());
+            // Frozen or stunned: vanilla's frozen look, the mob shakes.
+            if (entity != null && unit.frozen())
+                entity.setTicksFrozen(entity.getTicksRequiredToFreeze());
             int burn = unit.burnTicks();
             int known = burnShown.getOrDefault(unit.id(), 0);
             if (entity != null && burn > known) {
@@ -631,6 +730,19 @@ public final class BattleField {
                 burnShown.put(unit.id(), burn);
             else
                 burnShown.remove(unit.id());
+        }
+    }
+
+    /** Snowflakes drifting around a frozen tower. */
+    private void showFrozenTowers() {
+        if (level.getGameTime() % 5 != 0)
+            return;
+        for (TowerId id : TowerId.values()) {
+            if (engine.towerFrozenTicks(id) <= 0 || match.tower(id).isDestroyed())
+                continue;
+            ArenaPoint p = arena.towerPoint(id);
+            level.sendParticles(ParticleTypes.SNOWFLAKE, p.x(), p.y() + 2.5D,
+                    p.z(), 12, 1.6D, 1.6D, 1.6D, 0.01D);
         }
     }
 

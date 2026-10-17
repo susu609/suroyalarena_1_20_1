@@ -45,12 +45,17 @@ public final class CostFormula {
     }
 
     /**
-     * Unrounded spell cost: 1 + damage per target (burn excluded) x radius /
-     * 20.8. Burn is a bonus on top, like the knockback.
+     * Unrounded spell cost: 1 + value per target x radius / 20.8, where the
+     * value is the damage (or healing) per target, burn excluded, plus
+     * {@link SpellStats#controlValue} for freezing and stunning. A spell
+     * that hits only a few targets counts a quarter of the circle per target
+     * (up to all of it). Burn is a bonus on top, like the knockback.
      */
     public static double raw(SpellStats s) {
-        return 1.0D + s.damagePerPulse() * s.pulses() * s.radius() /
-                SPELL_COST_DIVISOR;
+        double value = s.damagePerPulse() * s.pulses() + s.controlValue();
+        double share = s.maxTargets() > 0 ?
+                Math.min(1.0D, s.maxTargets() / 4.0D) : 1.0D;
+        return 1.0D + value * s.radius() * share / SPELL_COST_DIVISOR;
     }
 
     public static int elixir(SpellStats s) {

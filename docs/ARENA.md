@@ -106,6 +106,15 @@ land on terrain whatever world type the save uses. Players are moved there
 for the match and back to where they were afterwards. A player who logs out
 during a match and comes back later is sent to the overworld spawn.
 
+Around each arena `ArenaScenery` raises hills and forest up to 12 blocks
+past the wall: grass slopes from level with the wall up to 3-8 blocks, a few
+rocky, snow-capped peaks at the outer edge, oak, birch and spruce trees
+(persistent leaves) and some grass and flowers. It is the same for the same
+arena slot, is placed with the arena and removed with it, and stays inside
+the arena's 64-block slot. Troops in a match are never despawned, whatever
+the difficulty (`MobDespawnMixin`); sumodlib's dev world is now created on
+normal difficulty.
+
 If the dimension is missing (an old jar of sumodlib), matches fall back to
 the sky above the overworld spawn as before.
 

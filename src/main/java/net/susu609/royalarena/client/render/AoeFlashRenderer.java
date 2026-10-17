@@ -11,18 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Red circles flashing on the floor where area damage lands (Creeper blast,
- * Witch potion, Fireball, each Arrow Storm volley): two quick flashes that
- * fade out over {@link #DURATION} ticks.
+ * Circles flashing on the floor where area damage lands (red: Creeper blast,
+ * Witch potion, Fireball, TNT, each Arrow Storm volley; yellow: Lightning;
+ * blue: Freeze; green: a healing potion): two quick flashes that fade out
+ * over {@link #DURATION} ticks.
  */
 public final class AoeFlashRenderer {
     public static final int DURATION = 12;
-    private static final int RED = 0xFF3030;
     private static final List<Flash> FLASHES = new ArrayList<>();
     private static int clientTicks;
 
     private record Flash(double x, double y, double z, double radius,
-                         int start)
+                         int rgb, int start)
     {
     }
 
@@ -30,7 +30,8 @@ public final class AoeFlashRenderer {
     }
 
     public static void add(S2CAoeFlashPacket p) {
-        FLASHES.add(new Flash(p.x(), p.y(), p.z(), p.radius(), clientTicks));
+        FLASHES.add(new Flash(p.x(), p.y(), p.z(), p.radius(), p.rgb(),
+                clientTicks));
     }
 
     public static void tick() {
@@ -68,7 +69,7 @@ public final class AoeFlashRenderer {
             if (a <= 0.01F)
                 continue;
             WorldShapes.disc(pose, buffers, f.x(), f.y() + 0.01D, f.z(),
-                    f.radius(), RED, 0.45F * a, a);
+                    f.radius(), f.rgb(), 0.45F * a, a);
         }
         pose.popPose();
         buffers.endBatch();

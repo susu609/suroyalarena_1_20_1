@@ -19,7 +19,7 @@ Move speed is in blocks per second.
 | Zombie | `minecraft:zombie` | 2 | 20 | 3 | 1.0 | 1.2 | 0.83 | **3** |
 | Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 6.0 | 1.0 | **2** |
 | Spider | `minecraft:spider` | 4 | 10 | 2 | 1.0 | 1.2 | 1.5 | **3** |
-| Skeletons | `minecraft:skeleton` (melee) | 3 | 10 | 2 | 1.2 | 1.2 | 1.33 | **2** |
+| Skeletons | `minecraft:skeleton` (stone sword) | 3 | 10 | 1.5 | 0.9 | 1.2 | 1.33 | **2** |
 | Big Slime | `minecraft:slime` | 1 | 20 | 5 | 1.4 | 1.2 | 0.85 | **3** |
 
 Zombie and Skeleton Archer keep vanilla health. Swarm units are thinner than
@@ -64,6 +64,10 @@ circle, and enemy towers whose footprint touches it for **30%** of the damage
 |---|---|---|
 | Arrow Storm | **3** | Arrows fly 0.5 s, then a circle of radius 3 blocks for 4 s; every 5 ticks (0.25 s) deals 1 damage to each enemy inside: **16 total**, 4 DPS. |
 | Fireball | **4** | Travels 1 s, explodes radius 2.5 blocks for **25** damage, knocks back 1 block, burns 1 damage/s for 3 s. |
+| Lightning | **6** | After 0.75 s, real (harmless) lightning bolts strike the **3** enemy troops or towers with the most health in a 3.5 block circle: **40** damage each (12 to a tower), and a 0.5 s stun that also restarts their attack. |
+| Potion of Healing | **3** | The King throws a splash potion of healing (0.5 s); for 4 s, every 0.5 s it heals each **own** troop inside a 3 block circle by 2: **16 total**, never above full health, never towers. |
+| Freeze | **4** | The King throws a snowball (0.5 s); every enemy troop and tower in a 3 block circle takes 4 damage and is **frozen for 4 s**: no walking, no attacking, their attack does not charge. Frozen mobs shake like in powder snow. |
+| TNT | **5** | Primed TNT falls from the sky for 1.5 s, then explodes in a 3 block circle: **30** damage, knocks back 2 blocks, and **50%** (15) to towers instead of 30%. |
 
 Burning troops are shown on fire; the burn damage comes from the engine (the
 mobs themselves are invulnerable).
@@ -79,6 +83,17 @@ Fireball kills a big slime in one hit, but the children it splits into spawn
 after the explosion and are not hit. Arrow Storm lasts 4 s, so it also clears
 children that split inside the circle.
 
+## Weapons
+
+Armed mobs fight like their weapon (the cost formula keeps their elixir):
+
+| Weapon | Who | Hit | Interval | Feel |
+|---|---|---|---|---|
+| Axe | Vindicator | 12 | 2.4 s | one heavy blow: kills a Spider, a Skeleton or a Wolf per swing, slow against swarms |
+| Sword | Skeletons | 1.5 | 0.9 s | quick light cuts |
+| Bow | Skeleton Archer, Stray | 4 / 3 | 1.0 / 1.2 s | steady |
+| Crossbow | Pillager | 10 | 2.0 s | slower than a bow, hits harder, longer range |
+
 ## Starter deck and extra troops
 
 The starter deck is Zombie, Skeleton Archer, Spider, Skeletons, Big Slime,
@@ -89,7 +104,7 @@ the same formula:
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Elixir |
 |---|---|---|---|---|---|---|---|---|
 | Stray | `minecraft:stray` (bow) | 1 | 20 | 3 | 1.2 | 6.0 | 1.0 | **2** |
-| Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 7 | 1.4 | 1.2 | 1.1 | **2** |
+| Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 12 | 2.4 | 1.2 | 1.1 | **2** |
 | Iron Golem | `minecraft:iron_golem` | 1 | 160 | 12 | 1.6 | 1.5 | 0.9 | **5** |
 
 The Iron Golem only targets towers (see "Tower-only troops" below).
@@ -116,7 +131,7 @@ target, and enemy towers whose footprint does (`TroopTraits`,
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
 | Hoglin | `minecraft:hoglin` | 1 | 45 | 8 | 1.4 | 1.2 | 1.6 | charges the towers, ignores troops | **3** |
-| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 7 | 1.4 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
+| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 10 | 2.0 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
 | Magma Cube | `minecraft:magma_cube` | 1 | 36 | 7 | 1.4 | 1.2 | 0.83 | splits once into 2 (18 HP, 3.5 damage) | **4** |
 
 NoAI Hoglins never turn into Zoglins, so the arena dimension does not need to
