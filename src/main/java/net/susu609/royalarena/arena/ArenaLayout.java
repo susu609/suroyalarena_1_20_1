@@ -69,43 +69,43 @@ public final class ArenaLayout {
     }
 
     /**
-     * Whether a floor block is part of the dirt road, as in Clash Royale: on
-     * each half a 2-wide lane from each bridge up to the Princess towers, a
-     * 2-row road across the front of the towers joining the two lanes, and a
-     * 1-wide ring around every tower. The rings of a Princess tower and its
-     * King touch, so the King is reached along them; a grass row is left
-     * between the road and the King's ring. Mirrored on both axes; never in
-     * the river or under a tower.
+     * Whether a floor block is part of the road, laid out like Clash
+     * Royale's: on each half a "U" through the three towers. A 2-wide lane
+     * runs from each bridge, straight through its Princess tower (the bridge,
+     * the lane and the tower share one axis), back to the row level with the
+     * middle of the King tower, where a 2-row road turns in and meets the
+     * King's sides. No road in front of the towers, none in the river and
+     * none under a tower. Mirrored on both axes.
      */
     public boolean isPath(int worldX, int worldZ) {
-        if (isRiver(worldZ))
+        if (isRiver(worldZ) || underTower(worldX, worldZ))
             return false;
         int rx = worldX - center.x();
         int rz = worldZ - center.z();
         int depth = rz >= 0 ? rz : -1 - rz;
-        int roadFront = RIVER_HALF + RIVER_TO_PRINCESS - 2;
-        int roadBack = roadFront + 1;
-        boolean lane = isBridge(worldX) && depth >= RIVER_HALF &&
-                depth <= roadBack;
-        boolean road = depth >= roadFront && depth <= roadBack &&
-                rx >= -LANE_OFFSET - 1 && rx <= LANE_OFFSET;
-        return lane || road || aroundTower(worldX, worldZ);
+        int mirroredX = rx >= 0 ? rx : -1 - rx;
+        int half = BRIDGE_WIDTH / 2;
+        boolean onLaneAxis = mirroredX >= LANE_OFFSET - half &&
+                mirroredX < LANE_OFFSET + half;
+        // Rows level with the middle of the King tower.
+        int backRoad = KING_CENTER_Z - 1;
+        boolean lane = onLaneAxis && depth >= RIVER_HALF &&
+                depth <= backRoad + 1;
+        boolean road = depth >= backRoad && depth <= backRoad + 1 &&
+                mirroredX < LANE_OFFSET + half;
+        return lane || road;
     }
 
-    /** In the 1-block ring around a tower's footprint. */
-    private boolean aroundTower(int worldX, int worldZ) {
-        boolean ring = false;
+    /** Whether the block is part of a tower's footprint. */
+    public boolean underTower(int worldX, int worldZ) {
         for (TowerId id : TowerId.values()) {
             ArenaPoint p = towerPoint(id);
-            int half = (int) towerHalfSize(id.kind());
-            boolean inside = worldX >= p.x() - half && worldX < p.x() + half &&
-                    worldZ >= p.z() - half && worldZ < p.z() + half;
-            if (inside)
-                return false;
-            ring |= worldX >= p.x() - half - 1 && worldX <= p.x() + half &&
-                    worldZ >= p.z() - half - 1 && worldZ <= p.z() + half;
+            int size = (int) towerHalfSize(id.kind());
+            if (worldX >= p.x() - size && worldX < p.x() + size &&
+                    worldZ >= p.z() - size && worldZ < p.z() + size)
+                return true;
         }
-        return ring;
+        return false;
     }
 
     /** Centre of the left bridge (world -X), on the river axis. */

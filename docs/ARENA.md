@@ -82,16 +82,16 @@ map alone.
 
 ## Roads
 
-The floor carries a dirt road (`minecraft:dirt_path`, `ArenaLayout.isPath`),
-as in Clash Royale. On each half:
+The floor carries a dirt road (`minecraft:dirt_path`, `ArenaLayout.isPath`)
+laid out like Clash Royale's: on each half a "U" through the three towers.
 
-- a 2-wide lane from each bridge up to the row in front of the Princess
-  towers (it continues the bridge columns);
-- a 2-row road across the front of the towers, joining the two lanes;
-- a 1-wide ring around every tower. The rings of a Princess tower and its
-  King touch, so the road links the three towers all the way round; one grass
-  row separates the front road from the King's ring.
+- A 2-wide lane runs from each bridge straight through its Princess tower
+  (bridge, lane and tower share one axis) and on behind it.
+- Level with the middle of the King tower, a 2-row road turns in from both
+  lanes and meets the King's sides.
+- There is no road across the front of the towers, none in the river and
+  none under a tower.
 
-The road is mirrored on both axes and never lies in the river or under a
-tower (`DomainSmokeTest`). It is decoration: troops walk the same routes on
-grass and road.
+The road is mirrored on both axes, and `DomainSmokeTest` checks that it links
+both bridges of a side to all three of its towers. It is decoration: troops
+walk the same routes on grass and road.

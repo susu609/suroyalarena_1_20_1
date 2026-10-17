@@ -118,45 +118,47 @@ public final class DomainSmokeTest {
                 count++;
                 check(arena.isPath(-1 - x, z) && arena.isPath(x, -1 - z),
                         "roads mirror on both axes");
-                check(!arena.isRiver(z), "no road in the river");
-                for (TowerId id : TowerId.values()) {
-                    ArenaPoint p = arena.towerPoint(id);
-                    int half = (int) ArenaLayout.towerHalfSize(id.kind());
-                    boolean under = x >= p.x() - half && x < p.x() + half &&
-                            z >= p.z() - half && z < p.z() + half;
-                    check(!under, "no road under " + id);
-                }
+                check(!arena.isRiver(z) && !arena.underTower(x, z),
+                        "no road in the river or under a tower");
             }
         }
         check(count > 40, "there is a road: " + count + " blocks");
-        for (int x = arena.minX(); x <= arena.maxX(); x++) {
-            if (!arena.isBridge(x))
-                continue;
-            check(arena.isPath(x, 1) && arena.isPath(x, -2),
-                    "a lane starts at both ends of each bridge");
-            for (int z = 1; z <= 8; z++)
-                check(arena.isPath(x, z), "the lane runs up to the road");
-        }
-        for (TowerId id : TowerId.values()) {
-            ArenaPoint p = arena.towerPoint(id);
-            int half = (int) ArenaLayout.towerHalfSize(id.kind());
-            int front = id.side() == TeamSide.BLUE ? p.z() - half - 1 :
-                    p.z() + half;
-            boolean reached = false;
-            for (int x = p.x() - half; x < p.x() + half; x++)
-                reached |= arena.isPath(x, front);
-            check(reached, "a road reaches the front of " + id);
-            for (int x = p.x() - half - 1; x <= p.x() + half; x++) {
-                for (int z = p.z() - half - 1; z <= p.z() + half; z++) {
-                    boolean ring = x < p.x() - half || x >= p.x() + half ||
-                            z < p.z() - half || z >= p.z() + half;
-                    boolean onArena = x >= arena.minX() &&
-                            x <= arena.maxX() && z >= arena.minZ() &&
-                            z <= arena.maxZ();
-                    if (ring && onArena)
-                        check(arena.isPath(x, z), "a road rings " + id);
+        for (TeamSide side : TeamSide.values()) {
+            int sign = ArenaLayout.sideSign(side);
+            // Grow from the bank ends of the bridges over road and towers.
+            java.util.Set<Long> seen = new java.util.HashSet<>();
+            java.util.ArrayDeque<int[]> todo = new java.util.ArrayDeque<>();
+            for (int x = arena.minX(); x <= arena.maxX(); x++) {
+                int z = sign > 0 ? 1 : -2;
+                if (arena.isBridge(x)) {
+                    check(arena.isPath(x, z), "a lane starts at each bridge");
+                    todo.add(new int[] {x, z});
                 }
             }
+            while (!todo.isEmpty()) {
+                int[] at = todo.poll();
+                if (!seen.add(((long) at[0] << 32) ^ (at[1] & 0xffffffffL)))
+                    continue;
+                int[][] next = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                for (int[] d : next) {
+                    int x = at[0] + d[0];
+                    int z = at[1] + d[1];
+                    if (arena.isPath(x, z) || arena.underTower(x, z))
+                        todo.add(new int[] {x, z});
+                }
+            }
+            for (TowerId id : TowerId.values()) {
+                if (id.side() != side)
+                    continue;
+                ArenaPoint p = arena.towerPoint(id);
+                check(seen.contains(((long) p.x() << 32) ^
+                                (p.z() & 0xffffffffL)),
+                        "the road links the bridges to " + id);
+            }
+            int frontRow = sign > 0 ? 8 : -9;
+            for (int x = -4; x <= 3; x++)
+                check(!arena.isPath(x, frontRow),
+                        "no road across the front of the towers");
         }
     }
 
