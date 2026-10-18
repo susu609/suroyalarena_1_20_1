@@ -675,3 +675,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   measures cards on plain decks; card pages show tribes;
   `docs/TRIBES.md`, `docs/CARDS.md`, `docs/COMBAT.md`, `docs/BALANCE.md`
 
+## Part 57 — Tribes in five steps, with special rules
+
+- `card/Tribe.java`: steps at 2, 3, 4, 5 and 6 cards; step 5 is each
+  tribe's special rule: Zombie rise again, Skeleton volley, Illager totem
+  of undying, Nether last flame, Arthropod silk, Beast pack, Night shadow
+- `card/TribeBonus.java` (the new rules, side cooldowns),
+  `combat/CombatEngine.java` and `combat/CombatUnit.java` (saving a
+  troop once per side cooldown, volleys, pack damage, last flame, dodges,
+  slowing hits), `combat/TickResult.java` (`TribeEvent`),
+  `server/battle/BattleField.java` (totem, soul, flame and smoke effects),
+  `bot/BotDeck.java` (3 to 6 tribe cards)
+- `TribeSmokeTest` (every rule), `TribeReport` (2 to 6 cards),
+  `docs/TRIBES.md`, the tribes page
+

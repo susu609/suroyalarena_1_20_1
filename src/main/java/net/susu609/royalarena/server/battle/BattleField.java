@@ -318,6 +318,8 @@ public final class BattleField {
         TickResult result = engine.tick();
         for (TickResult.Teleport teleport : result.teleports())
             teleportMob(teleport);
+        for (TickResult.TribeEvent event : result.tribeEvents())
+            showTribeEvent(event);
         for (TickResult.Push push : result.pushes())
             knockBack(push);
         moveUnits(result.moves());
@@ -1187,6 +1189,45 @@ public final class BattleField {
      * An Enderman stepping out of the way: the mob moves to the spot the
      * engine chose, with a burst of portal particles at both ends.
      */
+    /**
+     * A tribe's special rule fired (docs/TRIBES.md): a totem's burst, souls
+     * for a zombie rising again, flames for a Nether troop's last flame,
+     * smoke where a shadow dodged.
+     */
+    private void showTribeEvent(TickResult.TribeEvent event) {
+        double y = arena.floorY() + 1.0D;
+        double x = event.x();
+        double z = event.z();
+        switch (event.kind()) {
+            case TOTEM -> {
+                level.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, x, y + 1.0D, z,
+                        40, 0.4D, 0.8D, 0.4D, 0.4D);
+                level.playSound(null, x, y, z, SoundEvents.TOTEM_USE,
+                        SoundSource.HOSTILE, 0.6F, 1.0F);
+            }
+            case REVIVE -> {
+                level.sendParticles(ParticleTypes.SOUL, x, y + 0.5D, z,
+                        16, 0.3D, 0.5D, 0.3D, 0.03D);
+                level.playSound(null, x, y, z, SoundEvents.ZOMBIE_VILLAGER_CURE,
+                        SoundSource.HOSTILE, 0.5F, 1.4F);
+            }
+            case LAST_FLAME -> {
+                level.sendParticles(ParticleTypes.FLAME, x, y + 0.3D, z,
+                        30, 1.0D, 0.2D, 1.0D, 0.02D);
+                level.playSound(null, x, y, z, SoundEvents.FIRECHARGE_USE,
+                        SoundSource.HOSTILE, 0.6F, 0.9F);
+            }
+            case DODGE -> {
+                level.sendParticles(ParticleTypes.LARGE_SMOKE, x, y + 0.8D, z,
+                        8, 0.3D, 0.4D, 0.3D, 0.01D);
+                level.playSound(null, x, y, z, SoundEvents.PHANTOM_FLAP,
+                        SoundSource.HOSTILE, 0.5F, 1.2F);
+            }
+            case VOLLEY -> {
+            }
+        }
+    }
+
     private void teleportMob(TickResult.Teleport teleport) {
         Entity entity = level.getEntity(teleport.unit());
         if (entity == null)

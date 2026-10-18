@@ -16,7 +16,7 @@ import java.util.Random;
  * A random but balanced deck for the bot: 8 different cards with at least
  * one spell, one tank and one ranged troop, averaging
  * {@link #MIN_AVERAGE}..{@link #MAX_AVERAGE} elixir. The order is random too.
- * Half the decks are built around a tribe: 4 or 6 of its cards first
+ * Half the decks are built around a tribe: 3 to 6 of its cards first
  * (docs/TRIBES.md), so the bots play the tribe steps too.
  */
 public final class BotDeck {
@@ -35,8 +35,8 @@ public final class BotDeck {
                     tribes.add(tribe);
             }
             Tribe tribe = tribes.get(random.nextInt(tribes.size()));
-            int core = tribe.members().size() >= 6 && random.nextBoolean() ?
-                    6 : 4;
+            // 3 to 6 of its cards (as many as it has).
+            int core = 3 + random.nextInt(Math.min(6, tribe.members().size()) - 2);
             BattleDeck deck = around(tribe, core, random);
             if (deck != null)
                 return deck;

@@ -45,6 +45,8 @@ public final class CombatUnit {
     /** What its tribes give it this match (none when tribes are off). */
     private TribeBonus tribe = TribeBonus.NONE;
     private boolean landedFirstHit;
+    private boolean saved;
+    private int shots;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -99,6 +101,23 @@ public final class CombatUnit {
     public double armorFactor() {
         return 1.0D - TroopStats.ARMOR_PER_POINT * Math.min(TroopStats.MAX_ARMOR,
                 Math.max(0.0D, stats.armor() + tribe.armor()));
+    }
+    /** Counts its ranged shots; true on every n-th (a Skeleton volley). */
+    boolean volley(int every) {
+        return every > 0 && ++shots % every == 0;
+    }
+    /** Whether a tribe rule already brought it back once. */
+    boolean wasSaved() {
+        return saved;
+    }
+    /**
+     * Back from death (a tribe rule): {@code health} left, unhurt for
+     * {@code invulnerable} ticks. Once per unit.
+     */
+    void save(double health, int invulnerable) {
+        saved = true;
+        this.health = Math.min(maxHealth, Math.max(1.0D, health));
+        invulnerableTicks = Math.max(invulnerableTicks, invulnerable);
     }
     /** True the first time it is asked after the unit's first hit landed. */
     boolean firstHit() {

@@ -11,45 +11,61 @@ import java.util.Map;
  * (docs/TRIBES.md). A card belongs to one or two tribes
  * ({@link BattleCard#tribes()}); a tribe counts the different cards of the
  * deck that belong to it, and each of {@link #THRESHOLDS} reached adds its
- * step's bonus to every troop of that tribe on that side. Steps 2 and 8 are
- * plain stat bonuses, steps 4 and 6 an effect. Spells belong to no tribe.
+ * step's bonus to every troop of that tribe on that side, and only to them.
+ * Five steps, at 2 to 6 cards: small stat bonuses, one effect, and at 5 a
+ * special rule (rising again, a totem, a last flame...). Spells belong to
+ * no tribe.
  */
 public enum Tribe {
     ZOMBIE("Zombie", "Xác sống",
             step(TribeBonus.health(1.05D), "+5% health"),
             step(TribeBonus.regen(0.15D), "heals 0.15 health a second"),
             step(TribeBonus.lifesteal(0.05D), "heals 5% of the damage it deals"),
-            step(TribeBonus.health(1.15D), "+15% health")),
+            step(TribeBonus.revive(0.25D),
+                    "Rise again: a fallen Zombie gets up with 25% health (once every 20 s for the side)"),
+            step(TribeBonus.health(1.05D), "+5% health")),
     SKELETON("Skeleton", "Xương",
             step(TribeBonus.damage(1.05D), "+5% damage"),
+            step(TribeBonus.attackSpeed(1.05D), "attacks 5% faster"),
             step(TribeBonus.piercing(), "hits ignore armour"),
-            step(TribeBonus.attackSpeed(1.10D), "attacks 10% faster"),
-            step(TribeBonus.damage(1.25D), "+25% damage")),
+            step(TribeBonus.extraShot(3),
+                    "Volley: every 3rd shot also hits a second enemy for half"),
+            step(TribeBonus.damage(1.05D), "+5% damage")),
     ILLAGER("Illager", "Illager",
             step(TribeBonus.damage(1.05D), "+5% damage"),
-            step(TribeBonus.towerDamage(1.20D), "+20% damage to towers"),
-            step(TribeBonus.attackSpeed(1.05D), "attacks 5% faster"),
-            step(TribeBonus.damage(1.25D), "+25% damage")),
+            step(TribeBonus.towerDamage(1.10D), "+10% damage to towers"),
+            step(TribeBonus.speed(1.05D), "walks 5% faster"),
+            step(TribeBonus.undying(),
+                    "Totem of Undying: a killing blow leaves it at 1 health, unhurt for 0.5 s (once every 20 s for the side)"),
+            step(TribeBonus.damage(1.05D), "+5% damage")),
     NETHER("Nether", "Nether",
             step(TribeBonus.health(1.05D), "+5% health"),
             step(TribeBonus.burn(40, 0.5D), "hits burn: 0.5 a second for 2 s"),
             step(TribeBonus.armor(1.0D), "+1 armour"),
-            step(TribeBonus.health(1.25D), "+25% health")),
+            step(TribeBonus.deathBurn(60, 1.0D),
+                    "Last flame: when it dies, enemies within 2 blocks burn 1 a second for 3 s"),
+            step(TribeBonus.health(1.05D), "+5% health")),
     ARTHROPOD("Arthropod", "Chân đốt",
             step(TribeBonus.speed(1.10D), "walks 10% faster"),
             step(TribeBonus.poison(40, 0.5D), "hits poison: 0.5 a second for 2 s"),
-            step(TribeBonus.attackSpeed(1.25D), "attacks 25% faster"),
-            step(TribeBonus.healthAndDamage(1.20D), "+20% health and damage")),
+            step(TribeBonus.attackSpeed(1.10D), "attacks 10% faster"),
+            step(TribeBonus.slowOnHit(10),
+                    "Silk: its hits slow the target's walk for 0.5 s"),
+            step(TribeBonus.healthAndDamage(1.05D), "+5% health and damage")),
     BEAST("Beast", "Thú",
             step(TribeBonus.damage(1.05D), "+5% damage"),
             step(TribeBonus.lifesteal(0.10D), "heals 10% of the damage it deals"),
             step(TribeBonus.speed(1.05D), "walks 5% faster"),
-            step(TribeBonus.damage(1.25D), "+25% damage")),
+            step(TribeBonus.pack(0.05D),
+                    "Pack: +5% damage for each other Beast within 4 blocks (up to 3)"),
+            step(TribeBonus.damage(1.05D), "+5% damage")),
     NIGHT("Night", "Quái đêm",
-            step(TribeBonus.healthAndDamage(1.03D), "+3% health and damage"),
-            step(TribeBonus.firstHitStun(4), "its first hit freezes the target for 0.2 s"),
+            step(TribeBonus.healthAndDamage(1.02D), "+2% health and damage"),
+            step(TribeBonus.firstHitStun(2), "its first hit freezes the target for 0.1 s"),
             step(TribeBonus.armor(1.0D), "+1 armour"),
-            step(TribeBonus.healthAndDamage(1.15D), "+15% health and damage")),
+            step(TribeBonus.dodge(),
+                    "Shadow: an arrow or shot that would hit it misses (once every 16 s for the side)"),
+            step(TribeBonus.healthAndDamage(1.02D), "+2% health and damage")),
     GOLEM("Golem", "Golem",
             step(TribeBonus.armor(2.0D), "+2 armour")),
     SLIME("Slime", "Slime",
@@ -58,7 +74,7 @@ public enum Tribe {
             step(TribeBonus.riverDamage(1.25D), "+25% damage from the river"));
 
     /** Different cards of a tribe a deck needs for each step. */
-    public static final int[] THRESHOLDS = {2, 4, 6, 8};
+    public static final int[] THRESHOLDS = {2, 3, 4, 5, 6};
 
     private final String label;
     private final String labelVi;

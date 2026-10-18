@@ -16,6 +16,7 @@ import net.susu609.royalarena.combat.TickResult.Death;
 import net.susu609.royalarena.combat.TickResult.Move;
 import net.susu609.royalarena.combat.TickResult.Push;
 import net.susu609.royalarena.combat.TickResult.SpellPulse;
+import net.susu609.royalarena.combat.TickResult.TribeEvent;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
@@ -79,6 +80,12 @@ public final class CombatEngine {
     private boolean tribes;
     private final Map<TeamSide, Map<Tribe, Integer>> tribeLevels =
             new EnumMap<>(TeamSide.class);
+    private final List<TribeEvent> tribeEvents = new ArrayList<>();
+    /** Ticks played, and when each side may use a saving rule again. */
+    private int now;
+    private final Map<TeamSide, Integer> reviveReady = new EnumMap<>(TeamSide.class);
+    private final Map<TeamSide, Integer> totemReady = new EnumMap<>(TeamSide.class);
+    private final Map<TeamSide, Integer> dodgeReady = new EnumMap<>(TeamSide.class);
 
     /** A spell that has landed and still has pulses to deal. */
     private static final class ActiveSpell {
@@ -221,6 +228,8 @@ public final class CombatEngine {
 
     public TickResult tick() {
         teleports.clear();
+        tribeEvents.clear();
+        now++;
         List<Move> moves = new ArrayList<>();
         List<Attack> attacks = new ArrayList<>();
         for (CombatUnit unit : units) {
@@ -253,7 +262,8 @@ public final class CombatEngine {
         applySpellHits(hits, destroyed, pushes);
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
-                pushes, landed, List.copyOf(teleports));
+                pushes, landed, List.copyOf(teleports),
+                List.copyOf(tribeEvents));
     }
 
     /** Whether a King tower may shoot: it was hit, or a Princess tower fell. */
@@ -325,12 +335,16 @@ public final class CombatEngine {
             damage *= TroopTraits.RIVER_STRENGTH;
         if (onRiver)
             damage *= unit.tribe().riverDamage();
+        if (unit.tribe().packDamage() > 0.0D)
+            damage *= 1.0D + unit.tribe().packDamage() * packmates(unit);
         attacks.add(new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
                 damage, ranged, flight, unit.side(), targetX, targetZ,
                 traits.splashRadius(), ranged ? 0.0D : traits.knockback(),
                 traits.slowTicks(), traits.lineWidth(),
                 stats.range() + unit.radius() + 1.0D, unit.x(), unit.z()));
+        if (ranged && unit.volley(unit.tribe().extraShotEvery()))
+            volley(unit, enemy, damage, attacks);
         if (traits.selfDestruct())
             unit.expire();
     }
@@ -743,6 +757,11 @@ public final class CombatEngine {
                     blinkAway(victim, fx, fz);
                     continue;
                 }
+                if (victim != null && attack.ranged() && dodge(victim)) {
+                    tribeEvents.add(new TribeEvent(victim.id(),
+                            TribeEvent.Kind.DODGE, victim.x(), victim.z()));
+                    continue;
+                }
                 // Slowing hits are frost (Stray arrows, snowballs): a
                 // frost-weak victim takes double.
                 if (victim != null)
@@ -786,6 +805,39 @@ public final class CombatEngine {
         return damageUnit(victim, amount, by, source, false);
     }
 
+    /**
+     * A troop was just killed: its tribe may bring it back (Illager totem,
+     * Zombie rising again), once per troop and once per cooldown per side.
+     */
+    private void cheatDeath(CombatUnit unit) {
+        TribeBonus bonus = unit.tribe();
+        if (unit.wasSaved() || (!bonus.totem() && bonus.revive() <= 0.0D))
+            return;
+        TeamSide side = unit.side();
+        if (bonus.totem() && now >= totemReady.getOrDefault(side, 0)) {
+            unit.save(1.0D, TribeBonus.TOTEM_TICKS);
+            totemReady.put(side, now + TribeBonus.TOTEM_COOLDOWN);
+            tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.TOTEM,
+                    unit.x(), unit.z()));
+        } else if (bonus.revive() > 0.0D &&
+                now >= reviveReady.getOrDefault(side, 0)) {
+            unit.save(unit.maxHealth() * bonus.revive(), 0);
+            reviveReady.put(side, now + TribeBonus.REVIVE_COOLDOWN);
+            tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.REVIVE,
+                    unit.x(), unit.z()));
+        }
+    }
+
+    /** A Night troop with Shadow dodges a shot, if its side's dodge is ready. */
+    private boolean dodge(CombatUnit victim) {
+        TeamSide side = victim.side();
+        if (!victim.tribe().dodgeFirstShot() ||
+                now < dodgeReady.getOrDefault(side, 0))
+            return false;
+        dodgeReady.put(side, now + TribeBonus.DODGE_COOLDOWN);
+        return true;
+    }
+
     /** The tribe bonus of whoever made an attack (it may have died since). */
     private TribeBonus attackerTribe(Attack attack, BattleCard source) {
         CombatUnit attacker = attack.attackerUnit() == null ? null :
@@ -795,9 +847,51 @@ public final class CombatEngine {
                         tribeBonus(source, attack.side());
     }
 
+    /** Other pack troops (Beast tribe step 5) near a unit, up to the cap. */
+    private int packmates(CombatUnit unit) {
+        int n = 0;
+        for (CombatUnit other : units) {
+            if (other != unit && other.alive() && other.side() == unit.side() &&
+                    other.tribe().packDamage() > 0.0D &&
+                    distance(unit, other) <= TribeBonus.PACK_RADIUS)
+                n++;
+        }
+        return Math.min(n, TribeBonus.PACK_MAX);
+    }
+
+    /**
+     * Skeleton volley: a second arrow at the nearest other enemy troop in
+     * range, for {@link TribeBonus#EXTRA_SHOT_SHARE} of the damage.
+     */
+    private void volley(CombatUnit unit, CombatUnit first, double damage,
+            List<Attack> attacks)
+    {
+        CombatUnit best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit other : units) {
+            if (other == first || other.side() == unit.side() || !other.alive() ||
+                    unit.stats().traits().buildingsOnly())
+                continue;
+            double d = distance(unit, other);
+            if (d <= unit.stats().range() + unit.radius() + other.radius() &&
+                    d < bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        if (best == null)
+            return;
+        attacks.add(new Attack(unit.id(), null, best.id(), null,
+                damage * TribeBonus.EXTRA_SHOT_SHARE, true,
+                flightTicks(unit.x(), unit.z(), best.x(), best.z()),
+                unit.side(), best.x(), best.z()));
+        tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.VOLLEY,
+                unit.x(), unit.z()));
+    }
+
     /**
      * A troop's hit landed on {@code victim}: its tribe's lifesteal, poison,
-     * burn and first-hit stun.
+     * burn, slow and first-hit freeze.
      */
     private void tribeHit(Attack attack, CombatUnit victim, BattleCard source) {
         TribeBonus bonus = attackerTribe(attack, source);
@@ -815,6 +909,8 @@ public final class CombatEngine {
         if (bonus.burnTicks() > 0 && (hurt == null || !hurt.fireImmune()))
             victim.ignite(bonus.burnTicks(), bonus.burnPerSecond(), source);
         // Freezes without restarting the victim's swing (a stun would).
+        if (bonus.slowOnHit() > 0)
+            victim.slow(bonus.slowOnHit());
         if (bonus.firstHitStun() > 0 && attacker != null && attacker.firstHit())
             victim.freeze(bonus.firstHitStun());
     }
@@ -838,6 +934,8 @@ public final class CombatEngine {
         double before = victim.health();
         if (!victim.hurt(amount))
             return false;
+        if (!victim.alive())
+            cheatDeath(victim);
         stats.troopDamage(by, source, before - victim.health(),
                 !victim.alive());
         return true;
@@ -921,10 +1019,29 @@ public final class CombatEngine {
             if (unit.alive())
                 continue;
             units.remove(i--);
+            if (unit.tribe().deathBurnTicks() > 0)
+                lastFlame(unit);
             deaths.add(new Death(unit.id(), unit.x(), unit.z(),
                     childrenOf(unit)));
         }
         return deaths;
+    }
+
+    /** Nether tribe step 5: a dying troop sets the enemies near it burning. */
+    private void lastFlame(CombatUnit dead) {
+        BattleCard source = cardOf.get(dead.id());
+        for (CombatUnit other : units) {
+            if (other.side() == dead.side() || !other.alive())
+                continue;
+            BattleCard card = cardOf.get(other.id());
+            if (card != null && card.fireImmune())
+                continue;
+            if (distance(dead, other) <= TribeBonus.DEATH_BURN_RADIUS)
+                other.ignite(dead.tribe().deathBurnTicks(),
+                        dead.tribe().deathBurnPerSecond(), source);
+        }
+        tribeEvents.add(new TribeEvent(dead.id(), TribeEvent.Kind.LAST_FLAME,
+                dead.x(), dead.z()));
     }
 
     private List<ChildSpawn> childrenOf(CombatUnit parent) {

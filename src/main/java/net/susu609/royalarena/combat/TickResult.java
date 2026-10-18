@@ -16,8 +16,14 @@ import java.util.UUID;
 public record TickResult(List<Move> moves, List<Attack> attacks,
                          List<Death> deaths, List<TowerId> destroyedTowers,
                          List<SpellPulse> spellPulses, List<Push> pushes,
-                         List<Attack> landed, List<Teleport> teleports)
+                         List<Attack> landed, List<Teleport> teleports,
+                         List<TribeEvent> tribeEvents)
 {
+    /** A tribe's special rule fired on a unit this tick (docs/TRIBES.md). */
+    public record TribeEvent(UUID unit, Kind kind, double x, double z) {
+        public enum Kind { REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY }
+    }
+
     /**
      * A spell struck at (x, z) this tick: pulse {@code index} of
      * {@code card.spell().pulses()}, hitting (or healing) {@code hits} units

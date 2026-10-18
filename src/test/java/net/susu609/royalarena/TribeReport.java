@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * What the tribe steps are worth (docs/TRIBES.md): for every tribe with 4+
- * cards, bot decks built around 4 (and 6) of its cards play plain random
+ * What the tribe steps are worth (docs/TRIBES.md): for every tribe, bot
+ * decks built around 2 to 6 of its cards (as many as it has) play plain random
  * decks, each match twice with the sides swapped, once with tribe bonuses
  * and once without. The gap is what the bonus adds; the "on" rate is how
  * the tribe deck does in the game.
@@ -38,7 +38,7 @@ public final class TribeReport {
         System.out.println("tribe      cards  off    on   gain");
         for (Tribe tribe : Tribe.values()) {
             int size = tribe.members().size();
-            for (int core : new int[] {4, 6, 8}) {
+            for (int core : new int[] {2, 3, 4, 5, 6}) {
                 // A deck needs a spell and a tank, so a full tribe deck of 8
                 // is for players, not the bot's balanced decks.
                 if (size < core || BotDeck.around(tribe, core,

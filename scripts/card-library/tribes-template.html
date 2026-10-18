@@ -46,7 +46,9 @@ p { margin: 0; }
 .lead { display: flex; flex-direction: column; gap: 10px; }
 .lead p, .note { color: var(--muted); max-width: 70ch; }
 .note { font-size: 13px; }
-.ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ladder { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.rung.fx { border-color: var(--gold); background: var(--gold-bg); }
+.rung.fx b { color: var(--gold); }
 .rung { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .rung b { font: 700 22px/1 var(--font-display); }
 .rung span { font-size: 12px; color: var(--muted); }
@@ -81,20 +83,21 @@ p { margin: 0; }
 .result { font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
 .result .line { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
 .result .line b { font-weight: 600; }
-@media (max-width: 480px) { .ladder { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ladder { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 </style>
 
 <main>
   <header class="lead">
     <h1>Tộc hệ</h1>
-    <p>Mỗi thẻ lính thuộc 1 hoặc 2 tộc. Deck có 2, 4, 6, 8 thẻ khác nhau cùng tộc thì mọi lính tộc đó được thưởng cả trận, cộng dồn các mốc. Phép không thuộc tộc nào. Đã có trong game (nhánh {{BRANCH_HASH}}), bật/tắt bằng config <code>troops.tribes</code>.</p>
+    <p>Mỗi thẻ lính thuộc 1 hoặc 2 tộc. Deck có 2, 3, 4, 5, 6 thẻ khác nhau cùng tộc thì lính của đúng tộc đó được thưởng cả trận, cộng dồn các mốc; lính tộc khác trong deck không hưởng. Mốc 5 là kỹ năng đặc biệt của tộc. Phép không thuộc tộc nào. Đã có trong game (nhánh {{BRANCH_HASH}}), bật/tắt bằng config <code>troops.tribes</code>.</p>
   </header>
 
   <section class="ladder" aria-label="Các mốc">
     <div class="rung"><b>2</b><span>Buff chỉ số nhẹ</span></div>
-    <div class="rung"><b>4</b><span>Mở hiệu ứng thứ nhất</span></div>
-    <div class="rung"><b>6</b><span>Mở hiệu ứng thứ hai</span></div>
-    <div class="rung"><b>8</b><span>Buff chỉ số lớn (cả deck một tộc)</span></div>
+    <div class="rung"><b>3</b><span>Hiệu ứng nhỏ</span></div>
+    <div class="rung"><b>4</b><span>Hiệu ứng thứ hai</span></div>
+    <div class="rung fx"><b>5</b><span>Kỹ năng đặc biệt của tộc</span></div>
+    <div class="rung"><b>6</b><span>Buff chỉ số thêm</span></div>
   </section>
 
   <section aria-labelledby="h-tribes" style="display:flex;flex-direction:column;gap:12px">
@@ -104,7 +107,7 @@ p { margin: 0; }
   </section>
 
   <section class="flag" aria-label="Lưu ý">
-    <b>Cần bạn quyết:</b> deck 6 thẻ tộc Xương thắng khoảng 85% deck ngẫu nhiên ngay cả khi tắt thưởng tộc (nhiều xạ thủ rẻ đi chung). Thưởng tộc không gây ra chuyện này và từng thẻ vẫn trong 40–60%. Cách sửa có thể: giảm tầm Skeletons/Stray, hoặc bỏ hiệu ứng mốc 6 của tộc Xương.
+    <b>Cần bạn quyết:</b> deck 6 thẻ tộc Xương thắng khoảng 83% deck ngẫu nhiên ngay cả khi tắt thưởng tộc (nhiều xạ thủ rẻ đi chung). Thưởng tộc không gây ra chuyện này và từng thẻ vẫn trong 40–60%. Cách sửa có thể: giảm tầm Skeletons/Stray.<br><b>Lưu ý khi đọc số:</b> phần lớn trận bot phân thắng thua ở hiệp phụ bằng sát thương lên trụ, nên lợi thế nhỏ cũng đẩy tỉ lệ thắng lên nhiều. Cột "thêm" là độ chênh để so các tộc với nhau, không phải tỉ lệ thắng khi người chơi.
   </section>
 
   <section class="tester" aria-labelledby="h-test">
@@ -118,7 +121,7 @@ p { margin: 0; }
 <script>
 const DATA = {{DATA}};
 const CARDS = {{CARDS}};
-const THRESHOLDS = [2, 4, 6, 8];
+const THRESHOLDS = [2, 3, 4, 5, 6];
 const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const VI = {
@@ -132,7 +135,17 @@ const VI = {
   'hits poison: 0.5 a second for 2 s': 'đòn đánh gây độc 0,5/giây trong 2 giây', '+20% health and damage': '+20% máu và sát thương',
   'heals 10% of the damage it deals': 'hút 10% sát thương gây ra', '+3% health and damage': '+3% máu và sát thương',
   'its first hit freezes the target for 0.2 s': 'đòn đầu tiên làm đứng hình 0,2 giây', '+15% health and damage': '+15% máu và sát thương',
-  '+25% damage from the river': '+25% sát thương khi đứng trên sông'
+  '+25% damage from the river': '+25% sát thương khi đứng trên sông',
+  '+10% health': '+10% máu', '+10% damage': '+10% sát thương', '+2% health and damage': '+2% máu và sát thương',
+  '+5% health and damage': '+5% máu và sát thương', '+10% health and damage': '+10% máu và sát thương',
+  '+10% damage to towers': '+10% sát thương lên trụ', 'its first hit freezes the target for 0.1 s': 'đòn đầu tiên làm đứng hình 0,1 giây',
+  'Rise again: a fallen Zombie gets up with 25% health (once every 20 s for the side)': 'Hồi sinh: lính Xác sống ngã xuống đứng dậy với 25% máu (cả phe 20 giây một lần)',
+  'Volley: every 3rd shot also hits a second enemy for half': 'Mưa tên: cứ 3 phát lại bắn thêm một kẻ địch khác trong tầm, nửa sát thương',
+  'Totem of Undying: a killing blow leaves it at 1 health, unhurt for 0.5 s (once every 20 s for the side)': 'Vật tổ bất tử: đòn chí mạng chỉ để lại 1 máu, bất tử 0,5 giây (cả phe 20 giây một lần)',
+  'Last flame: when it dies, enemies within 2 blocks burn 1 a second for 3 s': 'Ngọn lửa cuối: khi chết, kẻ địch trong 2 ô bị đốt 1/giây trong 3 giây',
+  'Silk: its hits slow the target\'s walk for 0.5 s': 'Tơ nhện: đòn đánh làm mục tiêu đi chậm 0,5 giây',
+  'Pack: +5% damage for each other Beast within 4 blocks (up to 3)': 'Bầy đàn: +5% sát thương cho mỗi con Thú khác trong 4 ô (tối đa 3)',
+  'Shadow: an arrow or shot that would hit it misses (once every 16 s for the side)': 'Bóng ma: một mũi tên hay phát bắn trúng nó sẽ trượt (cả phe 16 giây một lần)'
 };
 const vi = t => VI[t] || t;
 const tribesOf = id => DATA.tribes.filter(t => t.members.includes(id));
@@ -151,7 +164,7 @@ function tribePanel(t) {
     const text = t.steps[i];
     if (!text) return '';
     const reachable = t.members.length >= n;
-    return `<li class="${i % 2 ? 'fx' : ''}${reachable ? '' : ' locked'}"><b>${n}</b><span>${esc(vi(text))}${reachable ? '' : ' (chưa đủ thẻ)'}</span></li>`;
+    return `<li class="${i === 3 ? 'fx' : ''}${reachable ? '' : ' locked'}"><b>${n}</b><span>${esc(vi(text))}${reachable ? '' : ' (chưa đủ thẻ)'}</span></li>`;
   }).join('');
   const rows = DATA.rows.filter(r => r.tribe === t.id).map(r => `
     <div class="row"><span>${r.cards} thẻ</span>
