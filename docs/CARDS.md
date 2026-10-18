@@ -249,17 +249,18 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Husk | `minecraft:husk` | 2 | 20 | 2.5 | 1.0 | 1.2 | 1.0 | its hit slows for 2 s (hunger) | **3** |
 | Wither Skeleton | `minecraft:wither_skeleton` | 1 | 20 | 10 | 1.6 | 1.5 | 0.85 | stone sword; withers: 1.5 a second for 3 s (black dust) | **2** |
 | Piglin Brute | `minecraft:piglin_brute` | 1 | 50 | 14 | 1.8 | 1.2 | 0.9 | golden axe: big, slow blows | **4** |
-| Polar Bear | `minecraft:polar_bear` | 1 | 30 | 7 | 1.2 | 1.2 | 1.0 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **3** |
+| Polar Bear | `minecraft:polar_bear` | 1 | 30 | 7 | 1.2 | 1.2 | 1.2 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **3** |
 | Phantom | `minecraft:phantom` | 1 | 20 | 7 | 1.0 | 1.2 | 3.0 | flies 2 blocks up straight over the river and only goes for towers | **2** |
 | Silverfish | `minecraft:silverfish` | 4 | 8 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
 | Bee | `minecraft:bee` | 3 | 10 | 0.9 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once a second, each sting poisons 1 a second for 3 s; turns angry (vanilla angry face) on its first sting | **2** |
-| Evoker | `minecraft:evoker` | 1 | 24 | 10 | 2.0 | 4.0 | 0.6 | fangs bite every enemy on a 1.2 wide line from it through its target | **3** |
+| Evoker | `minecraft:evoker` | 1 | 24 | 10 | 2.0 | 4.0 | 0.5 | fangs bite every enemy on a 1.2 wide line from it through its target | **3** |
 | Guardian | `minecraft:guardian` | 1 | 30 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **3** |
 | Zombie Villager | `minecraft:zombie_villager` | 4 | 20 | 1 | 1.2 | 1.2 | 0.8 | a big, weak-hitting swarm: vanilla zombie health and armour 2, but 1 damage a blow (model 0.85) | **3** |
 | Spider Jockey | `minecraft:spider` | 1 | 16 | 3 | 1.0 | 4.5 | 1.4 | one unit: a Skeleton on a Spider (model 0.9), shoots from the saddle, and when the spider dies the Skeleton stays as a Skeleton Archer (20 health, range 5.5) | **3** |
 | Skeleton Rider | `minecraft:skeleton_horse` | 1 | 15 | 6 | 1.0 | 6.0 | 1.4 | a Skeleton on a skeleton horse (vanilla 15 HP) that only shoots towers; when the horse dies the Skeleton stays as a Skeleton Archer (20 HP) that fights anything (model 1.0) | **3** |
 | Strider | `minecraft:strider` | 1 | 20 | 3 | 1.0 | 1.2 | 1.7 | Nether, fire immune, but walks the bridges like everyone; leaves a burning trail (a patch every 0.5 s that lasts 2 s): an enemy standing on it burns 1 a second, and a moment after (model 1.0) | **2** |
 | Goat | `minecraft:goat` | 1 | 10 | 5 | 2.0 | 1.2 | 1.3 | a ram: its slow head-butt knocks the target back 3 blocks, three times the Ravager's push; vanilla health, so fragile; 1 elixir (model 1.0) | **1** |
+| Llama | `minecraft:llama` | 1 | 22 | 3 | 1.5 | 4.5 | 0.9 | spits from 4.5 blocks; the spit slows for 0.75 s, less than a Stray's arrow; vanilla health 15-30, the middle (model 1.0) | **2** |
 | Fox | `minecraft:fox` | 2 | 10 | 2 | 0.7 | 1.2 | 1.9 | a fast small pack with quick bites, the fastest walker; nothing special (no armour piercing) | **2** |
 | Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 
@@ -385,4 +386,10 @@ Autopilot cycle 7 (4000 bot matches): Goat added at 50-52% (Beast tribe,
 1.0 -> 0.9 (61% -> 58%). Tried and reverted: Pillager range 6.0 -> 5.5
 (61% -> 61%) and Cobweb flight 0.4 -> 0.25 s (39% -> 39%); Pillager needs
 another lever (its 11 damage), Cobweb is limited by how the bot casts it.
+
+Autopilot cycle 8 (4000 bot matches): Llama added at 44-45% (Beast tribe,
+2 elixir). Evoker speed 0.6 -> 0.5 (60% -> 58%), Polar Bear speed 1.0 ->
+1.2 (41% -> 42%). Pillager speed 1.0 -> 0.85 did nothing (61% -> 62%),
+reverted. Pillager has now resisted range and speed: it needs a person's
+call (an HP-damage swap away from its vanilla 24 health, or 4 elixir).
 

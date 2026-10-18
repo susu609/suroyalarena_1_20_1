@@ -1,0 +1,21 @@
+{
+  "id": "llama",
+  "type": "troop",
+  "display_name": "Llama",
+  "roles": ["defense", "support"],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:llama",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 22,
+    "damage": 3,
+    "attack_interval_ticks": 30,
+    "range": 4.5,
+    "move_speed": 0.9,
+    "flying": false,
+    "targets": "ground",
+    "slow_ticks": 15
+  }
+}

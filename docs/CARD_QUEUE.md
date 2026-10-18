@@ -52,7 +52,7 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
 
 - [x] Goat (`minecraft:goat`): a ram: hits knock back much harder than the
   Ravager, low health, slow swing. Reuses knockback.
-- [ ] Llama (`minecraft:llama`): spits from 4-5 blocks, slows a little. Reuses
+- [x] Llama (`minecraft:llama`): spits from 4-5 blocks, slows a little. Reuses
   ranged and slowing.
 - [ ] Piglin (`minecraft:piglin`, Nether, fire immune): crossbow, range 5, two
   quick shots then a long reload. Reuses ranged.

@@ -708,3 +708,10 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   cost, protocol 21; Piglin Brute speed 0.9
 - `TraitSmokeTest.goatRamsFarther`
 
+## Part 60 — Llama (autopilot cycle 8)
+
+- `card/BattleCard.java` and `llama.json` (22 HP, 3 damage every 1.5 s,
+  range 4.5, slows 0.75 s, speed 0.9, Beast tribe, 2 elixir), card art
+  cost, protocol 22; Evoker speed 0.5, Polar Bear speed 1.2
+- `MobsWave2SmokeTest.llamaSpitsAndSlowsALittle`
+

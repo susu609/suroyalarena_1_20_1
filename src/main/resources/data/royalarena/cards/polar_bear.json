@@ -13,7 +13,7 @@
     "damage": 7,
     "attack_interval_ticks": 24,
     "range": 1.2,
-    "move_speed": 1.0,
+    "move_speed": 1.2,
     "targets": "ground",
     "frost_immune": true,
     "flying": false

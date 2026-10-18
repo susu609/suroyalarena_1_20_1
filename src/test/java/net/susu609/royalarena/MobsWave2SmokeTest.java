@@ -44,6 +44,7 @@ public final class MobsWave2SmokeTest {
         foxesAreAFastCheapPack();
         skeletonRiderIgnoresTroops();
         striderLeavesAFireTrail();
+        llamaSpitsAndSlowsALittle();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -67,6 +68,27 @@ public final class MobsWave2SmokeTest {
     {
         return engine.add(UUID.randomUUID(), side,
                 new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void llamaSpitsAndSlowsALittle() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        unit(engine, BattleCard.LLAMA, TeamSide.BLUE, 0.0D, 3.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.0D, -1.5D);
+        boolean spat = false;
+        for (int i = 0; i < 20 && !zombie.slowed(); i++) {
+            for (TickResult.Attack a : engine.tick().attacks())
+                spat |= a.ranged();
+        }
+        check(spat, "the Llama spits across the river");
+        check(zombie.slowed() && zombie.health() < zombie.maxHealth(),
+                "the spit lands and slows");
+        check(BattleCard.LLAMA.stats().traits().slowTicks() <
+                        BattleCard.STRAY.stats().traits().slowTicks() &&
+                        BattleCard.LLAMA.stats().range() >= 4.0D &&
+                        BattleCard.LLAMA.stats().range() <= 5.0D,
+                "spits from 4-5 blocks and slows a little, less than a Stray");
     }
 
     private static void striderLeavesAFireTrail() {

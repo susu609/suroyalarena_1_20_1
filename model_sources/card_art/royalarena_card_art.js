@@ -58,6 +58,7 @@
         'skeleton_rider': 3,
         'strider': 2,
         'goat': 1,
+        'llama': 2,
         'arrow_storm': 3,
         'fireball': 4,
         'lightning': 6,

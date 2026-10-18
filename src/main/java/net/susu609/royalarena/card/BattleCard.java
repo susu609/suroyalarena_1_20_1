@@ -82,7 +82,7 @@ public enum BattleCard {
             "minecraft:golden_axe", 0,
             new TroopStats(1, 50, 14, 36, 1.2D, 0.9D, 0.3D).withArmor(7)),
     POLAR_BEAR("Polar Bear", 3, "minecraft:polar_bear", null, 0,
-            new TroopStats(1, 30, 7, 24, 1.2D, 1.0D, 0.7D,
+            new TroopStats(1, 30, 7, 24, 1.2D, 1.2D, 0.7D,
                     TroopTraits.frostProof())),
     PHANTOM("Phantom", 2, "minecraft:phantom", null, 0,
             new TroopStats(1, 20, 7, 20, 1.2D, 3.0D, 0.45D,
@@ -93,7 +93,7 @@ public enum BattleCard {
             new TroopStats(3, 10, 0.9D, 20, 1.2D, 2.0D, 0.25D,
                     TroopTraits.stinging(60, 1.0D, 1.0D))),
     EVOKER("Evoker", 3, "minecraft:evoker", null, 0,
-            new TroopStats(1, 24, 10, 40, 4.0D, 0.6D, 0.3D,
+            new TroopStats(1, 24, 10, 40, 4.0D, 0.5D, 0.3D,
                     TroopTraits.line(1.2D))),
     GUARDIAN("Guardian", 3, "minecraft:guardian", null, 0,
             new TroopStats(1, 30, 14, 40, 5.5D, 0.6D, 0.45D,
@@ -118,6 +118,9 @@ public enum BattleCard {
     GOAT("Goat", 1, "minecraft:goat", null, 0,
             new TroopStats(1, 10, 5, 40, 1.2D, 1.3D, 0.4D,
                     new TroopTraits(0.0D, false, 3.0D))),
+    LLAMA("Llama", 2, "minecraft:llama", null, 0,
+            new TroopStats(1, 22, 3, 30, 4.5D, 0.9D, 0.45D,
+                    TroopTraits.slowing(15))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
@@ -262,7 +265,7 @@ public enum BattleCard {
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
             case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
             case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
-            case WOLVES, FOX, POLAR_BEAR, GOAT -> EnumSet.of(Tribe.BEAST);
+            case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA -> EnumSet.of(Tribe.BEAST);
             case CREEPER, ENDERMAN -> EnumSet.of(Tribe.NIGHT);
             case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
             case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
@@ -305,7 +308,7 @@ public enum BattleCard {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT ->
                     EnumSet.of(CardTactic.DEFENSE);
-            case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
+            case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA,
                     SNOW_GOLEM, ARROW_STORM, COBWEB ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
