@@ -525,3 +525,14 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   the bot balance report (4000 matches), same as before
 - `build.gradle` sets `sumodlib.noTutorial` on the dev client; the switch
   itself is `client/Tutorials.java` in sumodlib
+
+## Part 45 — Spider Jockey
+
+- `card/SplitRule.java` (`into`), `card/CostFormula.java` and
+  `card/CardRole.java` (spider and rider health), `combat/CombatEngine.java`
+  (one rider child), `card/BattleCard.java` (SPIDER_JOCKEY, Ghast 33/19),
+  `cards/spider_jockey.json`, `model_sources/card_art` (id and cost),
+  `server/battle/BattleField.java` (a Skeleton rider on the spider,
+  `discardMob`), `client/screen/DeckScreen.java` (tooltip), protocol 12
+- `MobsWave2SmokeTest.spiderJockeyLeavesItsArcher`; `docs/CARDS.md`,
+  `docs/COMBAT.md`, `docs/CARD_QUEUE.md`

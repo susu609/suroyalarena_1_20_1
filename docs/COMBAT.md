@@ -22,6 +22,9 @@ imports) and acted out in the world by `server/battle/BattleField`.
   (4 damage every 20 ticks) stays asleep until it is damaged or one of its
   Princess towers falls. Troops hit towers through `MatchInstance.damageTower`,
   so a destroyed King tower still ends the match.
+- **Spider Jockey.** Not a swarm: when it dies it leaves exactly one Skeleton
+  Archer where it fell (`SplitRule.into`), with a short moment of safety. The
+  cost counts the spider's and the archer's health together.
 - **Slimes.** When a Big Slime dies it splits into 2 slimes with half health,
   damage and size, twice (20 -> 2x10 -> 4x5). Children keep team and lane,
   spawn near the parent (pushed out of the water) and are invulnerable for

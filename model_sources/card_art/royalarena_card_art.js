@@ -53,6 +53,7 @@
         'guardian': 4,
         'snow_golem': 2,
         'zombie_villager': 3,
+        'spider_jockey': 4,
         'arrow_storm': 3,
         'fireball': 4,
         'lightning': 6,

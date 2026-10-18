@@ -1,0 +1,21 @@
+{
+  "id": "spider_jockey",
+  "type": "troop",
+  "display_name": "Spider Jockey",
+  "roles": ["attack"],
+  "body": "living",
+  "elixir": 4,
+  "entity": "minecraft:spider",
+  "model_scale": 0.9,
+  "count": 1,
+  "unit": {
+    "health": 41,
+    "damage": 3,
+    "attack_interval_ticks": 20,
+    "range": 4.5,
+    "move_speed": 1.4,
+    "flying": false,
+    "targets": "ground"
+  },
+  "splits_into": "skeleton_archer"
+}

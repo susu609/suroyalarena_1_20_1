@@ -45,6 +45,8 @@ public final class CostFormula {
     public static double raw(TroopStats s) {
         int generations = 1 + (s.split() == null ? 0 : s.split().generations());
         double totalHealth = s.health() * s.count() * generations;
+        if (s.split() != null && s.split().into() != null)
+            totalHealth = (s.health() + s.split().into().health()) * s.count();
         // Poison lands with every hit, so it counts as part of the damage;
         // the next hit replaces it, so only what runs until then counts (all
         // of it for a unit that dies on its hit, like a Bee).

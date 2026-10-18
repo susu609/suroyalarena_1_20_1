@@ -60,7 +60,7 @@ public enum BattleCard {
             new TroopStats(3, 4, 16, 20, 1.2D, 2.0D, 0.3D,
                     new TroopTraits(0.0D, true, 0.0D))),
     GHAST("Ghast", 5, "minecraft:ghast", null, 0,
-            new TroopStats(1, 28, 22, 60, 5.5D, 0.35D, 1.0D,
+            new TroopStats(1, 33, 19, 60, 5.5D, 0.35D, 1.0D,
                     new TroopTraits(1.5D, false, 0.0D))),
     DROWNED("Drowned", 2, "minecraft:drowned", "minecraft:trident", 0,
             new TroopStats(1, 22, 4, 40, 5.0D, 1.0D, 0.3D,
@@ -103,6 +103,9 @@ public enum BattleCard {
     SNOW_GOLEM("Snow Golem", 2, "minecraft:snow_golem", null, 0,
             new TroopStats(1, 40, 1, 20, 5.0D, 1.0D, 0.35D,
                     TroopTraits.slowing(30))),
+    SPIDER_JOCKEY("Spider Jockey", 4, "minecraft:spider", null, 0,
+            new TroopStats(1, 41, 3, 20, 4.5D, 1.4D, 0.55D,
+                    SplitRule.into(SKELETON_ARCHER.stats()))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
                     0.0D, 0.0D, 0)),
@@ -218,6 +221,7 @@ public enum BattleCard {
         return switch (this) {
             case SKELETONS -> 0.9F;
             case SPIDER -> 0.75F;
+            case SPIDER_JOCKEY -> 0.9F;
             case CAVE_SPIDER -> 0.6F;
             case VEX -> 0.8F;
             case ZOMBIE_VILLAGER -> 0.85F;
@@ -239,7 +243,7 @@ public enum BattleCard {
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
                     SNOW_GOLEM, ARROW_STORM ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
-            case SPIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+            case SPIDER, SPIDER_JOCKEY, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,

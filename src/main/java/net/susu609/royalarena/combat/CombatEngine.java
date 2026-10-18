@@ -811,6 +811,15 @@ public final class CombatEngine {
             return List.of();
         List<ChildSpawn> children = new ArrayList<>(rule.children());
         int sign = ArenaLayout.sideSign(parent.side());
+        if (rule.into() != null) {
+            TroopStats rider = rule.into();
+            ArenaWaypoint spot = arena.clampSpawn(parent.x(), parent.z(), sign);
+            children.add(new ChildSpawn(parent.side(), rider,
+                    parent.generation() + 1, rider.health(), rider.damage(),
+                    rider.radius(), spot.x(), spot.z(),
+                    rule.invulnerableTicks(), parent.lockedTower()));
+            return children;
+        }
         for (int i = 0; i < rule.children(); i++) {
             double angle = Math.PI * 2.0D * i / rule.children() +
                     parent.generation() * 0.8D;

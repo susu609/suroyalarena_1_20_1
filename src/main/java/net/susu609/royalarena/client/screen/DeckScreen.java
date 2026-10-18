@@ -535,7 +535,9 @@ public final class DeckScreen extends Screen {
                 s.attackTicks() / 20.0D));
         lines.add(line("Range %.1f, speed %.2f blocks/s", s.range(),
                 s.speed()));
-        if (s.split() != null)
+        if (s.split() != null && s.split().into() != null)
+            lines.add(line("Leaves a Skeleton Archer when it dies"));
+        else if (s.split() != null)
             lines.add(line(s.split().generations() == 1 ?
                             "Splits in %d when it dies" :
                             "Splits in %d when it dies, %d times",

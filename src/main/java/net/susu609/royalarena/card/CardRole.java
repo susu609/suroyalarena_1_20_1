@@ -60,6 +60,8 @@ public enum CardRole {
         SplitRule split = s.split();
         if (split == null)
             return s.health();
+        if (split.into() != null)
+            return s.health() + split.into().health();
         double total = 0.0D;
         double health = s.health();
         int bodies = 1;

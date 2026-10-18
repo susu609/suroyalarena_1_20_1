@@ -239,7 +239,39 @@ public final class BattleField {
                     card.entityId(), card.id());
             return null;
         }
+        if (card == BattleCard.SPIDER_JOCKEY)
+            mountRider(entity);
         return entity;
+    }
+
+    /**
+     * The Skeleton on a Spider Jockey's back. It is only for show: the
+     * engine fights with the spider's unit, and when that dies the rider's
+     * own Skeleton Archer unit takes over.
+     */
+    private void mountRider(Entity spider) {
+        Entity rider = EntityType.SKELETON.create(level);
+        if (rider == null)
+            return;
+        rider.moveTo(spider.getX(), spider.getY(), spider.getZ(),
+                spider.getYRot(), 0.0F);
+        rider.addTag("royalarena_troop");
+        rider.setInvulnerable(true);
+        if (rider instanceof Mob mob) {
+            mob.setNoAi(true);
+            mob.setPersistenceRequired();
+            mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+            mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
+        }
+        if (level.addFreshEntity(rider))
+            rider.startRiding(spider, true);
+    }
+
+    /** Discards a troop mob and whatever rides it. */
+    private static void discardMob(Entity entity) {
+        for (Entity rider : new ArrayList<>(entity.getPassengers()))
+            rider.discard();
+        entity.discard();
     }
 
     private static void equip(Mob mob, BattleCard card) {
@@ -299,7 +331,7 @@ public final class BattleField {
         for (CombatUnit unit : new ArrayList<>(engine.units())) {
             Entity entity = level.getEntity(unit.id());
             if (entity != null)
-                entity.discard();
+                discardMob(entity);
             engine.remove(unit.id());
             stuckTicks.remove(unit.id());
             animator.forget(unit.id());
@@ -1187,7 +1219,7 @@ public final class BattleField {
             if (entity instanceof MagmaCube)
                 level.sendParticles(ParticleTypes.LAVA, entity.getX(), y,
                         entity.getZ(), 6, spread, 0.2D, spread, 0.0D);
-            entity.discard();
+            discardMob(entity);
         }
         for (ChildSpawn child : death.children())
             spawnChild(child);

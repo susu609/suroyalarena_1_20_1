@@ -39,6 +39,7 @@ public final class MobsWave2SmokeTest {
         snowballsAreFrost();
         netherMobsDoNotBurn();
         poisonDependsOnTheBody();
+        spiderJockeyLeavesItsArcher();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -62,6 +63,38 @@ public final class MobsWave2SmokeTest {
     {
         return engine.add(UUID.randomUUID(), side,
                 new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void spiderJockeyLeavesItsArcher() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit jockey = unit(engine, BattleCard.SPIDER_JOCKEY,
+                TeamSide.BLUE, 0.0D, 6.0D);
+        check(BattleCard.SPIDER_JOCKEY.body() == Body.LIVING,
+                "the Spider Jockey is living flesh");
+        TickResult.Death death = null;
+        for (int cast = 0; cast < 3 && death == null; cast++) {
+            engine.castSpell(TeamSide.RED, BattleCard.TNT, jockey.x(),
+                    jockey.z());
+            for (TickResult.Death d : engine.tick().deaths()) {
+                if (d.unit().equals(jockey.id()))
+                    death = d;
+            }
+        }
+        check(death != null, "the Spider Jockey dies to TNT");
+        check(death.children().size() == 1,
+                "it leaves exactly one unit: " + death.children().size());
+        var rider = death.children().get(0);
+        check(rider.stats() == BattleCard.SKELETON_ARCHER.stats() &&
+                BattleCard.forStats(rider.stats()) ==
+                        BattleCard.SKELETON_ARCHER,
+                "the rider is a Skeleton Archer");
+        check(rider.health() == 20.0D && rider.side() == TeamSide.BLUE &&
+                rider.generation() == 1 && rider.invulnerableTicks() > 0,
+                "full health, same side, a short moment of safety");
+        CombatUnit archer = engine.add(UUID.randomUUID(), rider);
+        check(archer.stats().range() == 5.5D && archer.stats().split() == null,
+                "the archer shoots from 5.5 blocks and never splits again");
     }
 
     private static void polarBearIgnoresFrost() {
