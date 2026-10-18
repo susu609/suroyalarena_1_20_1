@@ -151,27 +151,31 @@ public final class WorldHealthBar {
             // On the bar, pushed in front of it so the two never z-fight,
             // with a black outline so it reads on any colour.
             outlined(font, label, -font.width(label) / 2.0F, 0.0F, 0xFFFFFF,
-                    0xFF, matrix, buffer, Font.DisplayMode.POLYGON_OFFSET,
-                    light);
+                    matrix, buffer, light);
         }
         pose.popPose();
     }
 
     /**
-     * Text with a black outline on all four sides (not just a shadow): the
-     * black copies first, then the text; within one batch later quads draw
-     * over earlier ones.
+     * Text with a black outline on all sides, drawn the way vanilla draws
+     * glow-ink signs: the eight black copies first in the normal layer, then
+     * the text in the polygon-offset layer, which is pulled toward the camera
+     * so the text always wins. (Drawing both in one layer made the equal-depth
+     * quads z-fight, and black speckled through the letters.) Always fully
+     * opaque: a translucent text over the black copies would show them.
      */
     public static void outlined(Font font, String text, float x, float y,
-            int rgb, int alpha, Matrix4f matrix, MultiBufferSource buffer,
-            Font.DisplayMode mode, int light)
+            int rgb, Matrix4f matrix, MultiBufferSource buffer, int light)
     {
-        int outline = (alpha << 24) | OUTLINE;
-        float[][] offsets = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-        for (float[] o : offsets)
-            font.drawInBatch(text, x + o[0], y + o[1], outline, false, matrix,
-                    buffer, mode, 0, light);
-        font.drawInBatch(text, x, y, (alpha << 24) | rgb, false, matrix,
-                buffer, mode, 0, light);
+        int outline = 0xFF000000 | OUTLINE;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (dx != 0 || dy != 0)
+                    font.drawInBatch(text, x + dx, y + dy, outline, false,
+                            matrix, buffer, Font.DisplayMode.NORMAL, 0, light);
+            }
+        }
+        font.drawInBatch(text, x, y, 0xFF000000 | rgb, false, matrix, buffer,
+                Font.DisplayMode.POLYGON_OFFSET, 0, light);
     }
 }

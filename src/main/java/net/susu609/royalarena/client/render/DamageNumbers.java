@@ -166,23 +166,30 @@ public final class DamageNumbers {
             float age = (ticks - p.start() + partial) / LIFE;
             if (age < 0.0F || age > 1.0F)
                 continue;
-            // Pops up big, settles, rises and fades out.
+            // Pops up big, settles, rises and shrinks away.
             float pop = age < 0.15F ? 1.0F + (0.15F - age) * 3.0F : 1.0F;
-            float alpha = age < 0.6F ? 1.0F : 1.0F - (age - 0.6F) / 0.4F;
+            // No alpha fade: the black outline would show through the
+            // letters. It shrinks away at the end instead.
+            float shrink = age < 0.7F ? 1.0F :
+                    Math.max(0.15F, 1.0F - (age - 0.7F) / 0.3F * 0.85F);
             double rise = 1.2D * Math.sqrt(age);
             pose.pushPose();
-            pose.translate(p.at().x - cam.x + p.drift() * age,
-                    p.at().y - cam.y + rise, p.at().z - cam.z);
+            double px = p.at().x - cam.x + p.drift() * age;
+            double py = p.at().y - cam.y + rise;
+            double pz = p.at().z - cam.z;
+            // The text is depth-tested now (so its outline cannot speckle),
+            // so bring it toward the camera, in front of the troop's body.
+            double len = Math.sqrt(px * px + py * py + pz * pz);
+            double lift = len < 1.0E-3D ? 0.0D : Math.min(1.2D, len * 0.5D) / len;
+            pose.translate(px - px * lift, py - py * lift, pz - pz * lift);
             pose.mulPose(event.getCamera().rotation());
-            float scale = 0.052F * p.size() * pop *
+            float scale = 0.052F * p.size() * pop * shrink *
                     ArenaClientConfig.WORLD_TEXT_SCALE.get().floatValue();
             pose.scale(-scale, -scale, scale);
             Matrix4f matrix = pose.last().pose();
-            int a = Math.max(5, Math.round(alpha * 255.0F));
             WorldHealthBar.outlined(font, p.text(),
-                    -font.width(p.text()) / 2.0F, 0.0F, p.rgb(), a, matrix,
-                    buffers, Font.DisplayMode.SEE_THROUGH,
-                    LightTexture.FULL_BRIGHT);
+                    -font.width(p.text()) / 2.0F, 0.0F, p.rgb(), matrix,
+                    buffers, LightTexture.FULL_BRIGHT);
             pose.popPose();
         }
         buffers.endBatch();
