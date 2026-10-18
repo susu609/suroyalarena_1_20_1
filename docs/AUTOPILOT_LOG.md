@@ -13,3 +13,4 @@ One line per cycle, newest last (`docs/AUTOPILOT.md`).
 - 2026-10-18 78dc43f: by hand: bot personalities (Tank Push 55%, Rush 43%, Counter 55%, Spell Siege 46%) and shared bot skills; matches 284 s -> 267 s; band 40-58% (Creeper 40%: tune it next)
 - 2026-10-18 a088338: by hand: watch mode, readable damage numbers and bars, deep team colours, docs and stats page refreshed; band 40-58% (Skeleton Archer 58%, Creeper 40%); next card in the queue: Fox
 - 2026-10-18 de93e6a: by hand: added Fox (48%); tuned Creeper (40% -> 43-45%), Skeleton Archer range 4.5 (60% -> 56%); band 41-57% (Zombie 41%, Pillager and Witch 57%); next in the queue: Skeleton Rider
+- 2026-10-18 b82753e: by hand: spell free buffs (Freeze 43% -> 50%, Arrow Storm 45% -> 48%); added Poison Cloud (42%), Cobweb (39%), Swiftness Potion (40%), Snowball Volley (46%); band 39-59% (Cobweb 39%, Skeletons 59%): the new support spells are limited by how the bot uses them
