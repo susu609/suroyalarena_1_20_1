@@ -7,7 +7,7 @@ Hai bước:
 
 **Bản quyền.** Âm thanh Clash Royale thuộc Supercell. Chính sách fan content của họ không cho dùng tài sản của Supercell để làm game hay sản phẩm mới, kể cả miễn phí. Vì vậy mod **không chứa và không tải** file âm thanh Clash Royale nào. Mọi tiếng trong mod là sự kiện âm thanh vanilla Minecraft, hoặc tiếng tự làm sau này.
 
-Ký hiệu cột "Mod": ✅ đã có · ⚠️ có nhưng chưa đúng ý · ❌ chưa có.
+Ký hiệu cột "Mod": ✅ đã có · ⚠️ có nhưng chưa đúng ý · ⏳ đã chọn, chờ thẻ · ❌ chưa có.
 Trang nghe thử các phương án vanilla: https://claude.ai/artifact/4LLDzQ9tuQa3zXFamy7Mta
 
 ---
@@ -111,23 +111,35 @@ Nguyên tắc:
 - **Tiếng của mob là của chính mob đó:** lính dùng đúng tiếng `hurt`, `death`, `attack` và tiếng bước của mob vanilla.
 - **Nhạc nền:** Minecraft không có vòng lặp nhạc trận. Có thể dùng đĩa nhạc vanilla (Pigstep, Otherside, Relic) hoặc soạn bằng note block sau này.
 
-| Khoảnh khắc (Clash Royale) | Phương án Minecraft | Mod |
+Bạn đã chọn các tiếng dưới đây trên trang nghe thử. Tên tiếng nằm trong `match/ArenaSounds.java`.
+
+| Khoảnh khắc (Clash Royale) | Tiếng Minecraft | Mod |
 |---|---|---|
-| Tìm thấy đối thủ | `block.bell.use` / `ui.toast.in` | ❌ |
-| Bắt đầu trận | `event.raid.horn` hoặc kèn dê `item.goat_horn.sound.0` | ❌ |
-| Nhạc trận | Đĩa nhạc vanilla (Pigstep / Otherside / Relic), hoặc vòng lặp note block tự soạn | ❌ |
-| Elixir x2 / x3 | `entity.player.levelup` / `block.beacon.power_select` | ❌ (chỉ có banner) |
-| Hiệp phụ | `block.bell.resonate` / `entity.warden.heartbeat` | ❌ (chỉ có banner) |
-| 10 giây cuối | `block.note_block.hat` / `block.note_block.snare`, mỗi giây một tiếng | ❌ |
-| Chọn thẻ | `ui.button.click` / `item.armor.equip_chain` | ❌ |
-| Đặt thẻ / ra quân | `item.armor.equip_iron` cộng tiếng `ambient` của mob vừa ra | ❌ |
-| Đặt không hợp lệ | `entity.villager.no` / `block.note_block.bass` | ❌ |
-| Elixir đầy | `block.amethyst_block.chime` (một lần, khi vừa đầy) | ❌ (chỉ nhấp nháy) |
+| Tìm thấy đối thủ | `block.note_block.pling` | ✅ |
+| Đếm ngược 3–2–1 | `block.note_block.hat`, cao dần | ✅ |
+| FIGHT! | `item.goat_horn.sound.0` | ✅ |
+| Nhạc trận | Đĩa Pigstep `music_disc.pigstep`, lặp, theo âm lượng Music, tắt bằng `battleMusic` | ✅ |
+| Elixir x2 / x3 | `block.beacon.power_select` | ✅ |
+| Hiệp phụ | `block.bell.resonate` | ✅ |
+| 10 giây cuối | `block.note_block.hat`, mỗi giây một tiếng, cao dần | ✅ |
+| Elixir đầy | `entity.experience_orb.pickup` (một lần, khi vừa đầy) | ✅ |
+| Đặt thẻ vào deck | `item.armor.equip_chain` | ✅ |
+| Lưu deck | `ui.toast.in` | ✅ |
+| Thẻ bị từ chối (đặt sai chỗ, deck không hợp lệ) | `block.note_block.bass` | ✅ |
+| Lính xuất hiện | `block.respawn_anchor.charge` tại điểm thả | ✅ |
 | Lính kêu khi rảnh, bước chân | Vanilla tự phát | ✅ |
 | Lính bị đánh | `entity.<mob>.hurt`, phát cùng nháy đỏ | ✅ |
 | Lính chết | `entity.<mob>.death` | ✅ |
 | Đòn cận chiến riêng | `entity.iron_golem.attack`, `entity.ravager.attack`, `entity.hoglin.attack`... | ✅ |
 | Đòn tầm xa | Cung, nỏ, đinh ba, cầu lửa, cầu tuyết, tia Guardian, nanh Evoker | ✅ |
+| Ravager húc lùi | `entity.ravager.roar` (tối đa mỗi 3 giây) | ✅ |
+| Creeper sắp nổ | `entity.creeper.primed` (một lần, khi tới gần mục tiêu) | ✅ |
+| Slime / Magma Cube tách | `entity.slime.squish` / `entity.magma_cube.squish` | ✅ |
+| Trúng độc | `entity.puffer_fish.sting` | ✅ |
+| Trúng băng / bị chậm | `entity.player.hurt_freeze` | ✅ |
+| Blaze xuống sông | `entity.generic.extinguish_fire` | ✅ |
+| Vex lao | `entity.vex.charge` | ✅ |
+| Guardian khóa mục tiêu | `block.conduit.ambient.short` | ✅ |
 | Fireball | `entity.blaze.shoot` rồi `entity.generic.explode` | ✅ |
 | Arrows (Arrow Storm) | `entity.arrow.shoot` rồi `entity.arrow.hit` | ✅ |
 | Lightning | Tia sét thật (sấm vanilla) | ✅ cần nghe lại |
@@ -136,21 +148,23 @@ Nguyên tắc:
 | TNT | `entity.tnt.primed` rồi `entity.generic.explode` | ✅ |
 | Poison Cloud (sắp có) | `block.bubble_column.bubble_pop` lặp lại / `entity.witch.drink` | ❌ |
 | Tháp bắn | `item.crossbow.shoot` | ✅ |
-| Tháp bị đánh | `block.stone.hit` / `entity.iron_golem.damage` | ❌ |
-| King thức dậy | `entity.player.levelup` (tiếng thấp) | ✅ có thể thêm `entity.ravager.roar` cho giống tiếng gầm |
+| Tháp bị đánh | `entity.iron_golem.damage` (tối đa mỗi 8 tick) | ✅ |
+| Tháp King bị đánh | `block.anvil.land` (nhỏ, cao) | ✅ |
+| Tháp sắp đổ (dưới 25% máu) | `block.stone.break` (một lần) | ✅ |
+| King thức dậy | `entity.player.levelup` (tiếng thấp) | ✅ |
 | Tháp sập | `entity.generic.explode` + `block.stone.break` | ✅ |
-| Vương miện | `entity.experience_orb.pickup`, cao dần | ⚠️ chỉ có ở màn kết quả, chưa có lúc tháp sập |
-| Emote cười | `entity.witch.celebrate` (tiếng cười của Witch) / `entity.pillager.celebrate` | ❌ (chưa có emote) |
-| Emote khóc | `entity.villager.hurt` / `entity.ghast.scream` (đùa) | ❌ |
-| Emote giận | `entity.villager.no` / `entity.ravager.roar` | ❌ |
-| Emote like | `entity.villager.yes` / `entity.villager.trade` | ❌ |
+| Vương miện bay về bộ đếm | `entity.experience_orb.pickup` (cao cho phe mình, thấp cho đối thủ) | ✅ |
+| Shulker (sắp có) | `entity.shulker.teleport` | ⏳ chờ thẻ |
+| Ender Pearl (sắp có) | `entity.enderman.teleport` | ⏳ chờ thẻ |
+| Warden (sắp có) | `entity.warden.sonic_boom` | ⏳ chờ thẻ |
+| Emote cười / khóc / giận / like | `entity.witch.celebrate`, `entity.villager.hurt`, `entity.villager.no`, `entity.villager.yes` | ❌ (chưa có emote) |
 | Thắng | `ui.toast.challenge_complete` + pháo hoa | ✅ |
 | Thua | `block.beacon.deactivate` | ✅ |
 | Đếm vương miện ở màn kết quả | `entity.experience_orb.pickup`, cao dần | ✅ |
 
 ### Việc tiếp theo
 
-1. Bạn chọn phương án trên trang nghe thử, rồi dán danh sách lựa chọn lại.
-2. Gắn các tiếng ❌ của trận đấu: đếm ngược, bắt đầu trận, x2/x3, hiệp phụ, 10 giây cuối, tháp bị đánh, vương miện khi tháp sập. Gắn cả các tiếng ở tay bài: chọn thẻ, đặt thẻ, từ chối, elixir đầy.
-3. Nhạc nền: chọn đĩa vanilla hay soạn vòng lặp note block. Nhạc nên có tuỳ chọn tắt trong config.
+1. Nghe lại trong game: âm lượng tháp bị đánh, tiếng đếm 10 giây cuối, nhạc Pigstep.
+2. Shulker, Ender Pearl, Warden: gắn tiếng khi làm các thẻ này.
+3. Poison Cloud: chọn tiếng khi làm thẻ.
 4. Emote: cần làm tính năng emote trước, sau đó gắn tiếng.

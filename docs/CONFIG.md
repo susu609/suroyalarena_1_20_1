@@ -41,6 +41,7 @@ panel, increase `lookAhead`.
 	cameraShake = 1.0      # how hard the camera shakes on heavy hits; 0 = never (0..2)
 	damageNumbers = true   # damage and healing numbers over troops and towers
 	teamRings = true       # a blue or red ring under every troop
+	battleMusic = true     # the Pigstep disc on the Music volume while a battle runs
 ```
 
 ## `royalarena-common.toml`: troops, bot, debug

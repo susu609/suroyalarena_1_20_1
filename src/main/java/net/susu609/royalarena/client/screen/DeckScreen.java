@@ -16,6 +16,8 @@ import net.susu609.royalarena.card.DeckRules;
 import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.client.hud.CardFace;
+import net.susu609.royalarena.client.sound.ClientSounds;
+import net.susu609.royalarena.match.ArenaSounds;
 import net.susu609.royalarena.client.state.ClientDeckState;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.c2s.C2SDeckRequestPacket;
@@ -134,6 +136,8 @@ public final class DeckScreen extends Screen {
             if (!ClientDeckState.message().isEmpty()) {
                 status = ClientDeckState.message();
                 statusColor = ClientDeckState.ok() ? 0xFF7CFC7C : 0xFFFF7070;
+                ClientSounds.ui(ClientDeckState.ok() ? ArenaSounds.DECK_SAVED :
+                        ArenaSounds.CARD_REFUSED);
             } else {
                 status = "";
             }
@@ -340,6 +344,7 @@ public final class DeckScreen extends Screen {
             if (held != null) {
                 slots[slot] = held;
                 held = null;
+                ClientSounds.ui(ArenaSounds.DECK_PLACE);
             } else {
                 slots[slot] = null;
             }
@@ -360,6 +365,7 @@ public final class DeckScreen extends Screen {
         if (empty >= 0) {
             slots[empty] = card;
             held = null;
+            ClientSounds.ui(ArenaSounds.DECK_PLACE);
             changed();
         } else {
             held = held == card ? null : card;

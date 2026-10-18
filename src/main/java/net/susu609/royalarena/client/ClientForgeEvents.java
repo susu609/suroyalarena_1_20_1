@@ -35,6 +35,9 @@ import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
+import net.susu609.royalarena.client.sound.BattleSounds;
+import net.susu609.royalarena.client.sound.ClientSounds;
+import net.susu609.royalarena.match.ArenaSounds;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -51,6 +54,7 @@ public final class ClientForgeEvents {
             return;
         Minecraft mc = Minecraft.getInstance();
         ClientMatchState.tick();
+        BattleSounds.tick();
         ProjectileRenderer.tick();
         SpellTargetHighlighter.tick();
         AoeFlashRenderer.tick();
@@ -176,6 +180,8 @@ public final class ClientForgeEvents {
                 ModNetwork.sendToServer(
                         new C2SDeployCardPacket(selectedSlot, target));
                 ClientMatchState.clearSelection();
+            } else {
+                ClientSounds.ui(ArenaSounds.CARD_REFUSED, 0.8F, 1.0F);
             }
         }
         event.setCanceled(true);

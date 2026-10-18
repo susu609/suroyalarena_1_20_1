@@ -234,7 +234,7 @@ public final class ResultScreen extends Screen {
 
     private void sound(SoundEvent event, float pitch) {
         minecraft.getSoundManager().play(SimpleSoundInstance.forUI(event,
-                pitch));
+                pitch, 1.0F));
     }
 
     /** Light rays turning slowly behind the winner's King crown. */

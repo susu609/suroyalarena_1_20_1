@@ -60,6 +60,11 @@ public final class ArenaClientConfig {
             .comment("A blue or red ring on the floor under every troop.")
             .define("teamRings", true);
 
+    public static final ForgeConfigSpec.BooleanValue BATTLE_MUSIC = BUILDER
+            .comment("Battle music (the Pigstep disc, on the Music volume) " +
+                    "while a battle runs.")
+            .define("battleMusic", true);
+
     static {
         BUILDER.pop();
     }

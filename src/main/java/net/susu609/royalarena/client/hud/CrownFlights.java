@@ -6,6 +6,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.susu609.royalarena.client.sound.ClientSounds;
+import net.susu609.royalarena.match.ArenaSounds;
 import net.susu609.royalarena.client.hud.HudLayout.Rect;
 import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.match.TeamSide;
@@ -42,7 +44,14 @@ public final class CrownFlights {
 
     static void draw(GuiGraphics graphics, HudLayout layout) {
         long now = Util.getMillis();
-        FLIGHTS.removeIf(f -> now - f.start() > DURATION_MS);
+        FLIGHTS.removeIf(f -> {
+            if (now - f.start() <= DURATION_MS)
+                return false;
+            // The crown lands on its counter: higher for your own.
+            ClientSounds.ui(ArenaSounds.CROWN, f.taker() ==
+                    ClientMatchState.side() ? 1.3F : 0.8F, 1.0F);
+            return true;
+        });
         if (FLIGHTS.isEmpty())
             return;
         ItemStack crown = new ItemStack(Items.GOLDEN_HELMET);

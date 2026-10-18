@@ -28,6 +28,7 @@ import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.entity.monster.Guardian;
 import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Pillager;
@@ -49,6 +50,8 @@ import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.MobSounds;
+import net.susu609.royalarena.match.ArenaSounds;
+import net.susu609.royalarena.tower.TowerState;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.combat.ChildSpawn;
 import net.susu609.royalarena.combat.CombatEngine;
@@ -113,6 +116,23 @@ public final class BattleField {
     private final Map<UUID, Long> flashedAt = new HashMap<>();
     /** Burn ticks last sent to the clients, per unit. */
     private final Map<UUID, Integer> burnShown = new HashMap<>();
+    /** Tower health last tick, for the hit and cracking sounds. */
+    private final Map<TowerId, Integer> towerHealth =
+            new java.util.EnumMap<>(TowerId.class);
+    private final Map<TowerId, Long> towerSoundAt =
+            new java.util.EnumMap<>(TowerId.class);
+    private final Set<TowerId> cracked = new HashSet<>();
+    /** States last tick, so a sound plays when one starts. */
+    private final Set<UUID> wasPoisoned = new HashSet<>();
+    private final Set<UUID> wasSlowed = new HashSet<>();
+    private final Set<UUID> wasInWater = new HashSet<>();
+    private final Set<UUID> wasCharging = new HashSet<>();
+    private final Set<UUID> hissed = new HashSet<>();
+    private final Map<UUID, Long> roaredAt = new HashMap<>();
+    /** Fewest ticks between two hit sounds of one tower. */
+    private static final int TOWER_SOUND_GAP = 8;
+    /** Fewest ticks between two Ravager roars. */
+    private static final int ROAR_GAP = 60;
     /** Pending spells whose flight has already been shown. */
     private final Set<String> launched = new HashSet<>();
 
@@ -158,6 +178,8 @@ public final class BattleField {
                         spot.z());
             }
         }
+        sound(ArenaSounds.TROOP_APPEARS, deploy.x() + 0.5D,
+                arena.floorY() + 1.0D, deploy.z() + 0.5D, 0.7F, 1.0F);
     }
 
     private void spawnChild(ChildSpawn child) {
@@ -239,6 +261,7 @@ public final class BattleField {
             Entity entity = level.getEntity(unit.id());
             if (entity == null || !entity.isAlive()) {
                 engine.remove(unit.id());
+                forgetSounds(unit.id());
                 animator.forget(unit.id());
                 burnShown.remove(unit.id());
                 flashedHealth.remove(unit.id());
@@ -263,6 +286,8 @@ public final class BattleField {
         mirrorHealth();
         showPoison();
         showFrozenTowers();
+        towerSounds();
+        stateSounds();
         for (TickResult.Death death : result.deaths())
             removeDead(death);
         for (TowerId id : result.destroyedTowers())
@@ -281,7 +306,11 @@ public final class BattleField {
             burnShown.remove(unit.id());
             flashedHealth.remove(unit.id());
             flashedAt.remove(unit.id());
+            forgetSounds(unit.id());
         }
+        towerHealth.clear();
+        towerSoundAt.clear();
+        cracked.clear();
     }
 
     /**
@@ -644,6 +673,8 @@ public final class BattleField {
             explode(from, attack.splash());
             return;
         }
+        if (attacker instanceof Vex)
+            mobSound(attacker, ArenaSounds.VEX_CHARGE);
         if (attacker instanceof Bee) {
             level.playSound(null, from[0], from[1], from[2],
                     SoundEvents.BEE_STING, SoundSource.HOSTILE, 0.6F, 1.0F);
@@ -787,6 +818,13 @@ public final class BattleField {
                 animator.onHit(attacker, victim);
                 if (attacker != null)
                     mobSound(attacker, MobSounds.attack(entityId(attacker)));
+                // A Ravager roars as it throws its target back.
+                if (attacker instanceof Ravager &&
+                        level.getGameTime() - roaredAt.getOrDefault(
+                                attacker.getUUID(), -1000L) >= ROAR_GAP) {
+                    roaredAt.put(attacker.getUUID(), level.getGameTime());
+                    mobSound(attacker, ArenaSounds.RAVAGER_ROAR);
+                }
                 if (attacker instanceof IronGolem || attacker instanceof Ravager)
                     shake(to[0], to[2], 0.25F);
             }
@@ -934,14 +972,113 @@ public final class BattleField {
     private void mobSound(Entity entity, String eventId) {
         if (eventId == null || entity.isSilent())
             return;
-        SoundEvent sound = ForgeRegistries.SOUND_EVENTS.getValue(
-                RL.mc(eventId));
-        if (sound == null)
-            return;
         float pitch = (level.random.nextFloat() - level.random.nextFloat()) *
                 0.2F + 1.0F;
-        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                sound, entity.getSoundSource(), 1.0F, pitch);
+        sound(eventId, entity.getX(), entity.getY(), entity.getZ(), 1.0F,
+                pitch);
+    }
+
+    /** A vanilla sound event by id at a spot, heard by everyone near. */
+    private void sound(String eventId, double x, double y, double z,
+            float volume, float pitch)
+    {
+        SoundEvent sound = ForgeRegistries.SOUND_EVENTS.getValue(
+                RL.mc(eventId));
+        if (sound != null)
+            level.playSound(null, x, y, z, sound, SoundSource.HOSTILE, volume,
+                    pitch);
+    }
+
+    /**
+     * A tower that lost health clanks (an anvil for a King), at most every
+     * {@link #TOWER_SOUND_GAP} ticks; under a quarter of its health it
+     * cracks once.
+     */
+    private void towerSounds() {
+        long now = level.getGameTime();
+        for (TowerId id : TowerId.values()) {
+            TowerState tower = match.tower(id);
+            int health = tower.health();
+            Integer before = towerHealth.put(id, health);
+            if (before == null || tower.isDestroyed() || health >= before)
+                continue;
+            ArenaPoint p = arena.towerPoint(id);
+            double y = p.y() + 2.0D;
+            if (now - towerSoundAt.getOrDefault(id, -100L) >= TOWER_SOUND_GAP) {
+                towerSoundAt.put(id, now);
+                boolean king = id.kind() == TowerKind.KING;
+                sound(king ? ArenaSounds.KING_HIT : ArenaSounds.TOWER_HIT,
+                        p.x() + 0.5D, y, p.z() + 0.5D, king ? 0.45F : 0.8F,
+                        king ? 1.2F : 0.9F + level.random.nextFloat() * 0.2F);
+            }
+            if (health <= tower.maxHealth() * ArenaSounds.CRACKING_AT &&
+                    cracked.add(id))
+                sound(ArenaSounds.TOWER_CRACKING, p.x() + 0.5D, y,
+                        p.z() + 0.5D, 1.0F, 0.7F);
+        }
+    }
+
+    /**
+     * Sounds for a state that just began: poisoned, slowed by frost, a
+     * water-weak Blaze over the river, a Guardian locking on, a Creeper
+     * close enough to hiss.
+     */
+    private void stateSounds() {
+        for (CombatUnit unit : engine.units()) {
+            Entity entity = level.getEntity(unit.id());
+            if (entity == null)
+                continue;
+            UUID id = unit.id();
+            if (began(wasPoisoned, id, unit.poisoned()))
+                mobSound(entity, ArenaSounds.POISONED);
+            if (began(wasSlowed, id, unit.slowed()))
+                mobSound(entity, ArenaSounds.FROSTED);
+            boolean wet = unit.stats().traits().waterWeak() &&
+                    arena.isRiver((int) Math.floor(unit.z()));
+            if (began(wasInWater, id, wet))
+                mobSound(entity, ArenaSounds.BLAZE_IN_WATER);
+            if (began(wasCharging, id, unit.charging()))
+                mobSound(entity, ArenaSounds.GUARDIAN_LOCK);
+            if (entity instanceof Creeper && !hissed.contains(id) &&
+                    closeToFight(unit)) {
+                hissed.add(id);
+                mobSound(entity, ArenaSounds.CREEPER_HISS);
+            }
+        }
+    }
+
+    /** Records whether {@code on} holds now; true when it just started. */
+    private static boolean began(Set<UUID> was, UUID id, boolean on) {
+        return on ? was.add(id) : was.remove(id) && false;
+    }
+
+    /** An enemy troop or tower within 1.5 blocks past the unit's reach. */
+    private boolean closeToFight(CombatUnit unit) {
+        double reach = unit.stats().range() + 1.5D;
+        for (CombatUnit other : engine.units()) {
+            if (other.side() != unit.side() && other.alive() &&
+                    Math.hypot(other.x() - unit.x(), other.z() - unit.z()) -
+                            other.radius() - unit.radius() <= reach)
+                return true;
+        }
+        for (TowerId tower : TowerId.values()) {
+            if (tower.side() != unit.side() &&
+                    !match.tower(tower).isDestroyed() &&
+                    arena.distanceToTower(unit.x(), unit.z(), tower) -
+                            unit.radius() <= reach)
+                return true;
+        }
+        return false;
+    }
+
+    /** Forgets the sound states of a unit that is gone. */
+    private void forgetSounds(UUID id) {
+        wasPoisoned.remove(id);
+        wasSlowed.remove(id);
+        wasInWater.remove(id);
+        wasCharging.remove(id);
+        hissed.remove(id);
+        roaredAt.remove(id);
     }
 
     /**
@@ -1027,6 +1164,7 @@ public final class BattleField {
      * slime splitting does not kick in on top of the card's own rule.
      */
     private void removeDead(TickResult.Death death) {
+        forgetSounds(death.unit());
         animator.forget(death.unit());
         burnShown.remove(death.unit());
         flashedHealth.remove(death.unit());
@@ -1034,6 +1172,9 @@ public final class BattleField {
         Entity entity = level.getEntity(death.unit());
         if (entity != null) {
             mobSound(entity, MobSounds.death(entityId(entity), tiny(entity)));
+            if (!death.children().isEmpty())
+                mobSound(entity, entity instanceof MagmaCube ?
+                        ArenaSounds.MAGMA_SPLIT : ArenaSounds.SLIME_SPLIT);
             double y = entity.getY() + entity.getBbHeight() * 0.5D;
             double spread = entity.getBbWidth() * 0.4D;
             level.sendParticles(ParticleTypes.POOF, entity.getX(), y,

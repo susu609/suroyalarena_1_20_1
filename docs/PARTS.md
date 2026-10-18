@@ -499,3 +499,16 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `MobSoundsSmokeTest`, `src/test/resources/vanilla_sound_events_1_20_1.txt`
 - `docs/COMBAT.md` (Mob sounds)
 
+## Part 43 — Match and card sounds
+
+- `match/ArenaSounds.java` (every chosen sound id), `match/SoundCues.java`
+  (which match cue fires between two client frames)
+- `client/sound/ClientSounds.java`, `client/sound/BattleSounds.java` (match
+  found, countdown, FIGHT, x2/x3, overtime, last 10 seconds, elixir full,
+  Pigstep battle music), `ClientForgeEvents` (refused deploy),
+  `CrownFlights` (crown lands), `DeckScreen` (card placed, deck saved or
+  refused), `ArenaClientConfig.BATTLE_MUSIC`
+- `server/battle/BattleField.java`: troop appears, tower and King hit, tower
+  cracking, poison, frost, Blaze in the river, Vex charge, Guardian lock,
+  Creeper hiss, Ravager roar, Slime and Magma Cube split
+- `SoundCuesSmokeTest`; `docs/SOUND_DESIGN.md`, `docs/CONFIG.md`

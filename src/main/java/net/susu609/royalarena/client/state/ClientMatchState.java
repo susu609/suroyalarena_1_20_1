@@ -53,6 +53,9 @@ public final class ClientMatchState {
     public static boolean active() {
         return snapshot.active();
     }
+    public static java.util.UUID matchId() {
+        return snapshot.matchId();
+    }
     public static MatchState state() {
         return snapshot.state();
     }
