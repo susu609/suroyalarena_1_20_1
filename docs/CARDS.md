@@ -248,7 +248,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 |---|---|---|---|---|---|---|---|---|---|
 | Husk | `minecraft:husk` | 2 | 20 | 2.5 | 1.0 | 1.2 | 1.0 | its hit slows for 2 s (hunger) | **3** |
 | Wither Skeleton | `minecraft:wither_skeleton` | 1 | 20 | 10 | 1.6 | 1.5 | 0.85 | stone sword; withers: 1.5 a second for 3 s (black dust) | **2** |
-| Piglin Brute | `minecraft:piglin_brute` | 1 | 50 | 14 | 1.8 | 1.2 | 1.0 | golden axe: big, slow blows | **4** |
+| Piglin Brute | `minecraft:piglin_brute` | 1 | 50 | 14 | 1.8 | 1.2 | 0.9 | golden axe: big, slow blows | **4** |
 | Polar Bear | `minecraft:polar_bear` | 1 | 30 | 7 | 1.2 | 1.2 | 1.0 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **3** |
 | Phantom | `minecraft:phantom` | 1 | 20 | 7 | 1.0 | 1.2 | 3.0 | flies 2 blocks up straight over the river and only goes for towers | **2** |
 | Silverfish | `minecraft:silverfish` | 4 | 8 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
@@ -259,6 +259,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Spider Jockey | `minecraft:spider` | 1 | 16 | 3 | 1.0 | 4.5 | 1.4 | one unit: a Skeleton on a Spider (model 0.9), shoots from the saddle, and when the spider dies the Skeleton stays as a Skeleton Archer (20 health, range 5.5) | **3** |
 | Skeleton Rider | `minecraft:skeleton_horse` | 1 | 15 | 6 | 1.0 | 6.0 | 1.4 | a Skeleton on a skeleton horse (vanilla 15 HP) that only shoots towers; when the horse dies the Skeleton stays as a Skeleton Archer (20 HP) that fights anything (model 1.0) | **3** |
 | Strider | `minecraft:strider` | 1 | 20 | 3 | 1.0 | 1.2 | 1.7 | Nether, fire immune, but walks the bridges like everyone; leaves a burning trail (a patch every 0.5 s that lasts 2 s): an enemy standing on it burns 1 a second, and a moment after (model 1.0) | **2** |
+| Goat | `minecraft:goat` | 1 | 10 | 5 | 2.0 | 1.2 | 1.3 | a ram: its slow head-butt knocks the target back 3 blocks, three times the Ravager's push; vanilla health, so fragile; 1 elixir (model 1.0) | **1** |
 | Fox | `minecraft:fox` | 2 | 10 | 2 | 0.7 | 1.2 | 1.9 | a fast small pack with quick bites, the fastest walker; nothing special (no armour piercing) | **2** |
 | Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 
@@ -378,4 +379,10 @@ Beast tribes; fire trail x1.15 in the formula). Evoker speed 0.7 -> 0.6
 (60% -> 56%), Ghast speed 0.35 -> 0.3 (59% -> 57%), Snowball Volley flies
 0.6 -> 0.4 s (40% -> 42%); costs unchanged. Pillager 58-60% and Vex 40-41%
 are at the edges for the next cycle.
+
+Autopilot cycle 7 (4000 bot matches): Goat added at 50-52% (Beast tribe,
+1 elixir: at vanilla health the formula gives 1.02). Piglin Brute speed
+1.0 -> 0.9 (61% -> 58%). Tried and reverted: Pillager range 6.0 -> 5.5
+(61% -> 61%) and Cobweb flight 0.4 -> 0.25 s (39% -> 39%); Pillager needs
+another lever (its 11 damage), Cobweb is limited by how the bot casts it.
 

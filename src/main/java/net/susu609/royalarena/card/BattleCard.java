@@ -80,7 +80,7 @@ public enum BattleCard {
                     TroopTraits.poisoning(60, 1.5D))),
     PIGLIN_BRUTE("Piglin Brute", 4, "minecraft:piglin_brute",
             "minecraft:golden_axe", 0,
-            new TroopStats(1, 50, 14, 36, 1.2D, 1.0D, 0.3D).withArmor(7)),
+            new TroopStats(1, 50, 14, 36, 1.2D, 0.9D, 0.3D).withArmor(7)),
     POLAR_BEAR("Polar Bear", 3, "minecraft:polar_bear", null, 0,
             new TroopStats(1, 30, 7, 24, 1.2D, 1.0D, 0.7D,
                     TroopTraits.frostProof())),
@@ -115,6 +115,9 @@ public enum BattleCard {
     STRIDER("Strider", 2, "minecraft:strider", null, 0,
             new TroopStats(1, 20, 3, 20, 1.2D, 1.7D, 0.45D,
                     TroopTraits.fireTrail(40))),
+    GOAT("Goat", 1, "minecraft:goat", null, 0,
+            new TroopStats(1, 10, 5, 40, 1.2D, 1.3D, 0.4D,
+                    new TroopTraits(0.0D, false, 3.0D))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
@@ -259,7 +262,7 @@ public enum BattleCard {
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
             case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
             case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
-            case WOLVES, FOX, POLAR_BEAR -> EnumSet.of(Tribe.BEAST);
+            case WOLVES, FOX, POLAR_BEAR, GOAT -> EnumSet.of(Tribe.BEAST);
             case CREEPER, ENDERMAN -> EnumSet.of(Tribe.NIGHT);
             case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
             case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
@@ -300,7 +303,7 @@ public enum BattleCard {
     public Set<CardTactic> tactics() {
         return switch (this) {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
-                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN ->
+                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
                     SNOW_GOLEM, ARROW_STORM, COBWEB ->

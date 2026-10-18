@@ -701,3 +701,10 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `MobsWave2SmokeTest.striderLeavesAFireTrail`, `"fire_trail_ticks"` in
   `CombatSmokeTest`
 
+## Part 59 — Goat (autopilot cycle 7)
+
+- `card/BattleCard.java` and `goat.json` (10 HP, 5 damage every 2 s,
+  knockback 3.0, speed 1.3, Beast tribe, defence, 1 elixir), card art
+  cost, protocol 21; Piglin Brute speed 0.9
+- `TraitSmokeTest.goatRamsFarther`
+

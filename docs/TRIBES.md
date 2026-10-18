@@ -25,7 +25,7 @@ next step) and each troop's tooltip names its tribes.
 | Illager | Vindicator, Pillager, Evoker, Vex, Witch, Ravager | +5% damage | +10% damage to towers | walks 5% faster | **Totem of Undying**: a killing blow leaves it at 1 health, unhurt for 0.5 s (one for the side every 20 s) | +5% damage |
 | Nether | Piglin Brute, Blaze, Ghast, Hoglin, Magma Cube, Wither Skeleton, Zombified Piglin, Strider | +5% health | hits burn 0.5 a second for 2 s | +1 armour | **Last flame**: when it dies, enemies within 2 blocks burn 1 a second for 3 s | +5% health |
 | Arthropod | Spider, Cave Spider, Silverfish, Bee, Spider Jockey | walks 10% faster | hits poison 0.5 a second for 2 s | attacks 10% faster | **Silk**: its hits slow the target's walk for 0.5 s | +5% health and damage (needs a 6th card) |
-| Beast | Wolves, Fox, Polar Bear, Hoglin, Bee, Ravager, Strider | +5% damage | heals 10% of the damage it deals | walks 5% faster | **Pack**: +5% damage for each other Beast within 4 blocks (up to 3) | +5% damage |
+| Beast | Wolves, Fox, Polar Bear, Hoglin, Bee, Ravager, Strider, Goat | +5% damage | heals 10% of the damage it deals | walks 5% faster | **Pack**: +5% damage for each other Beast within 4 blocks (up to 3) | +5% damage |
 | Night | Zombie, Phantom, Skeleton Archer, Witch, Spider, Creeper, Enderman, Big Slime | +2% health and damage | its first hit freezes the target 0.1 s | +1 armour | **Shadow**: an arrow or shot that would hit it misses (one for the side every 16 s) | +2% health and damage |
 | Golem | Iron Golem, Snow Golem | +2 armour | | | | |
 | Slime | Big Slime, Magma Cube | +15% health | | | | |

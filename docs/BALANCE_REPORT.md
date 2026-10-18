@@ -1,59 +1,60 @@
 # Balance report
 
-1000 bot-versus-bot matches with random balanced decks (each pairing twice, sides swapped), BLUE won 500, RED 497, 3 draws. Unit ids are random, so two runs differ by a match or two.
+1000 bot-versus-bot matches with random balanced decks (each pairing twice, sides swapped), BLUE won 505, RED 491, 4 draws. Unit ids are random, so two runs differ by a match or two.
 
 Win rate: share of the games the card's deck won (a draw counts half). The margin is the 95% interval; a card is flagged when the whole interval is past 40-60%.
 
 | Card | Elixir | Decks | Win rate | Margin | Played per game | |
 |---|---|---|---|---|---|---|
-| Piglin Brute | 4 | 586 | 61% | +/-4% | 5.2 |  |
-| Ghast | 3 | 390 | 58% | +/-5% | 6.3 |  |
-| Zombie Villager | 3 | 296 | 58% | +/-6% | 8.2 |  |
-| Blaze | 2 | 264 | 58% | +/-6% | 8.9 |  |
-| Wither Skeleton | 2 | 292 | 58% | +/-6% | 9.3 |  |
-| Skeleton Archer | 2 | 276 | 57% | +/-6% | 9.2 |  |
-| Spider | 3 | 316 | 57% | +/-5% | 8.5 |  |
-| Pillager | 3 | 358 | 57% | +/-5% | 7.0 |  |
-| Magma Cube | 3 | 416 | 56% | +/-5% | 6.1 |  |
-| Spider Jockey | 3 | 358 | 56% | +/-5% | 6.0 |  |
-| Skeletons | 2 | 242 | 55% | +/-6% | 10.4 |  |
-| Skeleton Rider | 3 | 370 | 54% | +/-5% | 4.0 |  |
-| Big Slime | 4 | 574 | 54% | +/-4% | 4.7 |  |
-| Zombified Piglin | 3 | 284 | 54% | +/-6% | 8.1 |  |
-| Evoker | 3 | 340 | 53% | +/-5% | 7.4 |  |
-| Bee | 2 | 228 | 53% | +/-6% | 9.7 |  |
-| Vindicator | 2 | 276 | 52% | +/-6% | 9.9 |  |
-| Enderman | 3 | 306 | 52% | +/-6% | 8.0 |  |
-| Lightning | 6 | 436 | 52% | +/-5% | 1.1 |  |
-| Stray | 2 | 286 | 52% | +/-6% | 9.3 |  |
-| Phantom | 2 | 286 | 52% | +/-6% | 5.8 |  |
-| Fireball | 4 | 386 | 51% | +/-5% | 5.8 |  |
-| Zombie | 3 | 310 | 50% | +/-6% | 8.0 |  |
-| Witch | 4 | 400 | 50% | +/-5% | 4.3 |  |
-| TNT | 5 | 478 | 50% | +/-4% | 1.4 |  |
-| Snow Golem | 2 | 290 | 49% | +/-6% | 10.4 |  |
-| Silverfish | 2 | 228 | 48% | +/-6% | 10.1 |  |
-| Fox | 2 | 252 | 48% | +/-6% | 9.3 |  |
-| Ravager | 5 | 592 | 48% | +/-4% | 3.2 |  |
-| Potion of Healing | 3 | 356 | 47% | +/-5% | 2.7 |  |
-| Cave Spider | 3 | 314 | 47% | +/-6% | 8.1 |  |
-| Hoglin | 3 | 280 | 47% | +/-6% | 3.6 |  |
-| Guardian | 3 | 364 | 46% | +/-5% | 7.6 |  |
-| Wolves | 3 | 320 | 46% | +/-5% | 7.4 |  |
-| Polar Bear | 3 | 288 | 45% | +/-6% | 7.5 |  |
-| Snowball Volley | 2 | 268 | 45% | +/-6% | 9.3 |  |
-| Creeper | 3 | 262 | 45% | +/-6% | 7.4 |  |
-| Drowned | 2 | 302 | 45% | +/-6% | 9.6 |  |
-| Poison Cloud | 2 | 350 | 45% | +/-5% | 8.8 |  |
-| Arrow Storm | 3 | 396 | 44% | +/-5% | 8.6 |  |
-| Husk | 3 | 328 | 44% | +/-5% | 8.3 |  |
-| Cobweb | 2 | 308 | 43% | +/-6% | 6.9 |  |
-| Swiftness Potion | 2 | 266 | 42% | +/-6% | 7.6 |  |
-| Iron Golem | 5 | 610 | 42% | +/-4% | 1.8 |  |
-| Freeze | 3 | 382 | 40% | +/-5% | 8.7 |  |
-| Vex | 2 | 262 | 40% | +/-6% | 10.1 |  |
-| Strider | 2 | 228 | 38% | +/-6% | 9.7 |  |
+| Pillager | 3 | 322 | 64% | +/-5% | 6.9 |  |
+| Ghast | 3 | 328 | 61% | +/-5% | 6.5 |  |
+| Skeletons | 2 | 224 | 60% | +/-6% | 10.0 |  |
+| Piglin Brute | 4 | 550 | 58% | +/-4% | 5.6 |  |
+| Silverfish | 2 | 224 | 58% | +/-6% | 9.6 |  |
+| Zombie Villager | 3 | 288 | 58% | +/-6% | 8.3 |  |
+| Magma Cube | 3 | 408 | 58% | +/-5% | 6.2 |  |
+| Wither Skeleton | 2 | 230 | 57% | +/-6% | 9.6 |  |
+| Big Slime | 4 | 538 | 57% | +/-4% | 4.8 |  |
+| Evoker | 3 | 356 | 56% | +/-5% | 7.4 |  |
+| Phantom | 2 | 262 | 56% | +/-6% | 5.6 |  |
+| Zombified Piglin | 3 | 314 | 56% | +/-5% | 8.0 |  |
+| Enderman | 3 | 304 | 55% | +/-6% | 8.1 |  |
+| Witch | 4 | 408 | 55% | +/-5% | 4.3 |  |
+| Skeleton Rider | 3 | 346 | 55% | +/-5% | 4.1 |  |
+| Blaze | 2 | 302 | 54% | +/-6% | 9.6 |  |
+| Bee | 2 | 238 | 54% | +/-6% | 9.6 |  |
+| Skeleton Archer | 2 | 264 | 54% | +/-6% | 9.3 |  |
+| Spider | 3 | 324 | 53% | +/-5% | 8.8 |  |
+| Spider Jockey | 3 | 402 | 52% | +/-5% | 6.1 |  |
+| Ravager | 5 | 596 | 52% | +/-4% | 3.2 |  |
+| Fireball | 4 | 408 | 52% | +/-5% | 6.2 |  |
+| Stray | 2 | 292 | 51% | +/-6% | 9.8 |  |
+| Vindicator | 2 | 296 | 50% | +/-6% | 9.8 |  |
+| Lightning | 6 | 478 | 49% | +/-4% | 1.1 |  |
+| Potion of Healing | 3 | 332 | 48% | +/-5% | 2.8 |  |
+| TNT | 5 | 472 | 48% | +/-5% | 1.5 |  |
+| Zombie | 3 | 330 | 48% | +/-5% | 8.2 |  |
+| Goat | 1 | 216 | 47% | +/-7% | 9.9 |  |
+| Creeper | 3 | 276 | 47% | +/-6% | 7.4 |  |
+| Freeze | 3 | 350 | 46% | +/-5% | 9.1 |  |
+| Snowball Volley | 2 | 262 | 46% | +/-6% | 9.2 |  |
+| Poison Cloud | 2 | 302 | 46% | +/-6% | 8.8 |  |
+| Cave Spider | 3 | 296 | 45% | +/-6% | 8.2 |  |
+| Vex | 2 | 260 | 45% | +/-6% | 9.8 |  |
+| Fox | 2 | 250 | 44% | +/-6% | 9.7 |  |
+| Drowned | 2 | 302 | 44% | +/-6% | 9.3 |  |
+| Polar Bear | 3 | 270 | 44% | +/-6% | 7.2 |  |
+| Hoglin | 3 | 326 | 43% | +/-5% | 3.5 |  |
+| Snow Golem | 2 | 312 | 42% | +/-5% | 10.4 |  |
+| Guardian | 3 | 340 | 42% | +/-5% | 7.5 |  |
+| Swiftness Potion | 2 | 294 | 42% | +/-6% | 8.3 |  |
+| Husk | 3 | 262 | 41% | +/-6% | 8.3 |  |
+| Strider | 2 | 242 | 41% | +/-6% | 9.4 |  |
+| Iron Golem | 5 | 672 | 40% | +/-4% | 1.9 |  |
+| Arrow Storm | 3 | 344 | 40% | +/-5% | 8.9 |  |
+| Wolves | 3 | 300 | 40% | +/-6% | 7.5 |  |
+| Cobweb | 2 | 288 | 39% | +/-6% | 7.3 |  |
 
-Bot personalities (wins over games, draws count half): Tank Push 59%; Rush 43%; Counter 52%; Spell Siege 46%;
+Bot personalities (wins over games, draws count half): Tank Push 55%; Rush 45%; Counter 50%; Spell Siege 49%;
 
-Average match 250 s; 735 went to overtime; 5 ended with a King tower down.
+Average match 251 s; 749 went to overtime; 5 ended with a King tower down.

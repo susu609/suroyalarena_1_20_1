@@ -30,6 +30,7 @@ public final class TraitSmokeTest {
         creeperHurtsTheTowerItReaches();
         witchSplashesAroundItsTarget();
         ravagerKnocksItsVictimBack();
+        goatRamsFarther();
         buildingTargetersIgnoreTroops();
         strayArrowsSlow();
         System.out.println("RoyalArena trait smoke tests: PASS");
@@ -164,6 +165,25 @@ public final class TraitSmokeTest {
         near(zombie.z(), -1.5D, "pushed straight away, kept on land");
         near(zombie.x(), 0.5D, "straight away from the Ravager");
         near(ravager.z(), 2.5D, "the Ravager stays put");
+    }
+
+    private static void goatRamsFarther() {
+        var goat = BattleCard.GOAT.stats();
+        check(goat.traits().knockback() >= 3.0D *
+                        BattleCard.RAVAGER.stats().traits().knockback() &&
+                        goat.health() < BattleCard.ZOMBIE.stats().health() &&
+                        goat.attackTicks() >= 40 && BattleCard.GOAT.cost() == 1,
+                "Goat: a 1-elixir ram, 3x the Ravager's push, fragile, slow swing");
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit ram = unit(engine, BattleCard.GOAT, TeamSide.BLUE, 0.5D, 6.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, 4.8D);
+        TickResult result = engine.tick();
+        check(result.pushes().stream().anyMatch(
+                p -> p.unit().equals(zombie.id())), "the ram pushes the zombie");
+        check(zombie.z() <= 4.8D - 2.5D, "about 3 blocks back: " + zombie.z());
+        near(ram.z(), 6.0D, "the Goat stays put");
     }
 
     private static void buildingTargetersIgnoreTroops() {

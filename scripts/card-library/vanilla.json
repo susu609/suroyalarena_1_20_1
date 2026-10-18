@@ -28,6 +28,7 @@
   "polar_bear":       {"family": "beast",    "hp": 30,  "armor": 0},
   "wolves":           {"family": "beast",    "hp": 8,   "armor": 0},
   "fox":              {"family": "beast",    "hp": 10,  "armor": 0},
+  "goat":             {"family": "beast",    "hp": 10,  "armor": 0},
   "spider":           {"family": "small",    "hp": 16,  "armor": 0},
   "cave_spider":      {"family": "small",    "hp": 12,  "armor": 0},
   "spider_jockey":    {"family": "small",    "hp": 16,  "armor": 0, "why": "Nhện 16; khi chết để lại Skeleton Archer 20 máu."},
