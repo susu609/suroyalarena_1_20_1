@@ -131,7 +131,7 @@ public final class ServerMatchSession {
         MatchLog.Side[] sides = new MatchLog.Side[2];
         for (TeamSide side : TeamSide.values()) {
             sides[side.ordinal()] = bot != null && bot.side() == side ?
-                    MatchLog.Side.bot() :
+                    MatchLog.Side.bot(bot.personality().id()) :
                     MatchLog.Side.player(match.player(side).playerId());
         }
         String version = ModList.get().getModContainerById(RoyalArena.MOD_ID)

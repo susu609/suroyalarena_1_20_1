@@ -4,6 +4,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.bot.BotBrain;
+import net.susu609.royalarena.bot.BotPersonality;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.card.CardRole;
@@ -192,7 +193,8 @@ final class Sim {
 
     /** How a bot match went, with the match and engine to look into. */
     record Outcome(TeamSide winner, int ticks, boolean overtime,
-                   boolean kingFell, MatchInstance match, CombatEngine engine)
+                   boolean kingFell, MatchInstance match, CombatEngine engine,
+                   BotPersonality blue, BotPersonality red)
     {
     }
 
@@ -232,6 +234,7 @@ final class Sim {
         boolean kingFell = match.tower(TowerId.BLUE_KING).isDestroyed() ||
                 match.tower(TowerId.RED_KING).isDestroyed();
         return new Outcome(match.winner(), tick, match.overtime(), kingFell,
-                match, engine);
+                match, engine, bots.get(0).personality(),
+                bots.get(1).personality());
     }
 }

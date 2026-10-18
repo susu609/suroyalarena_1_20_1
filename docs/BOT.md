@@ -45,6 +45,44 @@ It thinks every 10 ticks and never plays twice within 40 ticks.
 - It uses a random seed (taken from the match id), so one game is
   reproducible in tests but each match plays differently.
 
+## Personalities
+
+Each match the bot draws one of four personalities from its seed (the
+match id), so two bot matches seldom play the same. The chat tells the player
+which one: "Your opponent plays Rush". `personality` in
+`royalarena-common.toml` fixes one for practice (`random` by default). The
+match log records it (`"personality"` on the bot's side).
+
+| Personality | Attacks at | How it attacks |
+|---|---|---|
+| Tank Push | 9 elixir | Saves for a tank (Iron Golem, Big Slime, Ravager, Magma Cube...) and drops it at the back of a lane, then feeds support troops (ranged first) 2.5 blocks behind it for 10 s. While a tank it cannot pay for yet is in hand, it keeps saving. It never defends with a tank. |
+| Rush | 4.5 elixir | The cheapest troop (fastest on ties) right at the bridge, a second one into the same lane within 4 s, the lanes taking turns. |
+| Counter | 10 elixir only | Never opens. After a defence it sends a troop in 1.5 blocks behind the defender that got furthest, within 7 s, so they cross together. |
+| Spell Siege | 7 elixir | Like the plain bot, but a spell's worth counts 1.2x, and a Princess tower under 30% health gets a damage spell, keeping another spell in hand unless this one destroys the tower. |
+
+Skills every personality has:
+
+- **Counter the threat.** The defender is scored on total health (as
+  before), +3 for area damage against a group of three or more, + a quarter of
+  its damage per second against one unit with 40+ health, -2 for a swarm
+  against an attacker that splashes.
+- **Weaker lane, sometimes not.** It attacks the weaker Princess tower, but
+  one attack in five goes to the other lane, and one in ten (a slow troop)
+  starts in the middle behind its King so the opponent cannot tell the lane.
+- **Pull (kite).** One time in three, a lone attacker on its half (not one
+  that only hits towers) gets a 1-2 elixir troop in the middle of the half,
+  where both Princess towers shoot it.
+- **Punish.** When the opponent is down to 2 elixir and it has 4, it attacks
+  at once: the opponent cannot answer for a few seconds. (It reads the
+  opponent's elixir, as a player who counts every card would.)
+- **Never wake the King early.** No spell that hurts may touch the enemy King
+  while it sleeps; a sleeping King shoots nothing, an awake one is a third
+  tower.
+
+Bot against bot over 4000 matches: Tank Push 55%, Counter 55%, Spell Siege
+46%, Rush 43% (Rush was 35% before it paired its troops). Matches end sooner
+(about 267 s instead of 284 s) and fewer go to overtime.
+
 ## Tuning
 
 The numbers at the top of `BotBrain` (`THINK_EVERY_TICKS`, `MIN_GAP_TICKS`,

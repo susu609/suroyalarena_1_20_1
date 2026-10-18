@@ -2,6 +2,7 @@ package net.susu609.royalarena.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.susu609.royalarena.bot.BotBrain;
+import net.susu609.royalarena.bot.BotPersonality;
 import net.susu609.royalarena.bot.BotSettings;
 
 /**
@@ -44,6 +45,14 @@ public final class ArenaCommonConfig {
             .comment("Fewest ticks between two bot plays.")
             .defineInRange("minGapTicks", BotBrain.MIN_GAP_TICKS, 0, 400);
 
+    public static final ForgeConfigSpec.ConfigValue<String> PERSONALITY =
+            BUILDER.comment("How the bot plays: random (a new one every " +
+                            "match), tank_push, rush, counter or spell_siege.")
+                    .define("personality", "random", value ->
+                            value instanceof String id &&
+                                    (id.trim().equalsIgnoreCase("random") ||
+                                            BotPersonality.byId(id) != null));
+
     static {
         BUILDER.pop();
         BUILDER.comment("Debugging aids.").push("debug");
@@ -80,6 +89,11 @@ public final class ArenaCommonConfig {
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private ArenaCommonConfig() {
+    }
+
+    /** The configured personality, or null to draw one per match. */
+    public static BotPersonality botPersonality() {
+        return BotPersonality.byId(PERSONALITY.get());
     }
 
     public static BotSettings botSettings() {

@@ -5,9 +5,11 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
+import net.susu609.royalarena.card.CardRole;
 import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
+import net.susu609.royalarena.match.ElixirMeter;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.MatchPlayer;
 import net.susu609.royalarena.match.MatchState;
@@ -41,6 +43,14 @@ import java.util.Random;
  * </ul>
  * It never plays twice within {@link #MIN_GAP_TICKS} ticks. The random seed
  * makes a bot reproducible.
+ *
+ * <p>On top of that each bot has a {@link BotPersonality} (drawn from the
+ * seed unless set), and every personality uses the same skills: a defender
+ * chosen to counter the threat (splash on swarms, damage on a big unit), the
+ * weaker lane with an occasional switch or split, a cheap troop to pull a
+ * lone attacker into the middle of both towers, and a quick attack while the
+ * opponent's elixir is low. It never wakes a sleeping enemy King with a
+ * spell: that only gives the opponent a third tower that shoots.</p>
  */
 public final class BotBrain {
     public static final int THINK_EVERY_TICKS = 10;
@@ -54,6 +64,18 @@ public final class BotBrain {
     public static final double SPELL_VALUE_PER_ELIXIR = 8.0D;
     /** A healing potion is only worth it on troops at or under this share. */
     private static final double HEAL_BELOW = 0.7D;
+    /** Opponent elixir (tenths) at or under which a cheap attack punishes. */
+    private static final int PUNISH_BELOW_TENTHS = 20;
+    /** Own elixir (tenths) needed for that punishing attack. */
+    private static final int PUNISH_WITH_TENTHS = 40;
+    /** How long after a tank a Tank Push keeps feeding troops behind it. */
+    private static final int PUSH_TICKS = 200;
+    /** How long after its first troop a Rush bot sends the second. */
+    private static final int RUSH_PAIR_TICKS = 80;
+    /** How long after a defence a Counter bot looks for a counter-push. */
+    private static final int COUNTER_TICKS = 140;
+    /** Princess health share under which a Spell Siege bot casts on it. */
+    private static final double SIEGE_BELOW = 0.3D;
     /** Blocks past a range at which an enemy still counts as fighting. */
     private static final double ENGAGED_MARGIN = 2.0D;
 
@@ -66,10 +88,36 @@ public final class BotBrain {
     private BotSettings settings = BotSettings.DEFAULT;
     private int ticks;
     private int lastPlayTick = Integer.MIN_VALUE / 2;
+    private BotPersonality personality;
+    /** Tick of the last tank a Tank Push bot played, and its lane X. */
+    private int pushTick = Integer.MIN_VALUE / 2;
+    /** Tick of the last defence. */
+    private int defendedTick = Integer.MIN_VALUE / 2;
+    /** Lane a Rush bot plays next: true = left. */
+    private boolean rushLeft;
+    /** The last Rush play, which a second troop follows into the lane. */
+    private Play rushPlay;
+    private int rushTick = Integer.MIN_VALUE / 2;
 
     public BotBrain(TeamSide side, long seed) {
+        this(side, seed, BotPersonality.pick(seed));
+    }
+
+    public BotBrain(TeamSide side, long seed, BotPersonality personality) {
         this.side = side;
         this.random = new Random(seed);
+        this.personality = personality;
+        this.rushLeft = (seed & 1L) == 0L;
+    }
+
+    public BotPersonality personality() {
+        return personality;
+    }
+
+    /** Overrides the drawn personality (the config). */
+    public void setPersonality(BotPersonality personality) {
+        if (personality != null)
+            this.personality = personality;
     }
 
     public TeamSide side() {
@@ -95,17 +143,226 @@ public final class BotBrain {
         MatchPlayer me = match.player(side);
         ArenaLayout arena = match.arena();
         Play play = spell(match, engine, me);
+        if (play == null && personality == BotPersonality.SPELL_SIEGE)
+            play = siege(match, engine, me);
         if (play != null)
             return played(play);
         CombatUnit threat = nearestThreat(match, engine);
         if (threat != null) {
-            int slot = sturdiestAffordable(me);
-            play = slot < 0 ? null : defence(arena, slot, threat);
-        } else if (me.elixirTenths() >= settings.attackMinTenths()) {
-            int slot = randomAffordable(me);
-            play = slot < 0 ? null : attack(match, slot);
+            play = kite(match, engine, me, threat);
+            if (play == null) {
+                int slot = counterAffordable(engine, me, threat);
+                play = slot < 0 ? null : defence(arena, slot, threat);
+            }
+            if (play != null)
+                defendedTick = ticks;
+        } else {
+            play = followUp(match, engine, me);
+            if (play == null && wantsToAttack(match, me))
+                play = attackPlay(match, me);
         }
         return play == null ? null : played(play);
+    }
+
+    /**
+     * Attack when this personality's threshold is reached, or at once (with
+     * a little elixir) while the opponent has just spent nearly all of its:
+     * it cannot answer for a few seconds. A player who counts every card
+     * knows the opponent's elixir too.
+     */
+    private boolean wantsToAttack(MatchInstance match, MatchPlayer me) {
+        if (me.elixirTenths() >=
+                personality.attackMinTenths(settings.attackMinTenths()))
+            return true;
+        return match.player(side.opponent()).elixirTenths() <=
+                PUNISH_BELOW_TENTHS &&
+                me.elixirTenths() >= PUNISH_WITH_TENTHS;
+    }
+
+    /** The attacking card and spot for this personality, or null to wait. */
+    private Play attackPlay(MatchInstance match, MatchPlayer me) {
+        ArenaLayout arena = match.arena();
+        int sign = ArenaLayout.sideSign(side);
+        switch (personality) {
+            case TANK_PUSH: {
+                int tank = tankSlot(me, true);
+                if (tank >= 0) {
+                    pushTick = ticks;
+                    // From the back, so support troops can catch up.
+                    Play back = attack(match, tank);
+                    int z = arena.center().z() + sign *
+                            (ArenaLayout.RIVER_HALF + 11);
+                    return clamped(arena, tank, back.x(), z);
+                }
+                // A tank in hand that it cannot pay for yet: keep saving,
+                // unless the elixir would overflow.
+                if (tankSlot(me, false) >= 0 &&
+                        me.elixirTenths() < ElixirMeter.MAX_TENTHS)
+                    return null;
+                int slot = cheapestAffordable(me);
+                return slot < 0 ? null : attack(match, slot);
+            }
+            case RUSH: {
+                int slot = cheapestAffordable(me);
+                if (slot < 0)
+                    return null;
+                Play lane = rushLane(match, slot);
+                rushLeft = !rushLeft;
+                rushPlay = lane;
+                rushTick = ticks;
+                return lane;
+            }
+            default: {
+                int slot = randomAffordable(me);
+                return slot < 0 ? null : attack(match, slot);
+            }
+        }
+    }
+
+    /**
+     * A Tank Push feeds troops in behind its tank; a Counter bot sends one
+     * in behind the defenders that survived a defence. Null when neither.
+     */
+    private Play followUp(MatchInstance match, CombatEngine engine,
+            MatchPlayer me)
+    {
+        int sign = ArenaLayout.sideSign(side);
+        ArenaLayout arena = match.arena();
+        if (personality == BotPersonality.TANK_PUSH &&
+                ticks - pushTick < PUSH_TICKS &&
+                me.elixirTenths() >= 30)
+        {
+            CombatUnit tank = null;
+            for (CombatUnit own : engine.units()) {
+                if (own.side() == side && own.alive() &&
+                        arena.sideOf(own.z()) != -sign && isTank(own) &&
+                        (tank == null || own.health() > tank.health()))
+                    tank = own;
+            }
+            int slot = supportSlot(me);
+            if (tank != null && slot >= 0)
+                return clamped(arena, slot, (int) Math.floor(tank.x()),
+                        (int) Math.floor(tank.z() + sign * 2.5D));
+        }
+        // A Rush bot sends a second troop after the first, so the tower
+        // cannot take them one at a time.
+        if (personality == BotPersonality.RUSH && rushPlay != null &&
+                ticks - rushTick < RUSH_PAIR_TICKS)
+        {
+            int slot = cheapestAffordable(me);
+            if (slot >= 0) {
+                Play pair = clamped(arena, slot, rushPlay.x(), rushPlay.z());
+                rushPlay = null;
+                return pair;
+            }
+        }
+        if (personality == BotPersonality.COUNTER &&
+                ticks - defendedTick < COUNTER_TICKS &&
+                me.elixirTenths() >= 40)
+        {
+            CombatUnit front = null;
+            for (CombatUnit own : engine.units()) {
+                if (own.side() == side && own.alive() &&
+                        arena.sideOf(own.z()) == sign &&
+                        (front == null || own.z() * sign < front.z() * sign))
+                    front = own;
+            }
+            int slot = randomAffordable(me);
+            if (front != null && slot >= 0) {
+                defendedTick = Integer.MIN_VALUE / 2;
+                return clamped(arena, slot, (int) Math.floor(front.x()),
+                        (int) Math.floor(front.z() + sign * 1.5D));
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Pulls a lone attacker into the middle, where both Princess towers
+     * shoot it: a cheap troop (2 elixir or less) in the centre of the own
+     * half, sometimes. Useless on troops that only hit towers, and only when
+     * no own troop already stands near it.
+     */
+    private Play kite(MatchInstance match, CombatEngine engine, MatchPlayer me,
+            CombatUnit threat)
+    {
+        if (threat.stats().traits().buildingsOnly() || random.nextInt(3) != 0)
+            return null;
+        for (CombatUnit unit : engine.units()) {
+            if (!unit.alive() || unit == threat)
+                continue;
+            double d = Math.hypot(unit.x() - threat.x(), unit.z() - threat.z());
+            if (unit.side() == side && d < 5.0D)
+                return null;
+            if (unit.side() != side && d < 3.0D)
+                return null; // a group: fight it, do not pull it
+        }
+        int slot = -1;
+        for (int candidate : affordableSlots(me)) {
+            BattleCard card = me.deck().hand().get(candidate);
+            if (card.cost() <= 2 && (slot < 0 ||
+                    card.cost() < me.deck().hand().get(slot).cost()))
+                slot = candidate;
+        }
+        if (slot < 0)
+            return null;
+        ArenaLayout arena = match.arena();
+        int sign = ArenaLayout.sideSign(side);
+        return clamped(arena, slot, arena.center().x(),
+                arena.center().z() + sign * (ArenaLayout.RIVER_HALF + 5));
+    }
+
+    /**
+     * A Spell Siege bot finishes an enemy Princess tower under
+     * {@link #SIEGE_BELOW} of its health with a damage spell, keeping
+     * another spell in hand unless this one destroys the tower.
+     */
+    private Play siege(MatchInstance match, CombatEngine engine,
+            MatchPlayer me)
+    {
+        List<BattleCard> hand = me.deck().hand();
+        int spells = 0;
+        for (BattleCard card : hand)
+            spells += card.isSpell() ? 1 : 0;
+        ArenaLayout arena = match.arena();
+        for (TowerId id : new TowerId[] {TowerId.left(side.opponent()),
+                TowerId.right(side.opponent())})
+        {
+            TowerState tower = match.tower(id);
+            if (tower.isDestroyed() ||
+                    tower.health() > tower.maxHealth() * SIEGE_BELOW)
+                continue;
+            ArenaPoint at = arena.towerPoint(id);
+            for (int slot = 0; slot < BattleDeck.HAND_SIZE; slot++) {
+                BattleCard card = hand.get(slot);
+                if (!card.isSpell() || card.spell().heal() ||
+                        card.spell().damagePerPulse() <= 0.0D ||
+                        !me.elixir().canSpend(card.cost()) ||
+                        !arena.canPlay(side, card, at.x(), at.z()) ||
+                        wakesKing(match, engine, card, at.x() + 0.5D,
+                                at.z() + 0.5D))
+                    continue;
+                double toTower = card.spell().damagePerPulse() *
+                        card.spell().pulses() * card.spell().towerMultiplier();
+                if (spells > 1 || toTower >= tower.health())
+                    return new Play(slot, at.x(), at.z());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a hurting spell centred here would touch the enemy King while
+     * it still sleeps: the hit wakes it, and then it shoots too.
+     */
+    private boolean wakesKing(MatchInstance match, CombatEngine engine,
+            BattleCard card, double x, double z)
+    {
+        TeamSide enemy = side.opponent();
+        if (card.spell().heal() || engine.kingAwake(enemy))
+            return false;
+        return match.arena().distanceToTower(x, z, TowerId.king(enemy)) <=
+                card.spell().radius();
     }
 
     private Play played(Play play) {
@@ -174,8 +431,12 @@ public final class BotBrain {
                 int x = clamp(aim[0], arena.minX(), arena.maxX());
                 int z = arena.nearestReach(side, card,
                         clamp(aim[1], arena.minZ(), arena.maxZ()));
+                if (wakesKing(match, engine, card, x + 0.5D, z + 0.5D))
+                    continue;
                 double value = spellValue(match, engine, card, x + 0.5D,
                         z + 0.5D);
+                if (personality == BotPersonality.SPELL_SIEGE)
+                    value *= 1.2D;
                 if (value >= needed && value > bestValue) {
                     best = new Play(slot, x, z);
                     bestValue = value;
@@ -341,7 +602,18 @@ public final class BotBrain {
             lane = random.nextBoolean() ? TowerId.left(enemy) :
                     TowerId.right(enemy);
         int sign = ArenaLayout.sideSign(side);
+        int roll = random.nextInt(10);
+        // Now and then the other lane (a switch), while both towers stand.
+        if (roll < 2 && !left.isDestroyed() && !right.isDestroyed())
+            lane = lane == TowerId.left(enemy) ? TowerId.right(enemy) :
+                    TowerId.left(enemy);
         int x = arena.towerPoint(lane).x() + random.nextInt(3) - 1;
+        // Or, for a slow card, the middle behind the King: it picks a lane
+        // late, so the opponent cannot tell which one to defend.
+        if (roll == 9 && me(match).deck().hand().get(slot).stats() != null &&
+                me(match).deck().hand().get(slot).stats().speed() < 1.0D)
+            return clamped(arena, slot, arena.center().x() + (sign > 0 ? 0 : -1),
+                    arena.center().z() + sign * (ArenaLayout.RIVER_HALF + 11));
         int z = arena.center().z() + sign *
                 (ArenaLayout.RIVER_HALF + ATTACK_DEPTH + random.nextInt(3));
         return clamped(arena, slot, x, z);
@@ -370,21 +642,112 @@ public final class BotBrain {
         return slots.isEmpty() ? -1 : slots.get(random.nextInt(slots.size()));
     }
 
-    /**
-     * Most total health on the board for the elixir; first slot on ties.
-     * Troops that only hit towers cannot defend, so they are left out.
-     */
-    private int sturdiestAffordable(MatchPlayer me) {
+    private static boolean isTank(CombatUnit unit) {
+        BattleCard card = BattleCard.forStats(unit.stats());
+        return card != null && CardRole.of(card).contains(CardRole.TANK);
+    }
+
+    private MatchPlayer me(MatchInstance match) {
+        return match.player(side);
+    }
+
+    /** A Rush play at the bridge of the lane whose turn it is. */
+    private Play rushLane(MatchInstance match, int slot) {
+        ArenaLayout arena = match.arena();
+        TeamSide enemy = side.opponent();
+        TowerId lane = rushLeft ? TowerId.left(enemy) : TowerId.right(enemy);
+        if (match.tower(lane).isDestroyed())
+            lane = rushLeft ? TowerId.right(enemy) : TowerId.left(enemy);
+        int sign = ArenaLayout.sideSign(side);
+        return clamped(arena, slot, arena.towerPoint(lane).x(),
+                arena.center().z() + sign * (ArenaLayout.RIVER_HALF + 1));
+    }
+
+    /** Cheapest troop it can pay for now (fastest on ties), or -1. */
+    private int cheapestAffordable(MatchPlayer me) {
         int best = -1;
-        double bestHealth = -1.0D;
         for (int slot : affordableSlots(me)) {
-            var stats = me.deck().hand().get(slot).stats();
+            BattleCard card = me.deck().hand().get(slot);
+            if (best < 0) {
+                best = slot;
+                continue;
+            }
+            BattleCard other = me.deck().hand().get(best);
+            if (card.cost() < other.cost() || card.cost() == other.cost() &&
+                    card.stats().speed() > other.stats().speed())
+                best = slot;
+        }
+        return best;
+    }
+
+    /** A tank in hand (affordable only, or any), or -1. */
+    private int tankSlot(MatchPlayer me, boolean affordable) {
+        List<BattleCard> hand = me.deck().hand();
+        for (int slot = 0; slot < BattleDeck.HAND_SIZE; slot++) {
+            BattleCard card = hand.get(slot);
+            if (!card.isSpell() && CardRole.of(card).contains(CardRole.TANK) &&
+                    (!affordable || me.elixir().canSpend(card.cost())))
+                return slot;
+        }
+        return -1;
+    }
+
+    /** A troop to walk behind a tank: ranged first, never another tank. */
+    private int supportSlot(MatchPlayer me) {
+        int best = -1;
+        for (int slot : affordableSlots(me)) {
+            BattleCard card = me.deck().hand().get(slot);
+            if (CardRole.of(card).contains(CardRole.TANK))
+                continue;
+            if (best < 0 || card.stats().range() >
+                    me.deck().hand().get(best).stats().range())
+                best = slot;
+        }
+        return best;
+    }
+
+    /**
+     * The defender that answers this threat best: total health on the board
+     * as before, plus area damage against a group, plus damage per second
+     * against one big unit, and no swarm into an attacker that splashes. A
+     * Tank Push bot keeps its tanks for attacking. Troops that only hit
+     * towers cannot defend.
+     */
+    private int counterAffordable(CombatEngine engine, MatchPlayer me,
+            CombatUnit threat)
+    {
+        int group = 0;
+        for (CombatUnit unit : engine.units()) {
+            if (unit.side() != side && unit.alive() && Math.hypot(
+                    unit.x() - threat.x(), unit.z() - threat.z()) <= 3.0D)
+                group++;
+        }
+        boolean big = threat.health() >= 40.0D;
+        boolean splashes = threat.stats().traits().splash() ||
+                threat.stats().traits().lines();
+        int best = -1;
+        double bestScore = -Double.MAX_VALUE;
+        for (int slot : affordableSlots(me)) {
+            BattleCard card = me.deck().hand().get(slot);
+            var stats = card.stats();
             if (stats.traits().buildingsOnly())
                 continue;
-            double health = stats.health() * stats.count();
-            if (health > bestHealth) {
+            double score = stats.health() * stats.count() / 40.0D;
+            double dps = stats.damage() * 20.0D / stats.attackTicks() *
+                    stats.count();
+            if (group >= 3 && (stats.traits().splash() ||
+                    stats.traits().lines()))
+                score += 3.0D;
+            if (big)
+                score += dps / 4.0D;
+            if (splashes && stats.count() >= 3)
+                score -= 2.0D;
+            if (personality == BotPersonality.TANK_PUSH &&
+                    CardRole.of(card).contains(CardRole.TANK))
+                score -= 5.0D;
+            if (score > bestScore) {
                 best = slot;
-                bestHealth = health;
+                bestScore = score;
             }
         }
         return best;

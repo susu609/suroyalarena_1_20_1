@@ -37,6 +37,7 @@ addresses. The bot has `"player": null`.
   "blue": {
     "kind": "player",              // or "bot"
     "player": "294a0cdd",
+    // a bot side also has "personality": "tank_push" | "rush" | "counter" | "spell_siege"
     "deck": ["healing_potion", "stray", "tnt", "fireball",
              "zombie", "magma_cube", "skeleton_archer", "freeze"],
     "fullElixirSeconds": 0,        // time sat at 10 elixir (income wasted)

@@ -31,14 +31,21 @@ public final class MatchLog {
     private MatchLog() {
     }
 
-    /** One side of the match: a player (anonymous code) or the bot. */
-    public record Side(String kind, String player) {
+    /**
+     * One side of the match: a player (anonymous code) or the bot, with the
+     * bot's personality id (null for a player).
+     */
+    public record Side(String kind, String player, String personality) {
         public static Side bot() {
-            return new Side("bot", null);
+            return new Side("bot", null, null);
+        }
+
+        public static Side bot(String personality) {
+            return new Side("bot", null, personality);
         }
 
         public static Side player(UUID id) {
-            return new Side("player", anonymous(id));
+            return new Side("player", anonymous(id), null);
         }
     }
 
@@ -83,6 +90,8 @@ public final class MatchLog {
         Map<String, Object> s = new LinkedHashMap<>();
         s.put("kind", who.kind());
         s.put("player", who.player());
+        if (who.personality() != null)
+            s.put("personality", who.personality());
         List<Object> deck = new ArrayList<>();
         Map<String, Object> cards = new LinkedHashMap<>();
         for (BattleCard card : match.player(side).deck().cards()) {

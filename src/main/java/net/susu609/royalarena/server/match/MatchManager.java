@@ -1,12 +1,15 @@
 package net.susu609.royalarena.server.match;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.susu609.royalarena.bot.BotBrain;
 import net.susu609.royalarena.bot.BotDeck;
 import net.susu609.royalarena.card.BattleDeck;
+import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.server.arena.ArenaAllocator;
@@ -83,6 +86,15 @@ public final class MatchManager {
         BotBrain bot = botForRed ?
                 new BotBrain(TeamSide.RED, matchId.getLeastSignificantBits()) :
                 null;
+        if (bot != null) {
+            bot.setPersonality(ArenaCommonConfig.botPersonality());
+            ServerPlayer player = server.getPlayerList().getPlayer(blueId);
+            if (player != null)
+                player.sendSystemMessage(Component.translatable(
+                        "chat.royalarena.bot_personality",
+                        Component.literal(bot.personality().displayName())
+                                .withStyle(ChatFormatting.RED)));
+        }
         ServerMatchSession session =
                 new ServerMatchSession(match, level, reservation, bot);
         matches.put(matchId, session);

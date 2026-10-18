@@ -555,3 +555,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   on fighting troops at 70% health or less
 - Tests: `SpellSmokeTest` (Hoglin 50 - 40), `NewMobsSmokeTest` (Enderman
   health from the card), `MobsWave2SmokeTest` (rider range 5.0)
+
+## Part 48 — Bot personalities
+
+- `bot/BotPersonality.java` (Tank Push, Rush, Counter, Spell Siege; drawn
+  from the seed), `bot/BotBrain.java` (attack threshold per personality,
+  tank push and counter-push follow-ups, Rush pairs, counter-scored
+  defenders, lane switch and split, kite, punishing low opponent elixir, no
+  spell on a sleeping King, siege spells)
+- `config/ArenaCommonConfig.java` (`personality`),
+  `server/match/MatchManager.java` (config, chat notice),
+  `stats/MatchLog.java` and `ServerMatchSession` (`"personality"`), lang
+- `BotPersonalitySmokeTest`; `BotSmokeTest` (the counter score, a neutral
+  personality for the settings test); `BalanceReport` prints each
+  personality's win rate; `docs/BOT.md`, `docs/CONFIG.md`, `docs/MATCH_LOG.md`

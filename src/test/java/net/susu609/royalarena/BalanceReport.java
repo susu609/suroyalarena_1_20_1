@@ -1,6 +1,7 @@
 package net.susu609.royalarena;
 
 import net.susu609.royalarena.bot.BotDeck;
+import net.susu609.royalarena.bot.BotPersonality;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.match.TeamSide;
@@ -49,6 +50,8 @@ public final class BalanceReport {
     /** Everything a run of bot matches found. */
     static final class Result {
         final Map<BattleCard, Tally> cards = new EnumMap<>(BattleCard.class);
+        final Map<BotPersonality, Tally> personalities =
+                new EnumMap<>(BotPersonality.class);
         int matches;
         int blueWins;
         int draws;
@@ -72,7 +75,13 @@ public final class BalanceReport {
         long started = System.currentTimeMillis();
         Result r = play(matches);
         long seconds = (System.currentTimeMillis() - started) / 1000L;
+        StringBuilder styles = new StringBuilder("\nBot personalities " +
+                "(wins over games, draws count half):");
+        r.personalities.forEach((p, t) -> styles.append(String.format(
+                Locale.ROOT, " %s %.0f%%;", p.displayName(),
+                t.games == 0 ? 0.0D : 100.0D * t.wins / t.games)));
         String report = report(r.cards, matches, r.blueWins, r.draws) +
+                styles + "\n" +
                 String.format(Locale.ROOT, "%nAverage match %.0f s; %d went " +
                         "to overtime; %d ended with a King tower down.%n",
                         r.averageSeconds(), r.overtimes, r.kings);
@@ -115,8 +124,21 @@ public final class BalanceReport {
             count(cards, red, winner == TeamSide.RED ? 1.0D :
                     winner == null ? 0.5D : 0.0D);
             plays.forEach((card, n) -> cards.get(card).plays += n);
+            tallyStyle(result, outcome.blue(), winner == TeamSide.BLUE ? 1.0D :
+                    winner == null ? 0.5D : 0.0D);
+            tallyStyle(result, outcome.red(), winner == TeamSide.RED ? 1.0D :
+                    winner == null ? 0.5D : 0.0D);
         }
         return result;
+    }
+
+    private static void tallyStyle(Result result, BotPersonality style,
+            double score)
+    {
+        Tally t = result.personalities.computeIfAbsent(style,
+                k -> new Tally());
+        t.games++;
+        t.wins += score;
     }
 
     private static void count(Map<BattleCard, Tally> cards, BattleDeck deck,

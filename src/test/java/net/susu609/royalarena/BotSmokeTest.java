@@ -174,15 +174,24 @@ public final class BotSmokeTest {
         // A BLUE Iron Golem has walked onto RED's right-hand lane.
         CombatUnit intruder = h.engine.add(UUID.randomUUID(), TeamSide.BLUE,
                 BattleCard.IRON_GOLEM.stats(), 6.0D, -6.0D);
+        // Against one big unit the bot wants health and damage per second
+        // (the counter score in BotBrain.counterAffordable).
         BattleCard best = null;
-        double bestHealth = -1.0D;
+        double bestScore = -Double.MAX_VALUE;
         for (BattleCard card : h.match.player(TeamSide.RED).deck().hand()) {
-            if (card.cost() > 5 || card.stats().traits().buildingsOnly())
+            if (card.isSpell() || card.cost() > 5 ||
+                    card.stats().traits().buildingsOnly())
                 continue;
-            double health = card.stats().health() * card.stats().count();
-            if (health > bestHealth) {
+            var s = card.stats();
+            double score = s.health() * s.count() / 40.0D +
+                    s.damage() * 20.0D / s.attackTicks() * s.count() / 4.0D;
+            if (bot.personality() == net.susu609.royalarena.bot.BotPersonality
+                    .TANK_PUSH && net.susu609.royalarena.card.CardRole.of(card)
+                    .contains(net.susu609.royalarena.card.CardRole.TANK))
+                score -= 5.0D;
+            if (score > bestScore) {
                 best = card;
-                bestHealth = health;
+                bestScore = score;
             }
         }
         for (int i = 0; i < 12 && h.played.isEmpty(); i++)
@@ -192,7 +201,7 @@ public final class BotSmokeTest {
         check(first.tick() <= BotBrain.THINK_EVERY_TICKS,
                 "the first think already defends");
         check(first.card() == best,
-                "it picks the sturdiest affordable card: " + first.card() +
+                "it picks the best counter it can pay for: " + first.card() +
                         " vs " + best);
         check(Math.abs(first.x() - 6) <= 1, "defender goes to the same lane");
         check(first.z() <= -7 && first.z() >= -16,
@@ -257,7 +266,10 @@ public final class BotSmokeTest {
         int[] attackElixir = {10, 3};
         for (int run = 0; run < 2; run++) {
             Harness h = new Harness();
-            BotBrain bot = new BotBrain(TeamSide.RED, 11L);
+            // A personality with no attack offset, so the setting alone
+            // moves the threshold (a Rush bot attacks early either way).
+            BotBrain bot = new BotBrain(TeamSide.RED, 11L,
+                    net.susu609.royalarena.bot.BotPersonality.SPELL_SIEGE);
             bot.setSettings(new net.susu609.royalarena.bot.BotSettings(
                     10, 40, attackElixir[run] * 10));
             h.bots.add(bot);

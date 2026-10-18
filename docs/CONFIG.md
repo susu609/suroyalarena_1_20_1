@@ -55,6 +55,7 @@ panel, increase `lookAhead`.
 	attackMinElixir = 7     # elixir the bot saves before it attacks; lower = more aggressive (1..10)
 	thinkEveryTicks = 10    # how often the bot looks at the board; 20 ticks = 1 s (1..100)
 	minGapTicks = 40        # fewest ticks between two bot plays (0..400)
+	personality = "random"  # random (a new one each match), tank_push, rush, counter or spell_siege
 
 [debug]
 	showRoutes = false      # particles from each walking troop to the point it walks to
