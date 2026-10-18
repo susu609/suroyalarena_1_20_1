@@ -84,6 +84,18 @@ rebuilds and republishes the page. The page's Vietnamese queue notes live in
 `scripts/card-library/queue-vi.json`; a queue card missing there shows its
 English text from `docs/CARD_QUEUE.md`.
 
+## Card config page
+
+`https://claude.ai/artifact/TawjsuLjZ3r7NTLpmY7HMz` (built by
+`scripts/card-library.sh` as `card-config.html`) lets the user edit any
+troop's numbers and see the formula cost live; "Lưu đề xuất" stores each
+edited card in the page's database, collection `proposals` (one document
+per card id). When the user says "áp cấu hình thẻ": read that collection
+(ArtifactData `list`), apply each proposal to `BattleCard.java` and the
+card JSON with the cost from the formula, run the tests and
+`scripts/balance.sh 4000`, report, then delete the applied proposals and
+republish both pages. Cycles do not apply proposals on their own.
+
 ## Schedule
 
 A scheduled task fires this cycle every 4 hours into the Claude Code
