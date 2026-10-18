@@ -22,12 +22,14 @@ elixir = round(P / cost_divisor)          cost_divisor = 5.4
 ```
 
 - `totalHP` = unit HP x count. A Big Slime counts all three generations
-  (20 + 20 + 20 = 60).
+  (36 + 2x18 + 4x9 = 108). A Spider Jockey counts the spider and the
+  Skeleton Archer it leaves (41 + 20 = 61).
 - `totalDPS` = damage / interval x count. Poison counts as damage, but only
   what one hit's poison deals before the next hit replaces it: poison per
   second x min(poison time, interval). A Cave Spider (1 a second for 3 s,
-  biting every 1 s) adds 1 per bite, not 3. A unit that dies on its hit (Bee)
-  counts all of its poison.
+  biting every 1 s) adds 1 per bite, not 3. A unit that dies on its hit
+  (Creeper, Vex) counts all of its poison; the Bee now lives on and stings
+  again, so it counts like the Cave Spider.
 
 Modifiers multiply together:
 
@@ -60,10 +62,10 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 | Card | Total HP | Total DPS | Modifiers | Raw | Elixir |
 |---|---|---|---|---|---|
 | Zombie x2 | 40 | 6.0 | - | 2.87 | 3 |
-| Skeleton Archer x1 | 20 | 4.0 | range | 2.07 | 2 |
+| Skeleton Archer x1 | 20 | 4.0 | range 5.0 | 2.15 | 2 |
 | Spider x4 | 40 | 8.0 | count 4, speed | 3.39 | 3 |
 | Skeletons x3 | 33 | 5.0 | count 3, speed | 2.43 | 2 |
-| Big Slime x1 | 60 | 3.57 | - | 2.71 | 3 |
+| Big Slime x1 | 108 | 3.57 | - | 3.64 | 4 |
 | Iron Golem x1 | 160 | 7.5 | towers only | 5.45 | 5 |
 
 ## Power band (`PowerCreepTest`)
@@ -120,7 +122,10 @@ troops is worth less than hurting them.)
 | TNT | 30 | 3.0 | 5.33 | 5 |
 
 Spells deal 30% damage to towers (`spell_tower_damage_multiplier`); TNT
-deals 50%, and a healing potion never touches towers.
+deals 50%, and a healing potion never touches towers. TNT can be cast only on
+the caster's own half and up to the middle of the bridge
+(`SpellStats.middleReach`), so it defends and cannot be thrown at an enemy
+tower; the formula does not count reach.
 
 ## Towers
 
@@ -132,7 +137,7 @@ deals 50%, and a healing potion never touches towers.
 The King tower is asleep until it is damaged or one of its Princess towers is
 destroyed. Tower range is measured from the tower's edge (its 4x4 footprint) to
 the target's edge, like unit ranges, so a Princess tower (7.0) always outranges
-an archer (6) and a Pillager (6.5).
+an archer (5.0), a Ghast (5.0) and a Pillager (6.0).
 
 ## Elixir and match time
 

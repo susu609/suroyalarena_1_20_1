@@ -45,8 +45,8 @@ readable. The click area includes the space a card rises into.
 ## Camera
 
 The strategic camera sits behind the local side and looks straight down the
-arena axis from high above (`ArenaCameraProfile`: pitch 68 degrees, 30 blocks
-from a point 5 blocks toward the local side of the centre). There is
+arena axis from high above (`ArenaCameraProfile`: pitch 68 degrees, 26 blocks
+from a point 6.5 blocks toward the local side of the centre). There is
 no sideways swing; the "diagonal" view is the downward tilt. RED's camera is
 BLUE's rotated 180 degrees, so both players see their own half the same way.
 
@@ -55,7 +55,14 @@ and the HUD panel on a 16:9 window (vertical FOV 70); `DomainSmokeTest` checks
 this for both sides. Players can change pitch, distance, look-ahead and FOV in
 `royalarena-client.toml` (see `docs/CONFIG.md`); the defaults live in
 `ArenaCameraProfile.DEFAULT` and the test checks that they fit. Cursor projection uses the camera's real view vector, so deployment
-still lands under the cursor.
+still lands under the cursor. A config file written before these defaults
+keeps its own `distance` and `lookAhead`; delete the two lines to get the new
+ones.
+
+While watching bots the camera is different: high above the middle and
+side-on (`ArenaCameraProfile.watch`: yaw -90, pitch 74, 28 blocks), so RED's
+half is on the left and BLUE's on the right; `DomainSmokeTest` checks that the
+whole arena fits between the two side panels.
 
 ## Health bars
 
@@ -63,11 +70,29 @@ still lands under the cursor.
   with "health/max" written on it, team coloured. The King's floats above
   the player standing on the tower.
 - Troops: shown once damaged. The troop's custom name is coloured by team on
-  the server (entity tags are not synced to clients), and the bar takes that
-  colour.
+  the server (entity tags are not synced to clients); the bar reads the side
+  from that colour and uses the deep team colour.
+- Team colours: deep blue `#1F4FD6` and deep red `#C81E1E`
+  (`WorldHealthBar.BLUE_RGB` / `RED_RGB`), also used by the rings under the
+  troops, the deploy preview and the HUD counters.
 
 Bars are billboards drawn like vanilla name tags (text backgrounds), with
-filled and empty segments side by side so they never overlap.
+filled and empty segments side by side so they never overlap. Each bar has a
+black frame (2 px on towers, 1 px on troops) drawn behind it, and the
+"health/max" label has a black outline: the outline in the normal text layer
+and the label in the polygon-offset layer, as vanilla draws glow-ink signs
+(drawing both in one layer made them z-fight). Tower bars are drawn at 0.065,
+troop bars at 0.032 blocks per font pixel.
+
+## Damage numbers
+
+Red "-5" over a troop, orange over a tower, green "+2" for healing, blue
+"Frozen" (`DamageNumbers`, `damageNumbers` to turn off). They are 1.5x the
+first size, outlined in black like the bar labels, pop up, rise and shrink
+away at the end (no fading: a see-through letter would show its outline).
+Being depth-tested they are pulled about a block toward the camera so the
+troop's body does not hide them. `worldTextScale` (0.5..2) in
+`royalarena-client.toml` scales them and the health bars.
 
 ## The King
 
@@ -126,6 +151,25 @@ library below shows every card (all cards are unlocked).
   checks it again and stores it with the world
   (`data/royalarena_decks.dat`). **Random** fills a balanced random deck,
   **Starter** the starter deck; neither is saved until you press Save.
+
+## Outside a match
+
+With no screen open, the top left corner reads "Press [M] to open Royal
+Arena", the key taken from the key binding (`menuHint` to turn it off; F3
+hides it).
+
+## Watching bots
+
+**Watch Bot vs Bot** on the Matching screen opens `WatchSetupScreen`: each
+bot's deck (Random, My deck, Starter) and personality (Random or one of
+four), RED on the left and BLUE on the right; Start. During the match
+(`SpectatorHud`) a panel at each screen edge, 17% of the width, shows the
+team and personality, crowns, the four cards in hand (grey when unaffordable),
+the next card and the elixir bar (it throbs when full). The timer stays at the
+top with "WATCHING x1 [X]" under it; `X` switches to double speed. The normal
+hand panel is hidden, and clicks and card keys do nothing. A bot carrying a
+card shows a hand in its colour, a faint ring at the landing spot and the
+card's name above it. See `docs/BOT.md`.
 
 ## Result screen
 

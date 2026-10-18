@@ -59,7 +59,16 @@ if it still fails, delete `~/.gradle/caches/forge_gradle/bundled_deobf_repo`.
    the supplied Blockbench Crown/King tower sources.
 
 Solo: press `M` and choose **Play vs Bot** (or `/royalarena bot`) to play BLUE
-against a bot on RED; see `docs/BOT.md`.
+against a bot on RED. Each match the bot draws one of four personalities
+(Tank Push, Rush, Counter, Spell Siege); the chat names it. See `docs/BOT.md`.
+
+Watch: press `M` and choose **Watch Bot vs Bot** (or `/royalarena watch`) to
+pick each bot's deck and personality and watch them play from a side-on
+camera, with each bot's hand and elixir in a panel at the screen edge; `X`
+switches to double speed. See `docs/BOT.md` and `docs/UI.md`.
+
+Outside a match the top left corner reminds you that `M` opens the mod's
+screen.
 
 Deck: press `M` and choose **Deck** to build and save your 8-card deck from
 the card library (see `docs/UI.md`).
@@ -72,10 +81,16 @@ two online players. `/royalarena stop_all` ends all active matches.
 
 ## Testing
 
-`DomainSmokeTest` covers the pure-Java rules for team mirroring, deploy zones,
-camera mirroring, deck cycling, elixir/lifecycle and King tower victory.
+`DomainSmokeTest` runs every pure-Java smoke test: team mirroring, deploy
+zones, cameras, deck rules, elixir and match lifecycle, combat, spells, every
+card's rule, the cost formula, the bot and its personalities, sounds, the
+match log and the result screen. `gradlew check` runs it (`runDomainSmoke`).
 
-When Gradle is available, `check` also depends on `runDomainSmoke`.
+Without Forge (for example in a cloud session), `scripts/pure-test.sh`
+compiles the pure Java code and runs the same tests, and
+`scripts/balance.sh 4000` prints each card's bot-versus-bot win rate. Card
+numbers and the stats page: `gradlew balanceReport`, `gradlew statsReport`,
+`gradlew statsServe` (see `docs/BALANCE.md`; run them from the project root).
 
 See `docs/PARTS.md` for the implementation breakdown and `docs/ONLINE.md` for
 deployment scope.

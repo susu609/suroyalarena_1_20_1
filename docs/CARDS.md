@@ -134,7 +134,7 @@ target, and enemy towers whose footprint does (`TroopTraits`,
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
 | Hoglin | `minecraft:hoglin` | 1 | 50 | 10 | 1.4 | 1.2 | 1.6 | charges the towers, ignores troops | **3** |
-| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 8 | 2.0 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
+| Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 8 | 2.0 | 6.0 | 1.0 | long range, charges its crossbow | **3** |
 | Magma Cube | `minecraft:magma_cube` | 1 | 36 | 7 | 1.4 | 1.2 | 0.83 | splits once into 2 (18 HP, 3.5 damage) | **4** |
 
 NoAI Hoglins never turn into Zoglins, so the arena dimension does not need to
@@ -263,6 +263,11 @@ and it passes the tower-only band (`PowerCreepTest`). Bee is at the low edge
 
 After (4000 matches, 37 cards): every card between 41% and 58%; Polar Bear
 and Skeleton Archer the highest, Bee the lowest.
+
+Now (4000 matches, 40 cards, bots with personalities, after the range and
+body tuning): every card between 40% and 58%. Highest Skeleton Archer 58%,
+Polar Bear and Pillager 57%; lowest Creeper 40%, Cave Spider and Freeze 43%.
+Matches last 267 s on average.
 
 ## Poison and what a troop is made of
 
