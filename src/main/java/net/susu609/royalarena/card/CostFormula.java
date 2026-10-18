@@ -37,6 +37,8 @@ public final class CostFormula {
     public static final double CHARGE = 0.85D;
     /** Hits harder from the river (Guardian). */
     public static final double RIVER_STRONG = 1.05D;
+    /** Leaves burning patches behind it (Strider). */
+    public static final double FIRE_TRAIL = 1.15D;
 
     private CostFormula() {
     }
@@ -102,6 +104,8 @@ public final class CostFormula {
             modifier *= CHARGE;
         if (s.traits().riverStrong())
             modifier *= RIVER_STRONG;
+        if (s.traits().leavesFireTrail())
+            modifier *= FIRE_TRAIL;
         return modifier;
     }
 

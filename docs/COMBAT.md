@@ -155,6 +155,10 @@ longer adds the generic player hit; arrows and blows on towers keep theirs.
 - **Line (Evoker).** Its hit also lands on every other enemy whose body
   touches a 1.2 wide line from where the Evoker stood, through its target, to
   its range + 1 (`CombatEngine.line`). Fangs hit at once (no flight).
+- **Fire trail (Strider).** Every 0.5 s it walks it drops a burning patch
+  (radius 0.7) that lasts 2 s; an enemy troop standing on one burns 1 a
+  second for 1 s more (a longer burn, like a Fireball's, is not cut short).
+  Fire-immune troops ignore it. Small flames show the patches.
 - **Lock-on (Guardian).** A new target (troop or tower) restarts a 2 s charge
   before the first laser (`CombatUnit.lockOn`); the laser hits at once. From
   the river rows it hits 1.5x as hard. It may be played on the river.

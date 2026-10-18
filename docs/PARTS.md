@@ -689,3 +689,15 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `TribeSmokeTest` (every rule), `TribeReport` (2 to 6 cards),
   `docs/TRIBES.md`, the tribes page
 
+## Part 58 — Strider (autopilot cycle 6)
+
+- `card/TroopTraits.java` (`fireTrailTicks`), `card/CostFormula.java`
+  (fire trail x1.15), `combat/CombatEngine.java` (burning patches,
+  `firePatches`), `card/BattleCard.java` and `strider.json` (20 HP, 3
+  damage a second, speed 1.7, fire immune, Nether and Beast, 2 elixir),
+  card art cost, `server/battle/BattleField.java` (flames),
+  `client/screen/DeckScreen.java` (tooltip), protocol 20; Evoker speed 0.6,
+  Ghast speed 0.3, Snowball Volley flies 0.4 s
+- `MobsWave2SmokeTest.striderLeavesAFireTrail`, `"fire_trail_ticks"` in
+  `CombatSmokeTest`
+

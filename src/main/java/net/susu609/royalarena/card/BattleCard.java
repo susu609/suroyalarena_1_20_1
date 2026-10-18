@@ -60,7 +60,7 @@ public enum BattleCard {
             new TroopStats(2, 14, 10, 20, 1.2D, 2.0D, 0.3D,
                     new TroopTraits(0.0D, true, 0.0D))),
     GHAST("Ghast", 3, "minecraft:ghast", null, 0,
-            new TroopStats(1, 10, 22, 60, 5.0D, 0.35D, 1.0D,
+            new TroopStats(1, 10, 22, 60, 5.0D, 0.3D, 1.0D,
                     new TroopTraits(1.5D, false, 0.0D))),
     DROWNED("Drowned", 2, "minecraft:drowned", "minecraft:trident", 0,
             new TroopStats(1, 20, 4, 40, 5.0D, 1.0D, 0.3D,
@@ -93,7 +93,7 @@ public enum BattleCard {
             new TroopStats(3, 10, 0.9D, 20, 1.2D, 2.0D, 0.25D,
                     TroopTraits.stinging(60, 1.0D, 1.0D))),
     EVOKER("Evoker", 3, "minecraft:evoker", null, 0,
-            new TroopStats(1, 24, 10, 40, 4.0D, 0.7D, 0.3D,
+            new TroopStats(1, 24, 10, 40, 4.0D, 0.6D, 0.3D,
                     TroopTraits.line(1.2D))),
     GUARDIAN("Guardian", 3, "minecraft:guardian", null, 0,
             new TroopStats(1, 30, 14, 40, 5.5D, 0.6D, 0.45D,
@@ -112,6 +112,9 @@ public enum BattleCard {
             new TroopStats(1, 15, 6, 20, 6.0D, 1.4D, 0.45D,
                     SplitRule.into(SKELETON_ARCHER.stats()),
                     TroopTraits.BUILDINGS)),
+    STRIDER("Strider", 2, "minecraft:strider", null, 0,
+            new TroopStats(1, 20, 3, 20, 1.2D, 1.7D, 0.45D,
+                    TroopTraits.fireTrail(40))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
@@ -139,7 +142,7 @@ public enum BattleCard {
             new SpellStats(3.5D, 5, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
                     0, false, false, 0, false, 120)),
     SNOWBALL_VOLLEY("Snowball Volley", 2, "minecraft:snowball",
-            new SpellStats(2.5D, 12, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
+            new SpellStats(2.5D, 8, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
                     1.5D, 0.0D, 0, 0, 0, 0, false, false, 30, false, 0));
 
     /** Time between a troop card play and the troop appearing (1 s). */
@@ -251,7 +254,7 @@ public enum BattleCard {
             case WITCH -> EnumSet.of(Tribe.ILLAGER, Tribe.NIGHT);
             case RAVAGER -> EnumSet.of(Tribe.ILLAGER, Tribe.BEAST);
             case PIGLIN_BRUTE, BLAZE, GHAST -> EnumSet.of(Tribe.NETHER);
-            case HOGLIN -> EnumSet.of(Tribe.NETHER, Tribe.BEAST);
+            case HOGLIN, STRIDER -> EnumSet.of(Tribe.NETHER, Tribe.BEAST);
             case MAGMA_CUBE -> EnumSet.of(Tribe.NETHER, Tribe.SLIME);
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
             case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
@@ -302,7 +305,7 @@ public enum BattleCard {
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
                     SNOW_GOLEM, ARROW_STORM, COBWEB ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
-            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
@@ -339,7 +342,7 @@ public enum BattleCard {
     public boolean fireImmune() {
         return switch (this) {
             case BLAZE, GHAST, MAGMA_CUBE, ZOMBIFIED_PIGLIN, HOGLIN,
-                    WITHER_SKELETON, PIGLIN_BRUTE -> true;
+                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER -> true;
             default -> false;
         };
     }

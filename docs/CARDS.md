@@ -71,7 +71,7 @@ circle, and enemy towers whose footprint touches it for **30%** of the damage
 | Poison Cloud | **2** | The King throws a lingering potion (0.25 s); a 3.8 block cloud stays 3 s and poisons every enemy troop in it 2 a second: **6 total**, 1.5x on the living (9), as it is on the undead, nothing on golems. Never hurts towers. |
 | Cobweb | **2** | The King throws a web (0.4 s); for 5 s every enemy troop in a 3.5 block circle walks 60% slower and attacks at half speed, and keeps it 1.75 s after leaving. No damage. Frost-proof troops (Polar Bear) ignore it. |
 | Swiftness Potion | **2** | The King throws a splash potion of swiftness (0.25 s); every **own** troop in a 3.5 block circle walks 50% and attacks 75% faster for 6 s. |
-| Snowball Volley | **2** | A burst of snowballs (0.6 s) on a 2.5 block circle: **6** damage, knocks back 1.5 blocks, and webs the troops for 1.5 s (60% slower walk, half-speed attack). 30% to towers. |
+| Snowball Volley | **2** | A burst of snowballs (0.4 s) on a 2.5 block circle: **6** damage, knocks back 1.5 blocks, and webs the troops for 1.5 s (60% slower walk, half-speed attack). 30% to towers. |
 
 Burning troops are shown on fire; the burn damage comes from the engine (the
 mobs themselves are invulnerable).
@@ -201,7 +201,7 @@ health scale like the rest. Elixir comes from `CostFormula`, and the band
 | Enderman | `minecraft:enderman` | 1 | 40 | 7 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 5 s; a blow is not dodged | **3** |
 | Cave Spider | `minecraft:cave_spider` | 3 | 12 | 2 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); a new bite replaces the poison, so the cost counts the 1 a bite adds before the next | **3** |
 | Vex | `minecraft:vex` | 2 | 14 | 10 | 1.0 | 1.2 | 2.0 | dies when it strikes: one big blow and gone | **2** |
-| Ghast | `minecraft:ghast` | 1 | 10 | 22 | 3.0 | 5.0 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **3** |
+| Ghast | `minecraft:ghast` | 1 | 10 | 22 | 3.0 | 5.0 | 0.3 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **3** |
 | Drowned | `minecraft:drowned` | 1 | 20 | 4 | 2.0 | 5.0 | 1.0 | trident from 5 blocks; may also be played on the river | **2** |
 | Zombified Piglin | `minecraft:zombified_piglin` | 2 | 20 | 4 | 1.2 | 1.2 | 0.9 | a tougher Zombie: more health and hits harder, golden sword | **3** |
 | Blaze | `minecraft:blaze` | 1 | 20 | 8 | 2.0 | 4.5 | 1.0 | hovers 1.5 blocks up; crosses the river anywhere (no bridge); frost weakness: Freeze and frost hits (Stray arrows, snowballs) hurt it twice as hard, Freeze holds it twice as long; water weakness: 1.5x damage while on the river | **2** |
@@ -253,11 +253,12 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Phantom | `minecraft:phantom` | 1 | 20 | 7 | 1.0 | 1.2 | 3.0 | flies 2 blocks up straight over the river and only goes for towers | **2** |
 | Silverfish | `minecraft:silverfish` | 4 | 8 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
 | Bee | `minecraft:bee` | 3 | 10 | 0.9 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once a second, each sting poisons 1 a second for 3 s; turns angry (vanilla angry face) on its first sting | **2** |
-| Evoker | `minecraft:evoker` | 1 | 24 | 10 | 2.0 | 4.0 | 0.7 | fangs bite every enemy on a 1.2 wide line from it through its target | **3** |
+| Evoker | `minecraft:evoker` | 1 | 24 | 10 | 2.0 | 4.0 | 0.6 | fangs bite every enemy on a 1.2 wide line from it through its target | **3** |
 | Guardian | `minecraft:guardian` | 1 | 30 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **3** |
 | Zombie Villager | `minecraft:zombie_villager` | 4 | 20 | 1 | 1.2 | 1.2 | 0.8 | a big, weak-hitting swarm: vanilla zombie health and armour 2, but 1 damage a blow (model 0.85) | **3** |
 | Spider Jockey | `minecraft:spider` | 1 | 16 | 3 | 1.0 | 4.5 | 1.4 | one unit: a Skeleton on a Spider (model 0.9), shoots from the saddle, and when the spider dies the Skeleton stays as a Skeleton Archer (20 health, range 5.5) | **3** |
 | Skeleton Rider | `minecraft:skeleton_horse` | 1 | 15 | 6 | 1.0 | 6.0 | 1.4 | a Skeleton on a skeleton horse (vanilla 15 HP) that only shoots towers; when the horse dies the Skeleton stays as a Skeleton Archer (20 HP) that fights anything (model 1.0) | **3** |
+| Strider | `minecraft:strider` | 1 | 20 | 3 | 1.0 | 1.2 | 1.7 | Nether, fire immune, but walks the bridges like everyone; leaves a burning trail (a patch every 0.5 s that lasts 2 s): an enemy standing on it burns 1 a second, and a moment after (model 1.0) | **2** |
 | Fox | `minecraft:fox` | 2 | 10 | 2 | 0.7 | 1.2 | 1.9 | a fast small pack with quick bites, the fastest walker; nothing special (no armour piercing) | **2** |
 | Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 
@@ -371,4 +372,10 @@ Nether, Arthropod, Beast, Night, Golem, Slime, Aquatic); 2, 4, 6 and 8
 different cards of a tribe in a deck give its troops bonuses. The members,
 steps and how they were measured are in docs/TRIBES.md. A new card needs
 its tribes in `BattleCard.tribes()` (one or two).
+
+Autopilot cycle 6 (4000 bot matches): Strider added at 43-45% (Nether and
+Beast tribes; fire trail x1.15 in the formula). Evoker speed 0.7 -> 0.6
+(60% -> 56%), Ghast speed 0.35 -> 0.3 (59% -> 57%), Snowball Volley flies
+0.6 -> 0.4 s (40% -> 42%); costs unchanged. Pillager 58-60% and Vex 40-41%
+are at the edges for the next cycle.
 

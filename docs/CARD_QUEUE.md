@@ -27,7 +27,7 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
   it): one archer on a war horse that goes for the towers (buildings only),
   very fragile ("bones fall apart"). Horse carries it fast. Reuses
   `buildingsOnly`; ranged, range under 7.
-- [ ] Strider (`minecraft:strider`): Nether, so fire immune, but it does NOT
+- [x] Strider (`minecraft:strider`): Nether, so fire immune, but it does NOT
   cross the river. Its own trick (Claude's pick, say if you want another): it
   leaves a short-lived fire trail that burns enemies standing on it (1 a
   second). Fast and fragile.

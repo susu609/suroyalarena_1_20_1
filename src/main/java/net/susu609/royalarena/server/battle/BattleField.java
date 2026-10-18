@@ -331,6 +331,7 @@ public final class BattleField {
             playHit(attack);
         mirrorHealth();
         showPoison();
+        showFireTrails();
         showFrozenTowers();
         towerSounds();
         stateSounds();
@@ -1240,6 +1241,16 @@ public final class BattleField {
                 teleport.z(), 24, 0.4D, 0.8D, 0.4D, 0.3D);
         level.playSound(null, teleport.x(), y, teleport.z(),
                 SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 1.0F);
+    }
+
+    /** Small flames on a Strider's burning trail. */
+    private void showFireTrails() {
+        if (level.getGameTime() % 4 != 0)
+            return;
+        double y = arena.floorY() + 1.05D;
+        for (double[] patch : engine.firePatches())
+            level.sendParticles(ParticleTypes.FLAME, patch[0], y, patch[1],
+                    2, 0.25D, 0.02D, 0.25D, 0.005D);
     }
 
     /**

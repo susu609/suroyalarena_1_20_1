@@ -56,6 +56,7 @@
         'spider_jockey': 3,
         'fox': 2,
         'skeleton_rider': 3,
+        'strider': 2,
         'arrow_storm': 3,
         'fireball': 4,
         'lightning': 6,

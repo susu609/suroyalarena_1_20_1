@@ -43,6 +43,7 @@ public final class MobsWave2SmokeTest {
         spiderJockeyLeavesItsArcher();
         foxesAreAFastCheapPack();
         skeletonRiderIgnoresTroops();
+        striderLeavesAFireTrail();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -66,6 +67,32 @@ public final class MobsWave2SmokeTest {
     {
         return engine.add(UUID.randomUUID(), side,
                 new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void striderLeavesAFireTrail() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit strider = unit(engine, BattleCard.STRIDER, TeamSide.BLUE,
+                0.0D, 3.2D);
+        CombatUnit victim = dummy(engine, TeamSide.RED, 0.3D, 3.2D);
+        CombatUnit blaze = unit(engine, BattleCard.BLAZE, TeamSide.RED,
+                -0.3D, 3.2D);
+        CombatUnit friend = dummy(engine, TeamSide.BLUE, 0.0D, 3.6D);
+        boolean burning = false;
+        for (int i = 0; i < 12 && !burning; i++) {
+            engine.tick();
+            burning = victim.burnTicks() > 0;
+        }
+        check(burning && !engine.firePatches().isEmpty(),
+                "the Strider drops a burning patch; an enemy on it burns");
+        check(blaze.burnTicks() == 0, "a Nether mob does not burn on it");
+        check(friend.burnTicks() == 0, "nor does its own side");
+        check(BattleCard.STRIDER.fireImmune() &&
+                        !BattleCard.STRIDER.stats().traits().crossesRiver(),
+                "a fire-immune Nether mob that still needs the bridges");
+        for (int i = 0; i < 60; i++)
+            engine.tick();
+        check(strider.alive(), "the dummy does not hit back");
     }
 
     private static void skeletonRiderIgnoresTroops() {

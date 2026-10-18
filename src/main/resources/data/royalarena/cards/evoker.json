@@ -13,7 +13,7 @@
     "damage": 10,
     "attack_interval_ticks": 40,
     "range": 4.0,
-    "move_speed": 0.7,
+    "move_speed": 0.6,
     "targets": "ground",
     "line_width": 1.2,
     "flying": false

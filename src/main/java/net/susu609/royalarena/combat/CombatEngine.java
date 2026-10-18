@@ -81,6 +81,27 @@ public final class CombatEngine {
     private final Map<TeamSide, Map<Tribe, Integer>> tribeLevels =
             new EnumMap<>(TeamSide.class);
     private final List<TribeEvent> tribeEvents = new ArrayList<>();
+    /** Burning patches a Strider leaves behind it. */
+    private final List<FirePatch> firePatches = new ArrayList<>();
+
+    private static final class FirePatch {
+        final TeamSide side;
+        final BattleCard source;
+        final double x;
+        final double z;
+        int ticksLeft;
+
+        FirePatch(TeamSide side, BattleCard source, double x, double z,
+                int ticksLeft)
+        {
+            this.side = side;
+            this.source = source;
+            this.x = x;
+            this.z = z;
+            this.ticksLeft = ticksLeft;
+        }
+    }
+
     /** Ticks played, and when each side may use a saving rule again. */
     private int now;
     private final Map<TeamSide, Integer> reviveReady = new EnumMap<>(TeamSide.class);
@@ -689,7 +710,53 @@ public final class CombatEngine {
         return card == null ? Body.LIVING : card.body();
     }
 
+    /** Where the fire trail patches burn now, as {x, z} (for the world). */
+    public List<double[]> firePatches() {
+        List<double[]> out = new ArrayList<>(firePatches.size());
+        for (FirePatch patch : firePatches)
+            out.add(new double[] {patch.x, patch.z});
+        return out;
+    }
+
+    /**
+     * A Strider drops a burning patch every {@link
+     * TroopTraits#TRAIL_EVERY_TICKS}; an enemy standing on a patch burns
+     * (unless fire-immune), and keeps burning a moment after leaving it.
+     */
+    private void applyFireTrails() {
+        if (now % TroopTraits.TRAIL_EVERY_TICKS == 0) {
+            for (CombatUnit unit : units) {
+                if (unit.alive() && unit.stats().traits().leavesFireTrail() &&
+                        !unit.frozen())
+                    firePatches.add(new FirePatch(unit.side(),
+                            cardOf.get(unit.id()), unit.x(), unit.z(),
+                            unit.stats().traits().fireTrailTicks()));
+            }
+        }
+        for (int i = 0; i < firePatches.size(); i++) {
+            FirePatch patch = firePatches.get(i);
+            if (--patch.ticksLeft <= 0) {
+                firePatches.remove(i--);
+                continue;
+            }
+            for (CombatUnit other : units) {
+                if (other.side() == patch.side || !other.alive())
+                    continue;
+                BattleCard card = cardOf.get(other.id());
+                if (card != null && card.fireImmune())
+                    continue;
+                // A longer burn (a Fireball's) is not cut short.
+                if (other.burnTicks() <= TroopTraits.TRAIL_BURN_TICKS &&
+                        Math.hypot(other.x() - patch.x, other.z() - patch.z) <=
+                        TroopTraits.TRAIL_RADIUS + other.radius())
+                    other.ignite(TroopTraits.TRAIL_BURN_TICKS,
+                            TroopTraits.TRAIL_BURN_PER_SECOND, patch.source);
+            }
+        }
+    }
+
     private void applyBurns() {
+        applyFireTrails();
         for (CombatUnit unit : units) {
             double burn = unit.burnStep();
             if (burn > 0.0D)

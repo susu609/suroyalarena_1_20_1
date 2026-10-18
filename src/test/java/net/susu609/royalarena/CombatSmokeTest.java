@@ -203,6 +203,8 @@ public final class CombatSmokeTest {
                     card.id() + " line width");
             near(numberOr(json, "charge_ticks", 0.0D), t.chargeTicks(),
                     card.id() + " charge");
+            near(numberOr(json, "fire_trail_ticks", 0.0D), t.fireTrailTicks(),
+                    card.id() + " fire trail");
             check(json.contains("\"targets\": \"buildings\"") ==
                     t.buildingsOnly(), card.id() + " targets buildings");
         }

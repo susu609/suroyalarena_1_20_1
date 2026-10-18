@@ -34,6 +34,9 @@ package net.susu609.royalarena.card;
  *                            before the first hit (Guardian laser); 0 = none
  * @param riverStrong         hits {@link #RIVER_STRENGTH} times as hard while
  *                            standing on the river (Guardian)
+ * @param fireTrailTicks      while it walks it leaves burning patches that
+ *                            last this long and set enemies standing on them
+ *                            burning (Strider); 0 = none
  */
 public record TroopTraits(double splashRadius, boolean selfDestruct,
                           double knockback, boolean buildingsOnly,
@@ -43,8 +46,37 @@ public record TroopTraits(double splashRadius, boolean selfDestruct,
                           boolean deployOnRiver, boolean frostWeak,
                           boolean waterWeak, boolean frostImmune,
                           double lineWidth, int chargeTicks,
-                          boolean riverStrong)
+                          boolean riverStrong, int fireTrailTicks)
 {
+    /** A fire trail patch: its radius, how often one is dropped, its burn. */
+    public static final double TRAIL_RADIUS = 0.7D;
+    public static final int TRAIL_EVERY_TICKS = 10;
+    public static final double TRAIL_BURN_PER_SECOND = 1.0D;
+    public static final int TRAIL_BURN_TICKS = 20;
+
+    public TroopTraits(double splashRadius, boolean selfDestruct,
+            double knockback, boolean buildingsOnly, int slowTicks,
+            int poisonTicks, double poisonPerSecond, int teleportCooldownTicks,
+            double hover, boolean crossesRiver, boolean deployOnRiver,
+            boolean frostWeak, boolean waterWeak, boolean frostImmune,
+            double lineWidth, int chargeTicks, boolean riverStrong)
+    {
+        this(splashRadius, selfDestruct, knockback, buildingsOnly, slowTicks,
+                poisonTicks, poisonPerSecond, teleportCooldownTicks, hover,
+                crossesRiver, deployOnRiver, frostWeak, waterWeak, frostImmune,
+                lineWidth, chargeTicks, riverStrong, 0);
+    }
+
+    /** Leaves a fire trail whose patches last {@code ticks} (Strider). */
+    public static TroopTraits fireTrail(int ticks) {
+        return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0, 0.0D,
+                false, false, false, false, false, 0.0D, 0, false, ticks);
+    }
+
+    public boolean leavesFireTrail() {
+        return fireTrailTicks > 0;
+    }
+
     /** Walking speed left to a slowed troop. */
     public static final double SLOW_SPEED = 0.6D;
     /** Damage taken on the river by a water-weak troop. */

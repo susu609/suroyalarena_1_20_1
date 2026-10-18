@@ -1,0 +1,22 @@
+{
+  "id": "strider",
+  "type": "troop",
+  "display_name": "Strider",
+  "roles": ["attack"],
+  "body": "living",
+  "elixir": 2,
+  "fire_immune": true,
+  "entity": "minecraft:strider",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 3,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 1.7,
+    "flying": false,
+    "targets": "ground",
+    "fire_trail_ticks": 40
+  }
+}

@@ -58,6 +58,7 @@ Modifiers multiply together:
 | Line damage (Evoker) | x1.25 |
 | Locks on before each new target (Guardian) | x0.85 |
 | Hits harder from the river (Guardian) | x1.05 |
+| Leaves a burning trail (Strider) | x1.15 |
 
 `cost_divisor` is a tuning knob. At 5.4 the starter set averages under 3
 elixir. Lowering it makes every troop more expensive. Decide after playtests.
