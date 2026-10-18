@@ -98,6 +98,8 @@ public enum BattleCard {
     GUARDIAN("Guardian", 4, "minecraft:guardian", null, 0,
             new TroopStats(1, 46, 14, 40, 5.5D, 0.6D, 0.45D,
                     TroopTraits.laser(40, 0.6D))),
+    ZOMBIE_VILLAGER("Zombie Villager", 3, "minecraft:zombie_villager", null, 0,
+            new TroopStats(5, 9, 2, 24, 1.2D, 0.8D, 0.3D)),
     SNOW_GOLEM("Snow Golem", 2, "minecraft:snow_golem", null, 0,
             new TroopStats(1, 40, 1, 20, 5.0D, 1.0D, 0.35D,
                     TroopTraits.slowing(30))),
@@ -218,6 +220,7 @@ public enum BattleCard {
             case SPIDER -> 0.75F;
             case CAVE_SPIDER -> 0.6F;
             case VEX -> 0.8F;
+            case ZOMBIE_VILLAGER -> 0.85F;
             case WITHER_SKELETON -> 0.85F;
             case POLAR_BEAR -> 0.8F;
             default -> 1.0F;
@@ -230,7 +233,7 @@ public enum BattleCard {
      */
     public Set<CardTactic> tactics() {
         return switch (this) {
-            case ZOMBIE, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
+            case ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,

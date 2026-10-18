@@ -239,6 +239,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Bee | `minecraft:bee` | 5 | 4 | 3 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once, poisons 1.5 a second for 3 s, and dies | **2** |
 | Evoker | `minecraft:evoker` | 1 | 30 | 10 | 2.0 | 5.0 | 0.8 | fangs bite every enemy on a 1.2 wide line from it through its target | **4** |
 | Guardian | `minecraft:guardian` | 1 | 46 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **4** |
+| Zombie Villager | `minecraft:zombie_villager` | 5 | 9 | 2 | 1.2 | 1.2 | 0.8 | a big, weak swarm: each one is far weaker than a Zombie, five of them together are not (model 0.85) | **3** |
 | Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 
 Each cost is the formula's. New modifiers (docs/BALANCE.md): frost-proof
@@ -280,4 +281,11 @@ Autopilot cycle 1 (4000 bot matches): Snow Golem added at 51%. Skeleton
 Archer range 6.0 -> 5.5 (60% -> 58%), Ghast range 6.0 -> 5.5 and HP 27 -> 28
 (59% -> 57%), Blaze range 6.5 -> 6.0 (59% -> under 55%); costs unchanged.
 Every card 42-58%.
+
+Autopilot cycle 3 (4000 bot matches): Zombie Villager added at 49-51%.
+Bee sits at 40%, under the 42% line. Tried: HP 4 -> 4.4 (38%), poison
+1.5 -> 1.75 (40%), 3 elixir with HP 5 (32%, worse: the extra elixir costs
+more than the stats give). At 2 elixir the formula leaves no room (raw 2.37,
+the limit is 2.49), so it stays; if it should be stronger, make the sting
+hit towers too or let a Bee survive its sting.
 

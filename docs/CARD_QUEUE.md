@@ -14,7 +14,7 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
 
 ## From the user
 
-- [ ] Zombie Villager (`minecraft:zombie_villager`): weaker than a Zombie, but
+- [x] Zombie Villager (`minecraft:zombie_villager`): weaker than a Zombie, but
   a big group (5), so it is cheap swarm pressure. Count 5, about half a
   Zombie's health each, small hits.
 - [ ] Spider Jockey (`minecraft:spider` with a Skeleton on it): ONE unit,

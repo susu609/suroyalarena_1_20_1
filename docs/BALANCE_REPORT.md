@@ -1,48 +1,49 @@
 # Balance report
 
-1000 bot-versus-bot matches with random balanced decks (each pairing twice, sides swapped), BLUE won 501, RED 482, 17 draws. Unit ids are random, so two runs differ by a match or two.
+1000 bot-versus-bot matches with random balanced decks (each pairing twice, sides swapped), BLUE won 486, RED 499, 15 draws. Unit ids are random, so two runs differ by a match or two.
 
 Win rate: share of the games the card's deck won (a draw counts half). The margin is the 95% interval; a card is flagged when the whole interval is past 40-60%.
 
 | Card | Elixir | Decks | Win rate | Margin | Played per game | |
 |---|---|---|---|---|---|---|
-| Skeleton Archer | 2 | 484 | 60% | +/-4% | 7.8 |  |
-| Skeletons | 2 | 378 | 60% | +/-5% | 9.2 |  |
-| Ghast | 5 | 336 | 59% | +/-5% | 4.3 |  |
-| Evoker | 4 | 356 | 58% | +/-5% | 5.2 |  |
-| Big Slime | 3 | 490 | 56% | +/-4% | 5.3 |  |
-| Polar Bear | 4 | 532 | 56% | +/-4% | 8.3 |  |
-| Zombified Piglin | 3 | 384 | 55% | +/-5% | 9.0 |  |
-| Silverfish | 2 | 382 | 55% | +/-5% | 7.9 |  |
-| Witch | 4 | 398 | 55% | +/-5% | 4.8 |  |
-| Pillager | 3 | 422 | 54% | +/-5% | 7.6 |  |
-| Piglin Brute | 4 | 466 | 53% | +/-5% | 7.9 |  |
-| Wither Skeleton | 3 | 450 | 53% | +/-5% | 8.3 |  |
-| Guardian | 4 | 344 | 53% | +/-5% | 7.0 |  |
-| Snow Golem | 2 | 466 | 53% | +/-5% | 9.7 |  |
-| Iron Golem | 5 | 354 | 52% | +/-5% | 2.7 |  |
-| Spider | 3 | 384 | 52% | +/-5% | 8.6 |  |
-| Fireball | 4 | 502 | 52% | +/-4% | 8.1 |  |
-| Vex | 2 | 432 | 52% | +/-5% | 7.4 |  |
-| Blaze | 3 | 420 | 52% | +/-5% | 7.5 |  |
-| Lightning | 6 | 326 | 52% | +/-5% | 4.9 |  |
-| Vindicator | 2 | 410 | 52% | +/-5% | 8.8 |  |
-| Ravager | 5 | 398 | 50% | +/-5% | 6.8 |  |
-| TNT | 5 | 426 | 49% | +/-5% | 7.0 |  |
-| Drowned | 2 | 444 | 49% | +/-5% | 8.6 |  |
-| Magma Cube | 4 | 464 | 48% | +/-5% | 6.2 |  |
-| Stray | 2 | 442 | 48% | +/-5% | 8.0 |  |
-| Creeper | 3 | 372 | 46% | +/-5% | 5.6 |  |
-| Cave Spider | 3 | 376 | 46% | +/-5% | 6.7 |  |
-| Wolves | 3 | 406 | 46% | +/-5% | 6.7 |  |
-| Arrow Storm | 3 | 588 | 45% | +/-4% | 9.2 |  |
-| Freeze | 3 | 566 | 44% | +/-4% | 9.9 |  |
-| Phantom | 3 | 370 | 44% | +/-5% | 3.1 |  |
-| Hoglin | 3 | 406 | 42% | +/-5% | 3.1 |  |
-| Enderman | 4 | 466 | 42% | +/-4% | 7.7 |  |
-| Husk | 3 | 360 | 42% | +/-5% | 8.1 |  |
-| Bee | 2 | 374 | 41% | +/-5% | 8.3 |  |
-| Zombie | 3 | 338 | 40% | +/-5% | 8.9 |  |
-| Potion of Healing | 3 | 488 | 39% | +/-4% | 3.9 |  |
+| Skeletons | 2 | 360 | 62% | +/-5% | 9.3 |  |
+| Ghast | 5 | 308 | 62% | +/-5% | 4.3 |  |
+| Polar Bear | 4 | 456 | 59% | +/-5% | 8.2 |  |
+| Skeleton Archer | 2 | 406 | 59% | +/-5% | 7.7 |  |
+| Wither Skeleton | 3 | 404 | 56% | +/-5% | 8.2 |  |
+| Pillager | 3 | 442 | 56% | +/-5% | 7.4 |  |
+| Zombified Piglin | 3 | 346 | 56% | +/-5% | 9.2 |  |
+| Blaze | 3 | 396 | 56% | +/-5% | 7.2 |  |
+| Stray | 2 | 490 | 55% | +/-4% | 7.8 |  |
+| Iron Golem | 5 | 364 | 55% | +/-5% | 2.8 |  |
+| Snow Golem | 2 | 498 | 55% | +/-4% | 9.7 |  |
+| Silverfish | 2 | 424 | 53% | +/-5% | 8.1 |  |
+| Ravager | 5 | 456 | 53% | +/-5% | 6.7 |  |
+| Witch | 4 | 378 | 53% | +/-5% | 4.6 |  |
+| Evoker | 4 | 354 | 53% | +/-5% | 5.1 |  |
+| Zombie Villager | 3 | 374 | 53% | +/-5% | 9.3 |  |
+| Vindicator | 2 | 408 | 52% | +/-5% | 8.9 |  |
+| Piglin Brute | 4 | 430 | 51% | +/-5% | 7.9 |  |
+| Spider | 3 | 328 | 50% | +/-5% | 8.8 |  |
+| Big Slime | 3 | 430 | 50% | +/-5% | 5.3 |  |
+| TNT | 5 | 430 | 49% | +/-5% | 6.9 |  |
+| Vex | 2 | 364 | 48% | +/-5% | 7.4 |  |
+| Potion of Healing | 3 | 532 | 48% | +/-4% | 3.9 |  |
+| Fireball | 4 | 476 | 47% | +/-4% | 8.2 |  |
+| Drowned | 2 | 472 | 47% | +/-5% | 9.0 |  |
+| Husk | 3 | 356 | 46% | +/-5% | 8.1 |  |
+| Arrow Storm | 3 | 512 | 46% | +/-4% | 9.5 |  |
+| Wolves | 3 | 398 | 46% | +/-5% | 6.6 |  |
+| Hoglin | 3 | 354 | 46% | +/-5% | 3.1 |  |
+| Guardian | 4 | 376 | 45% | +/-5% | 6.7 |  |
+| Lightning | 6 | 330 | 45% | +/-5% | 4.9 |  |
+| Freeze | 3 | 590 | 45% | +/-4% | 10.1 |  |
+| Magma Cube | 4 | 480 | 45% | +/-4% | 6.2 |  |
+| Phantom | 3 | 360 | 44% | +/-5% | 3.1 |  |
+| Creeper | 3 | 376 | 43% | +/-5% | 5.3 |  |
+| Zombie | 3 | 334 | 42% | +/-5% | 8.6 |  |
+| Enderman | 4 | 478 | 41% | +/-4% | 7.7 |  |
+| Cave Spider | 3 | 334 | 41% | +/-5% | 6.7 |  |
+| Bee | 2 | 396 | 37% | +/-5% | 8.3 |  |
 
-Average match 285 s; 945 went to overtime; 1 ended with a King tower down.
+Average match 286 s; 952 went to overtime; 0 ended with a King tower down.

@@ -1,0 +1,19 @@
+{
+  "id": "zombie_villager",
+  "type": "troop",
+  "display_name": "Zombie Villager",
+  "roles": ["defense"],
+  "elixir": 3,
+  "entity": "minecraft:zombie_villager",
+  "model_scale": 0.85,
+  "count": 5,
+  "unit": {
+    "health": 9,
+    "damage": 2,
+    "attack_interval_ticks": 24,
+    "range": 1.2,
+    "move_speed": 0.8,
+    "flying": false,
+    "targets": "ground"
+  }
+}
