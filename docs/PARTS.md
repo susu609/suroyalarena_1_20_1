@@ -482,3 +482,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   Fox, Skeleton Rider, Strider, Ender Pearl, Warden, Shulker) and Claude's
   (Goat, Llama, Piglin, Allay, three potions); autopilot cap 55 cards
 
+## Part 41 — Poison by body
+
+- `card/Body.java` (living 1.5x, undead 1x, construct immune),
+  `BattleCard.body()`, `"body"` in every troop JSON, tooltip
+- `combat/CombatEngine.java` (`bodyOf`: no poison on constructs, 1.5x on the
+  living)
+- `MobsWave2SmokeTest.poisonDependsOnTheBody`, CombatSmokeTest (JSON)
+- `docs/CARDS.md`, `docs/COMBAT.md`
+

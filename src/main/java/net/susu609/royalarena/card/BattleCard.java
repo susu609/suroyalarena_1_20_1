@@ -253,6 +253,23 @@ public enum BattleCard {
     }
 
     /**
+     * What the card is made of, for poison: living flesh, undead or spirit,
+     * or a construct (golems, immune). Spells count as living (unused).
+     */
+    public Body body() {
+        return switch (this) {
+            case IRON_GOLEM, SNOW_GOLEM ->
+                    Body.CONSTRUCT;
+            case ZOMBIE, SKELETON_ARCHER, SKELETONS,
+                    STRAY, ZOMBIFIED_PIGLIN, HUSK,
+                    WITHER_SKELETON, DROWNED, PHANTOM,
+                    ZOMBIE_VILLAGER, BLAZE, VEX ->
+                    Body.UNDEAD;
+            default -> Body.LIVING;
+        };
+    }
+
+    /**
      * Nether mobs do not burn: a Fireball still hurts them, but sets nothing
      * alight. Mirrors {@code fire_immune} in the card's JSON.
      */

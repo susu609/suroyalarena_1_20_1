@@ -3,6 +3,7 @@ package net.susu609.royalarena;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.Body;
 import net.susu609.royalarena.card.CardFilter;
 import net.susu609.royalarena.card.CardTactic;
 import net.susu609.royalarena.card.TroopStats;
@@ -37,6 +38,7 @@ public final class MobsWave2SmokeTest {
         libraryFiltersAndPages();
         snowballsAreFrost();
         netherMobsDoNotBurn();
+        poisonDependsOnTheBody();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -153,7 +155,8 @@ public final class MobsWave2SmokeTest {
             engine.tick();
         var traits = BattleCard.BEE.stats().traits();
         near(200.0D - target.health(), BattleCard.BEE.stats().damage() +
-                traits.poisonTotal(), "sting plus all of the poison");
+                traits.poisonTotal() * Body.LIVING.poisonFactor(),
+                "sting plus all of the poison, 1.5x on a living target");
     }
 
     private static void phantomGoesStraightForATower() {
@@ -214,6 +217,38 @@ public final class MobsWave2SmokeTest {
         check(landed, "a snowball lands on the Blaze");
         check(BattleCard.BLAZE.stats().health() - b2.health() >=
                 2.0D * bite - 1.0E-6D, "the Blaze takes double");
+    }
+
+    /** Poison damage a victim card really loses to one Bee sting. */
+    private static double lostToBee(BattleCard victim) {
+        CombatEngine engine = new CombatEngine(battle());
+        CombatUnit bee = unit(engine, BattleCard.BEE, TeamSide.BLUE, 0.0D,
+                2.6D);
+        CombatUnit target = engine.add(UUID.randomUUID(), TeamSide.RED,
+                victim.stats(), 0.0D, 1.5D);
+        double before = target.health();
+        for (int i = 0; i < 100; i++)
+            engine.tick();
+        check(!bee.alive(), "the Bee stung and died");
+        return before - target.health();
+    }
+
+    private static void poisonDependsOnTheBody() {
+        double sting = BattleCard.BEE.stats().damage();
+        double poison = BattleCard.BEE.stats().traits().poisonTotal();
+        // A Spider is flesh (x1.5), a Zombie undead (x1), a Golem a construct.
+        near(lostToBee(BattleCard.SPIDER), sting + 1.5D * poison,
+                "living flesh takes 1.5x the poison");
+        near(lostToBee(BattleCard.ZOMBIE), sting + poison,
+                "the undead take it as it is");
+        near(lostToBee(BattleCard.IRON_GOLEM), sting,
+                "a golem takes the sting and no poison");
+        CombatEngine engine = new CombatEngine(battle());
+        unit(engine, BattleCard.BEE, TeamSide.BLUE, 0.0D, 2.6D);
+        CombatUnit golem = engine.add(UUID.randomUUID(), TeamSide.RED,
+                BattleCard.IRON_GOLEM.stats(), 0.0D, 1.5D);
+        engine.tick();
+        check(!golem.poisoned(), "a golem is never poisoned");
     }
 
     private static void netherMobsDoNotBurn() {

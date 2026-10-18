@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Pillager",
   "roles": ["defense", "support"],
+  "body": "living",
   "elixir": 3,
   "entity": "minecraft:pillager",
   "model_scale": 1.0,

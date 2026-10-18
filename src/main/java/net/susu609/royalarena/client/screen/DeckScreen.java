@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.susu609.royalarena.bot.BotDeck;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.BattleDeck;
+import net.susu609.royalarena.card.Body;
 import net.susu609.royalarena.card.CardFilter;
 import net.susu609.royalarena.card.CardRole;
 import net.susu609.royalarena.card.CardTactic;
@@ -547,8 +548,13 @@ public final class DeckScreen extends Screen {
         if (s.traits().buildingsOnly())
             lines.add(line("Ignores troops, walks straight to the towers"));
         if (s.traits().poisons())
-            lines.add(line("Poisons what it hits: %.0f a second for %.0f s",
+            lines.add(line("Poisons what it hits: %.1f a second for %.0f s " +
+                            "(1.5x on the living, none on golems)",
                     s.traits().poisonPerSecond(), s.traits().poisonTicks() / 20.0D));
+        if (card.body() != Body.LIVING)
+            lines.add(line("%s: %s", card.body().label(),
+                    card.body().poisonable() ? "poison does normal damage" :
+                            "poison cannot touch it"));
         if (s.traits().teleports())
             lines.add(line("Teleports out of a ranged shot or a spell, every %.0f s",
                     s.traits().teleportCooldownTicks() / 20.0D));

@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Silverfish",
   "roles": ["defense"],
+  "body": "living",
   "elixir": 2,
   "entity": "minecraft:silverfish",
   "model_scale": 1.0,

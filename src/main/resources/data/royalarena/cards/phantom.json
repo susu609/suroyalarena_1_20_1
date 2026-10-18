@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Phantom",
   "roles": ["attack"],
+  "body": "undead",
   "elixir": 3,
   "entity": "minecraft:phantom",
   "model_scale": 1.0,

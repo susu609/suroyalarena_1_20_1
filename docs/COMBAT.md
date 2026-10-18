@@ -102,8 +102,12 @@ can be turned down or off.
   straight away from the shooter (or the spell's centre) instead. It then
   waits 8 s. A melee blow is not dodged. Clients see portal particles at both
   ends and the teleport sound (`TickResult.Teleport`, `BattleField.teleportMob`).
-- **Poison (Cave Spider).** Every hit that lands poisons the victim for 3 s at
-  1 damage a second; a new bite replaces the poison. The damage is credited to
+- **Poison (Cave Spider, Bee, Wither Skeleton).** Every hit that lands poisons
+  the victim for 3 s at 1 damage a second; a new bite replaces the poison.
+  What the victim is made of (`Body`) decides the damage: **living** flesh
+  takes 1.5x, **undead or spirit** (Zombie, Skeleton, Blaze, Vex...) takes it
+  as it is, a **construct** (Iron Golem, Snow Golem) is immune and never shows
+  the drips (`CombatEngine.bodyOf`). The damage is credited to
   the Cave Spider. Poisoned troops show pale green drips every half second.
 - **Hover (Blaze).** The mob floats 1.5 blocks up and keeps its height
   (`setNoGravity`); the engine does not change.

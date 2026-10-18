@@ -189,6 +189,8 @@ public final class CombatSmokeTest {
                     t.teleportCooldownTicks(), card.id() + " teleport cooldown");
             near(numberOr(json, "hover", 0.0D), t.hover(), card.id() + " hover");
             flag(json, "fire_immune", card.fireImmune(), card.id());
+            check(json.contains("\"body\": \"" + card.body().id() + "\""),
+                    card.id() + " body in the JSON is " + card.body().id());
             flag(json, "self_destruct", t.selfDestruct(), card.id());
             flag(json, "crosses_river", t.crossesRiver(), card.id());
             flag(json, "deploy_on_river", t.deployOnRiver(), card.id());

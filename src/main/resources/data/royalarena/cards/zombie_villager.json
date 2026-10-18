@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Zombie Villager",
   "roles": ["defense"],
+  "body": "undead",
   "elixir": 3,
   "entity": "minecraft:zombie_villager",
   "model_scale": 0.85,

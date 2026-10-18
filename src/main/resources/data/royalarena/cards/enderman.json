@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Enderman",
   "roles": ["attack"],
+  "body": "living",
   "elixir": 4,
   "entity": "minecraft:enderman",
   "model_scale": 1.0,

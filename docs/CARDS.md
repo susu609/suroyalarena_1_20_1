@@ -256,6 +256,18 @@ and it passes the tower-only band (`PowerCreepTest`). Bee is at the low edge
 After (4000 matches, 37 cards): every card between 41% and 58%; Polar Bear
 and Skeleton Archer the highest, Bee the lowest.
 
+## Poison and what a troop is made of
+
+`BattleCard.body()` (and `"body"` in every troop JSON; a test keeps them
+equal) puts each troop in one of three groups: **living** (1.5x poison),
+**undead or spirit** (Zombie, Zombie Villager, Zombified Piglin, Husk,
+Drowned, Wither Skeleton, Skeleton, Skeleton Archer, Stray, Phantom, Blaze,
+Vex: 1x) and **construct** (Iron Golem, Snow Golem: immune). The cost formula
+still counts poison at 1x, as the average over the roster is close to that.
+8000 bot matches after the change: every card 40-59% (Ghast 59%, Bee 40%,
+unchanged by it). Undead being unaffected, as in vanilla, was left out on
+purpose; say if you want them immune too.
+
 ## Nether mobs do not burn
 
 Every Nether mob is fire immune: Fireball still takes its damage off, but

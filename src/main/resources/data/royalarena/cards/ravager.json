@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Ravager",
   "roles": ["attack"],
+  "body": "living",
   "elixir": 5,
   "entity": "minecraft:ravager",
   "model_scale": 1.0,

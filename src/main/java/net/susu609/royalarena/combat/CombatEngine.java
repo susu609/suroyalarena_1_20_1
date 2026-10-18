@@ -4,6 +4,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.Body;
 import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.card.SplitRule;
 import net.susu609.royalarena.card.TroopTraits;
@@ -596,6 +597,12 @@ public final class CombatEngine {
         unit.setPosition(spot.x(), spot.z());
     }
 
+    /** What a unit is made of; a unit of no card (a test dummy) is living. */
+    private Body bodyOf(CombatUnit unit) {
+        BattleCard card = cardOf.get(unit.id());
+        return card == null ? Body.LIVING : card.body();
+    }
+
     private void applyBurns() {
         for (CombatUnit unit : units) {
             double burn = unit.burnStep();
@@ -604,8 +611,8 @@ public final class CombatEngine {
                         unit.burnSource());
             double poison = unit.poisonStep();
             if (poison > 0.0D)
-                damageUnit(unit, poison, unit.side().opponent(),
-                        unit.poisonSource());
+                damageUnit(unit, poison * bodyOf(unit).poisonFactor(),
+                        unit.side().opponent(), unit.poisonSource());
         }
     }
 
@@ -670,6 +677,7 @@ public final class CombatEngine {
                                     attack.damage() * TroopTraits.FROST_WEAKNESS :
                                     attack.damage(), attack.side(), source);
                 if (victim != null && victim.alive() && source != null &&
+                        bodyOf(victim).poisonable() &&
                         source.stats().traits().poisons())
                     victim.poison(source.stats().traits().poisonTicks(),
                             source.stats().traits().poisonPerSecond(), source);

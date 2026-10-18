@@ -3,6 +3,7 @@
   "type": "troop",
   "display_name": "Polar Bear",
   "roles": ["attack", "defense"],
+  "body": "living",
   "elixir": 4,
   "entity": "minecraft:polar_bear",
   "model_scale": 0.8,
