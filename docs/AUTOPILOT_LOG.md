@@ -12,3 +12,4 @@ One line per cycle, newest last (`docs/AUTOPILOT.md`).
 - 2026-10-18 2e6c43c: by hand: Ghast and Skeleton Archer range 5.0 (60% -> 55%, 59% -> 55%); Husk 3 x 13 HP, slow 2 s, speed 1.0 (41% -> 45%); Hoglin 50/10 (43% -> 44%); Enderman 68 HP, teleport every 5 s (43% -> 50%); Evoker range 4.5 (59% -> 56%); bot heals only fighting troops at 70% or less (Healing 43% -> 45%)
 - 2026-10-18 78dc43f: by hand: bot personalities (Tank Push 55%, Rush 43%, Counter 55%, Spell Siege 46%) and shared bot skills; matches 284 s -> 267 s; band 40-58% (Creeper 40%: tune it next)
 - 2026-10-18 a088338: by hand: watch mode, readable damage numbers and bars, deep team colours, docs and stats page refreshed; band 40-58% (Skeleton Archer 58%, Creeper 40%); next card in the queue: Fox
+- 2026-10-18 de93e6a: by hand: added Fox (48%); tuned Creeper (40% -> 43-45%), Skeleton Archer range 4.5 (60% -> 56%); band 41-57% (Zombie 41%, Pillager and Witch 57%); next in the queue: Skeleton Rider
