@@ -35,6 +35,7 @@ import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.c2s.C2SDeployCardPacket;
+import net.susu609.royalarena.network.c2s.C2SWatchSpeedPacket;
 import net.susu609.royalarena.client.sound.BattleSounds;
 import net.susu609.royalarena.client.sound.ClientSounds;
 import net.susu609.royalarena.match.ArenaSounds;
@@ -72,6 +73,10 @@ public final class ClientForgeEvents {
         consumeCardKey(RoyalArenaKeyMappings.CARD_2, 1);
         consumeCardKey(RoyalArenaKeyMappings.CARD_3, 2);
         consumeCardKey(RoyalArenaKeyMappings.CARD_4, 3);
+        while (RoyalArenaKeyMappings.WATCH_SPEED.consumeClick()) {
+            if (ClientMatchState.spectating())
+                ModNetwork.sendToServer(new C2SWatchSpeedPacket());
+        }
 
         ArenaCameraController.tick();
     }

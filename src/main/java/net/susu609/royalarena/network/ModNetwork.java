@@ -15,6 +15,7 @@ import net.susu609.royalarena.network.c2s.C2SLeaveQueuePacket;
 import net.susu609.royalarena.network.c2s.C2SResultDonePacket;
 import net.susu609.royalarena.network.c2s.C2SSaveDeckPacket;
 import net.susu609.royalarena.network.c2s.C2SStartPracticePacket;
+import net.susu609.royalarena.network.c2s.C2SWatchSpeedPacket;
 import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
 import net.susu609.royalarena.network.s2c.S2CBotDragPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
@@ -26,7 +27,7 @@ import net.susu609.royalarena.network.s2c.S2CQueueStatusPacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
 
 public final class ModNetwork {
-    private static final String PROTOCOL = "13";
+    private static final String PROTOCOL = "14";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
                     RL.of(RoyalArena.MOD_ID, "main"),
@@ -78,6 +79,12 @@ public final class ModNetwork {
                 .encoder(C2SStartPracticePacket::encode)
                 .decoder(C2SStartPracticePacket::decode)
                 .consumerMainThread(C2SStartPracticePacket::handle).add();
+        CHANNEL.messageBuilder(
+                        C2SWatchSpeedPacket.class, id++,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SWatchSpeedPacket::encode)
+                .decoder(C2SWatchSpeedPacket::decode)
+                .consumerMainThread(C2SWatchSpeedPacket::handle).add();
         CHANNEL.messageBuilder(
                         C2SDeckRequestPacket.class, id++,
                         NetworkDirection.PLAY_TO_SERVER)

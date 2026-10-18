@@ -143,7 +143,9 @@ public final class MatchManager {
         while (it.hasNext()) {
             Map.Entry<UUID, ServerMatchSession> entry = it.next();
             ServerMatchSession session = entry.getValue();
-            session.tick(server);
+            // A watched match at x2 runs two match ticks per server tick.
+            for (int i = 0; i < session.speed() && !session.complete(); i++)
+                session.tick(server);
             if (session.complete()) {
                 playerToMatch.remove(session.match().blue().playerId());
                 playerToMatch.remove(session.match().red().playerId());
@@ -167,6 +169,15 @@ public final class MatchManager {
             if (player != null)
                 startPractice(player);
         }
+    }
+
+    /** The spectator of a bot-versus-bot match toggles x1 / x2. */
+    public void toggleWatchSpeed(ServerPlayer player) {
+        UUID matchId = playerToMatch.get(player.getUUID());
+        ServerMatchSession session =
+                matchId == null ? null : matches.get(matchId);
+        if (session != null && session.watching())
+            session.toggleSpeed(player.getServer(), player.getUUID());
     }
 
     /** A player closed the result screen (OK, or Play again). */

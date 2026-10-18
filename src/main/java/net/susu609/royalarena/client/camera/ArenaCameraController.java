@@ -30,7 +30,8 @@ public final class ArenaCameraController {
         if (cameraEntity == null || cameraEntity.level() != minecraft.level) {
             cameraEntity = new Marker(EntityType.MARKER, minecraft.level);
         }
-        ArenaCameraTransform transform =
+        ArenaCameraTransform transform = ClientMatchState.spectating() ?
+                ArenaCameraProfile.watch(ClientMatchState.arena()) :
                 ArenaClientConfig.cameraProfile().transform(
                         ClientMatchState.arena(),
                         ClientMatchState.side());

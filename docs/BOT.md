@@ -14,11 +14,17 @@ the hand cycle, deploy areas and the one-second deploy delay all apply to it.
 
 Press `M` and choose **Watch Bot vs Bot**, or run `/royalarena watch`. Two
 bots play each other with random decks and personalities (the config's
-`personality` sets the RED one; BLUE always draws its own). You sit in BLUE's
-seat: the camera, the HUD and BLUE's hand and elixir are the BLUE bot's, a
-"WATCHING" label sits under the timer, and clicks and card keys do nothing.
-The chat names both personalities. The BLUE bot's hand is drawn blue, the RED
-one's red. **Play again** on the result screen starts another watched match.
+`personality` sets the RED one; BLUE always draws its own). The camera looks at the
+whole arena from high up and side-on (`ArenaCameraProfile.watch`): RED's half
+on the left, BLUE's on the right. A panel at each edge of the screen
+(`SpectatorHud`, 20% of the width each, RED left, BLUE right) shows the team
+and personality, crowns, the four cards in hand (grey when the bot cannot
+pay), the next card and the elixir bar (it throbs when full). The timer stays
+at the top with "WATCHING x1 [X]" under it; `X` (rebindable, "Watch Speed")
+switches between normal and double speed (the server runs two match ticks
+per tick). Clicks and card keys do nothing. Each bot's hand is drawn in its
+colour while it carries a card, with a faint ring and the card's name over
+the spot where it will land. The chat names both personalities. **Play again** on the result screen starts another watched match.
 The match log marks it `"mode": "watch"`.
 
 ## Its deck

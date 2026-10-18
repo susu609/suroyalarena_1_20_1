@@ -21,6 +21,9 @@ import net.susu609.royalarena.match.TeamSide;
 public final class ArenaCameraProfile {
     public static final ArenaCameraProfile DEFAULT =
             new ArenaCameraProfile(68.0F, 30.0D, 5.0D);
+    /** Watching bots: pitch and distance of the high side-on view. */
+    public static final float WATCH_PITCH = 74.0F;
+    public static final double WATCH_DISTANCE = 32.0D;
 
     private final float pitch;
     private final double distance;
@@ -40,6 +43,20 @@ public final class ArenaCameraProfile {
     }
     public double lookAhead() {
         return lookAhead;
+    }
+
+    /**
+     * The spectator's view of a bot-versus-bot match: high above the middle
+     * of the arena, looking east (yaw -90) and steeply down, so the arena's
+     * length runs across the wide screen: RED's half on the left, BLUE's on
+     * the right, with room for a panel at each edge.
+     */
+    public static ArenaCameraTransform watch(ArenaLayout arena) {
+        ArenaPoint center = arena.center();
+        double radians = Math.toRadians(WATCH_PITCH);
+        double x = center.x() - WATCH_DISTANCE * Math.cos(radians);
+        double y = center.y() + WATCH_DISTANCE * Math.sin(radians);
+        return new ArenaCameraTransform(x, y, center.z(), -90.0F, WATCH_PITCH);
     }
 
     public ArenaCameraTransform transform(ArenaLayout arena, TeamSide side) {

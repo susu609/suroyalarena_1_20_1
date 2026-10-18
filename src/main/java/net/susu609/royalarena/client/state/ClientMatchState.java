@@ -100,6 +100,46 @@ public final class ClientMatchState {
                 BattleCard.byId(snapshot.nextCard()) : null;
     }
 
+    /** A side's hand while watching (BLUE's is {@link #hand()}). */
+    public static List<BattleCard> hand(TeamSide side) {
+        MatchSnapshot.Watch w = snapshot.watch();
+        if (side == TeamSide.BLUE || w == null)
+            return hand();
+        ArrayList<BattleCard> cards = new ArrayList<>();
+        for (String id : w.redHand())
+            cards.add(BattleCard.byId(id));
+        return Collections.unmodifiableList(cards);
+    }
+
+    public static BattleCard nextCard(TeamSide side) {
+        MatchSnapshot.Watch w = snapshot.watch();
+        if (side == TeamSide.BLUE || w == null)
+            return nextCard();
+        return w.redNext().isBlank() ? null : BattleCard.byId(w.redNext());
+    }
+
+    public static int elixirTenths(TeamSide side) {
+        MatchSnapshot.Watch w = snapshot.watch();
+        if (side == TeamSide.BLUE || w == null)
+            return elixirTenths();
+        // The server sends a snapshot every 5 ticks; the meter fills between.
+        return w.redElixir();
+    }
+
+    /** The personality name of a watched bot, or "". */
+    public static String style(TeamSide side) {
+        MatchSnapshot.Watch w = snapshot.watch();
+        if (w == null)
+            return "";
+        return side == TeamSide.BLUE ? w.blueStyle() : w.redStyle();
+    }
+
+    /** Playback speed of a watched match (1 or 2). */
+    public static int watchSpeed() {
+        MatchSnapshot.Watch w = snapshot.watch();
+        return w == null ? 1 : w.speed();
+    }
+
     /** The player whose skin the King of {@code side} wears. */
     public static java.util.UUID player(TeamSide side) {
         return snapshot.player(side);

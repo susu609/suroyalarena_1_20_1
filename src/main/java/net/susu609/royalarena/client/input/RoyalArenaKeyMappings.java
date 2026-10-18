@@ -17,6 +17,9 @@ public final class RoyalArenaKeyMappings {
             key("key.royalarena.card_3", GLFW.GLFW_KEY_3);
     public static final KeyMapping CARD_4 =
             key("key.royalarena.card_4", GLFW.GLFW_KEY_4);
+    /** While watching bots: x1 / x2. */
+    public static final KeyMapping WATCH_SPEED =
+            key("key.royalarena.watch_speed", GLFW.GLFW_KEY_X);
 
     private RoyalArenaKeyMappings() {
     }

@@ -33,6 +33,7 @@ public final class ClientModEvents {
         event.register(RoyalArenaKeyMappings.CARD_2);
         event.register(RoyalArenaKeyMappings.CARD_3);
         event.register(RoyalArenaKeyMappings.CARD_4);
+        event.register(RoyalArenaKeyMappings.WATCH_SPEED);
     }
 
     @SubscribeEvent public static void registerEntityRenderers(

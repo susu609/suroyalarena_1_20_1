@@ -26,6 +26,7 @@ public final class DomainSmokeTest {
         troopSpawnsAfterOneSecondDeployTime();
         cameraMirrorsAroundArena();
         arenaFitsAboveTheHudPanel();
+        watchViewFitsBetweenThePanels();
         deckCyclesPlayedCard();
         matchLifecycleAndElixirAreDeterministic();
         deploymentIsServerValidatedAndCyclesDeck();
@@ -358,6 +359,49 @@ public final class DomainSmokeTest {
             check(minY > 0.02D, "far arena edge is not cut off at the top: " + minY);
             check(maxY < panelTop,
                     "near arena edge stays above the HUD panel: " + maxY);
+        }
+    }
+
+    /** Screen share of each side panel while watching (SpectatorHud). */
+    static final double WATCH_PANEL = 0.2D;
+
+    /**
+     * Watching bots on a 16:9 window: the whole arena (towers included)
+     * sits between the two side panels, RED's half on the left and BLUE's
+     * on the right, and inside the frame vertically.
+     */
+    private static void watchViewFitsBetweenThePanels() {
+        ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 100, 0));
+        var cam = ArenaCameraProfile.watch(arena);
+        double yaw = Math.toRadians(cam.yaw());
+        double pitch = Math.toRadians(cam.pitch());
+        double[] fwd = {-Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch),
+                Math.cos(yaw) * Math.cos(pitch)};
+        double[] right = cross(fwd, new double[] {0, 1, 0});
+        normalize(right);
+        double[] up = cross(right, fwd);
+        normalize(up);
+        double tan = Math.tan(Math.toRadians(70.0D) / 2.0D);
+        // Every corner of the floor and the top of the King towers (6 up).
+        for (int sx : new int[] {-9, 9}) {
+            for (int sz : new int[] {-16, 16}) {
+                for (int sy : new int[] {100, 106}) {
+                    double[] d = {sx - cam.x(), sy - cam.y(), sz - cam.z()};
+                    double depth = dot(d, fwd);
+                    check(depth > 0.1D, "watch: corner in front of the camera");
+                    double screenX = dot(d, right) / depth /
+                            (tan * 16.0D / 9.0D);
+                    double screenY = dot(d, up) / depth / tan;
+                    double fromLeft = (screenX + 1.0D) / 2.0D;
+                    check(fromLeft > WATCH_PANEL && fromLeft < 1.0D - WATCH_PANEL,
+                            "watch: corner between the side panels: " + fromLeft);
+                    check(Math.abs(screenY) < 0.95D,
+                            "watch: corner inside the frame vertically: " +
+                                    screenY);
+                    check(sz < 0 ? fromLeft < 0.5D : fromLeft > 0.5D,
+                            "watch: RED on the left, BLUE on the right");
+                }
+            }
         }
     }
 

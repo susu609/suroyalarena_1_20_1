@@ -55,7 +55,18 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
         buffer.writeUUID(s.redPlayer());
         buffer.writeBoolean(s.overtime());
         buffer.writeVarInt(s.elixirRate());
-        buffer.writeBoolean(s.spectating());
+        MatchSnapshot.Watch w = s.watch();
+        buffer.writeBoolean(w != null);
+        if (w != null) {
+            buffer.writeVarInt(w.redHand().size());
+            for (String card : w.redHand())
+                buffer.writeUtf(card, 32);
+            buffer.writeUtf(w.redNext(), 32);
+            buffer.writeVarInt(w.redElixir());
+            buffer.writeUtf(w.blueStyle(), 32);
+            buffer.writeUtf(w.redStyle(), 32);
+            buffer.writeVarInt(w.speed());
+        }
     }
 
     public static S2CMatchSnapshotPacket decode(FriendlyByteBuf buffer) {
@@ -91,13 +102,23 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
         UUID redPlayer = buffer.readUUID();
         boolean overtime = buffer.readBoolean();
         int elixirRate = Math.max(1, Math.min(3, buffer.readVarInt()));
-        boolean spectating = buffer.readBoolean();
+        MatchSnapshot.Watch watch = null;
+        if (buffer.readBoolean()) {
+            int redSize = buffer.readVarInt();
+            List<String> redHand = new ArrayList<>(redSize);
+            for (int i = 0; i < redSize; i++)
+                redHand.add(buffer.readUtf(32));
+            watch = new MatchSnapshot.Watch(List.copyOf(redHand),
+                    buffer.readUtf(32), buffer.readVarInt(), buffer.readUtf(32),
+                    buffer.readUtf(32),
+                    Math.max(1, Math.min(2, buffer.readVarInt())));
+        }
         return new S2CMatchSnapshotPacket(
                 new MatchSnapshot(
                         true, matchId, state, side, center, ticks, elixir,
                         List.copyOf(hand), next, towerHp, winner,
                         List.copyOf(pending), bluePlayer, redPlayer, overtime,
-                        elixirRate, spectating));
+                        elixirRate, watch));
     }
 
     public static void handle(S2CMatchSnapshotPacket packet,

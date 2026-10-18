@@ -64,6 +64,7 @@ public final class ServerMatchSession {
     private final List<Bot> bots = new ArrayList<>();
     /** The player watching a bot-versus-bot match, or null. */
     private final UUID spectator;
+    private int speed = 1;
 
     /** A bot and the card its "hand" is carrying to the arena. */
     private static final class Bot {
@@ -181,6 +182,30 @@ public final class ServerMatchSession {
     /** Whether this is a bot-versus-bot match someone watches. */
     public boolean watching() {
         return spectator != null;
+    }
+
+    /** Playback speed of a watched match: 1, or 2 (two ticks per tick). */
+    public int speed() {
+        return speed;
+    }
+
+    /** The spectator switches between normal and double speed. */
+    public void toggleSpeed(MinecraftServer server, UUID playerId) {
+        if (!playerId.equals(spectator) || complete)
+            return;
+        speed = speed == 1 ? 2 : 1;
+        sync(server);
+    }
+
+    /** What the spectator sees of both bots; null for a played side. */
+    private MatchSnapshot.Watch watchFor(TeamSide side) {
+        if (spectator == null || side != TeamSide.BLUE)
+            return null;
+        BotBrain blue = botOf(TeamSide.BLUE);
+        BotBrain red = botOf(TeamSide.RED);
+        return MatchSnapshot.watch(match,
+                blue == null ? "" : blue.personality().displayName(),
+                red == null ? "" : red.personality().displayName(), speed);
     }
 
     /** Every bot plays through the same rules as a player. */
@@ -324,7 +349,7 @@ public final class ServerMatchSession {
                 ModNetwork.sendToPlayer(
                         player, new S2CMatchSnapshotPacket(
                                 MatchSnapshot.from(match, side,
-                                        botOf(side) != null)));
+                                        watchFor(side))));
             }
         }
     }

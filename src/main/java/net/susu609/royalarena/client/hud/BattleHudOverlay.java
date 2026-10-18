@@ -84,6 +84,12 @@ public final class BattleHudOverlay implements IGuiOverlay {
         HudLayout layout = HudLayout.of(screenWidth, screenHeight);
 
         watchPhase();
+        if (ClientMatchState.spectating()) {
+            SpectatorHud.draw(graphics, mc.font, screenWidth, screenHeight);
+            drawTimer(graphics, mc.font, layout);
+            drawBanner(graphics, mc.font, layout);
+            return;
+        }
         drawPanel(graphics, layout);
         drawHand(graphics, mc.font, layout);
         drawNext(graphics, mc.font, layout);
@@ -266,7 +272,11 @@ public final class BattleHudOverlay implements IGuiOverlay {
                 last ? 0xFFFF5555 : 0xFFFFFFFF);
         if (ClientMatchState.spectating())
             text(graphics, font, Component.translatable(
-                            "hud.royalarena.watching").getString(),
+                            "hud.royalarena.watching").getString() + "  x" +
+                            ClientMatchState.watchSpeed() + "  [" +
+                            RoyalArenaKeyMappings.WATCH_SPEED
+                                    .getTranslatedKeyMessage().getString() +
+                            "]",
                     box.centerX(), box.bottom() + 6.0F * u,
                     textScale(layout, 5.0F), 0xFF8FC8FF);
     }
@@ -290,7 +300,7 @@ public final class BattleHudOverlay implements IGuiOverlay {
     }
 
     /** Crowns of {@code side}: destroyed towers of the opponent. */
-    private static int crowns(TeamSide side) {
+    static int crowns(TeamSide side) {
         int count = 0;
         for (TowerId id : TowerId.values()) {
             if (id.side() != side &&

@@ -584,3 +584,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   deploy), `ClientForgeEvents` (no clicks), `BattleHudOverlay` (WATCHING),
   `BotDragRenderer` (a blue hand for the BLUE bot), lang
 - `docs/BOT.md`
+
+## Part 50 — Watching: both hands, side-on camera, x2
+
+- `match/MatchSnapshot.java` (`Watch`: RED's hand, next card and elixir, both
+  personalities, speed), `S2CMatchSnapshotPacket`, protocol 14
+- `client/hud/SpectatorHud.java` (RED panel left, BLUE right),
+  `BattleHudOverlay` (spectator layout, "WATCHING x1 [X]"),
+  `client/camera/ArenaCameraProfile.watch` (high, side-on, yaw -90),
+  `ArenaCameraController`, `client/state/ClientMatchState.java` (both sides)
+- `client/render/BotDragRenderer.java` (ring and card name at the landing
+  spot), `client/input/RoyalArenaKeyMappings.WATCH_SPEED` (X),
+  `network/c2s/C2SWatchSpeedPacket.java`, `MatchManager.toggleWatchSpeed`,
+  `ServerMatchSession` (`speed`, two ticks at x2)
+- `DomainSmokeTest.watchViewFitsBetweenThePanels`; `docs/BOT.md`

@@ -3,6 +3,8 @@ package net.susu609.royalarena.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.Vec3;
@@ -91,9 +93,31 @@ public final class BotDragRenderer {
             DeployPreviewRenderer.ghosts(mc, pose, buffers, d.card(), x,
                     floor, z, d.side(), partial);
             cursor(pose, buffers, event, x, floor + 2.2D, z, color);
+            // Where it will land: a faint ring and the card's name.
+            WorldShapes.disc(pose, buffers, d.toX(), floor + 0.005D, d.toZ(),
+                    radius, color, 0.08F, 0.5F);
+            label(mc, pose, buffers, event, d.card().displayName(), d.toX(),
+                    floor + 2.9D, d.toZ(), color);
         }
         pose.popPose();
         buffers.endBatch();
+    }
+
+    /** A name tag facing the camera, seen through blocks and troops. */
+    private static void label(Minecraft mc, PoseStack pose,
+            MultiBufferSource buffers, RenderLevelStageEvent event,
+            String text, double x, double y, double z, int color)
+    {
+        pose.pushPose();
+        pose.translate(x, y, z);
+        pose.mulPose(event.getCamera().rotation());
+        pose.scale(-0.035F, -0.035F, 0.035F);
+        Font font = mc.font;
+        font.drawInBatch(text, -font.width(text) / 2.0F, 0.0F,
+                0xFF000000 | color, false, pose.last().pose(), buffers,
+                Font.DisplayMode.SEE_THROUGH, 0x60000000,
+                LightTexture.FULL_BRIGHT);
+        pose.popPose();
     }
 
     /** An arrow cursor pointing down, always facing the camera. */
