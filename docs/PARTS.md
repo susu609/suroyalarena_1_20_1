@@ -512,3 +512,16 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   cracking, poison, frost, Blaze in the river, Vex charge, Guardian lock,
   Creeper hiss, Ravager roar, Slime and Magma Cube split
 - `SoundCuesSmokeTest`; `docs/SOUND_DESIGN.md`, `docs/CONFIG.md`
+
+## Part 44 — TNT reach, menu hint, tutorial switch
+
+- `card/SpellStats.java` (`middleReach`), `card/BattleCard.java` (TNT),
+  `arena/ArenaLayout.java` (`reachesMiddle`, `nearestReach`, `canPlay`),
+  `bot/BotBrain.java` (aims at the nearest row TNT reaches),
+  `client/screen/DeckScreen.java` (tooltip), `cards/tnt.json` (`reach`)
+- `client/hud/BattleHudOverlay.java` (`drawMenuHint`),
+  `ArenaClientConfig.MENU_HINT`, `lang/en_us.json`
+- `SpellSmokeTest.tntReachesOnlyTheMiddleOfTheBridge`; TNT stays at 47% in
+  the bot balance report (4000 matches), same as before
+- `build.gradle` sets `sumodlib.noTutorial` on the dev client; the switch
+  itself is `client/Tutorials.java` in sumodlib

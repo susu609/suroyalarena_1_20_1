@@ -202,22 +202,39 @@ public final class ArenaLayout {
     }
 
     /**
-     * Where a card may be played: a troop on the player's own deploy area, a
-     * spell anywhere on the arena.
-     */
-    /**
-     * Spells land anywhere on the arena; troops on their own half, and the
-     * ones that may (Drowned) also on the river.
+     * Spells land anywhere on the arena, except one with a limited reach
+     * (TNT: up to the middle of the bridge); troops on their own half, and
+     * the ones that may (Drowned) also on the river.
      */
     public boolean canPlay(TeamSide side, BattleCard card, int worldX,
             int worldZ)
     {
         if (card.isSpell())
-            return contains(worldX, worldZ);
+            return contains(worldX, worldZ) &&
+                    (!card.spell().middleReach() ||
+                            reachesMiddle(side, worldZ));
         if (canDeploy(side, worldX, worldZ))
             return true;
         return card.stats().traits().deployOnRiver() &&
                 contains(worldX, worldZ) && isRiver(worldZ);
+    }
+
+    /**
+     * Whether a spell with a limited reach (TNT) can land on this row: the
+     * side's own half and its half of the river, up to the middle of the
+     * bridge.
+     */
+    public boolean reachesMiddle(TeamSide side, int worldZ) {
+        return side == TeamSide.BLUE ? worldZ >= center.z() :
+                worldZ < center.z();
+    }
+
+    /** The row nearest {@code worldZ} that a spell of this card can reach. */
+    public int nearestReach(TeamSide side, BattleCard card, int worldZ) {
+        if (!card.isSpell() || !card.spell().middleReach())
+            return worldZ;
+        return side == TeamSide.BLUE ? Math.max(worldZ, center.z()) :
+                Math.min(worldZ, center.z() - 1);
     }
 
     public ArenaBox deployArea(TeamSide side) {

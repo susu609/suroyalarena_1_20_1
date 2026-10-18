@@ -17,17 +17,31 @@ package net.susu609.royalarena.card;
  * @param heal        the spell heals its caster's own troops by
  *                    {@code damagePerPulse} each pulse instead of hurting
  *                    the enemy (Potion of Healing)
+ * @param middleReach the spell can be cast only on the caster's own half
+ *                    and the river up to the middle of the bridge, not on
+ *                    the enemy half (TNT)
  */
 public record SpellStats(double radius, int castTicks, int pulses,
                          int pulseInterval, double damagePerPulse,
                          double towerMultiplier, double knockback,
                          double burnPerSecond, int burnTicks, int maxTargets,
-                         int stunTicks, int freezeTicks, boolean heal)
+                         int stunTicks, int freezeTicks, boolean heal,
+                         boolean middleReach)
 {
     /** Spells deal this share of their damage to towers (balance.json). */
     public static final double TOWER_MULTIPLIER = 0.3D;
     /** A second of a target frozen or stunned counts as this much damage. */
     public static final double CONTROL_VALUE_PER_SECOND = 2.0D;
+
+    public SpellStats(double radius, int castTicks, int pulses,
+            int pulseInterval, double damagePerPulse, double towerMultiplier,
+            double knockback, double burnPerSecond, int burnTicks, int maxTargets,
+            int stunTicks, int freezeTicks, boolean heal)
+    {
+        this(radius, castTicks, pulses, pulseInterval, damagePerPulse,
+                towerMultiplier, knockback, burnPerSecond, burnTicks,
+                maxTargets, stunTicks, freezeTicks, heal, false);
+    }
 
     public SpellStats(double radius, int castTicks, int pulses,
             int pulseInterval, double damagePerPulse, double towerMultiplier,

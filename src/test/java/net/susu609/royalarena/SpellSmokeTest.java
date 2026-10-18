@@ -34,6 +34,7 @@ public final class SpellSmokeTest {
         healingPotionHealsOwnTroops();
         freezeStopsTroopsAndTowers();
         tntHitsHardAndPushesFar();
+        tntReachesOnlyTheMiddleOfTheBridge();
         System.out.println("RoyalArena spell smoke tests: PASS");
     }
 
@@ -366,6 +367,29 @@ public final class SpellSmokeTest {
         siegeEngine.tick();
         check(siege.tower(TowerId.RED_LEFT).health() == 110 - 15,
                 "TNT deals half its damage to towers");
+    }
+
+    private static void tntReachesOnlyTheMiddleOfTheBridge() {
+        ArenaLayout arena = battle().arena();
+        check(arena.canPlay(TeamSide.BLUE, BattleCard.TNT, 0, 8) &&
+                arena.canPlay(TeamSide.BLUE, BattleCard.TNT, 0, 1) &&
+                arena.canPlay(TeamSide.BLUE, BattleCard.TNT, 0, 0),
+                "BLUE TNT lands on its half and up to the middle of the bridge");
+        check(!arena.canPlay(TeamSide.BLUE, BattleCard.TNT, 0, -1) &&
+                !arena.canPlay(TeamSide.BLUE, BattleCard.TNT, 0, -8) &&
+                !arena.canPlay(TeamSide.BLUE, BattleCard.TNT, 0, -12),
+                "BLUE TNT cannot land past the middle of the bridge");
+        check(arena.canPlay(TeamSide.RED, BattleCard.TNT, 0, -8) &&
+                arena.canPlay(TeamSide.RED, BattleCard.TNT, 0, -1) &&
+                !arena.canPlay(TeamSide.RED, BattleCard.TNT, 0, 0) &&
+                !arena.canPlay(TeamSide.RED, BattleCard.TNT, 0, 8),
+                "RED TNT is the mirror image");
+        check(arena.canPlay(TeamSide.BLUE, BattleCard.FIREBALL, 0, -12),
+                "other spells still reach the whole arena");
+        check(arena.nearestReach(TeamSide.BLUE, BattleCard.TNT, -9) == 0 &&
+                arena.nearestReach(TeamSide.RED, BattleCard.TNT, 9) == -1 &&
+                arena.nearestReach(TeamSide.BLUE, BattleCard.FIREBALL, -9) == -9,
+                "a bot aims at the nearest row TNT reaches");
     }
 
     private static void near(double actual, double expected, String name) {

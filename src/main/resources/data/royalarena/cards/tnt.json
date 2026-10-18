@@ -8,5 +8,6 @@
   "travel_ticks": 30,
   "damage": 30,
   "knockback": 2.0,
+  "reach": "bridge_middle",
   "tower_multiplier": 0.5
 }

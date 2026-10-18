@@ -42,6 +42,7 @@ panel, increase `lookAhead`.
 	damageNumbers = true   # damage and healing numbers over troops and towers
 	teamRings = true       # a blue or red ring under every troop
 	battleMusic = true     # the Pigstep disc on the Music volume while a battle runs
+	menuHint = true        # "Press M to open Royal Arena" in the top left corner outside a match
 ```
 
 ## `royalarena-common.toml`: troops, bot, debug

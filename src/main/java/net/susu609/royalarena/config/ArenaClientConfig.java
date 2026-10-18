@@ -65,6 +65,11 @@ public final class ArenaClientConfig {
                     "while a battle runs.")
             .define("battleMusic", true);
 
+    public static final ForgeConfigSpec.BooleanValue MENU_HINT = BUILDER
+            .comment("A reminder in the top left corner, outside a match, " +
+                    "of the key that opens the Royal Arena screen.")
+            .define("menuHint", true);
+
     static {
         BUILDER.pop();
     }

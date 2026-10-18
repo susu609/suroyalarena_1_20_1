@@ -1,18 +1,22 @@
 package net.susu609.royalarena.client.hud;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.hud.HudLayout.Rect;
+import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.screen.ResultScreen;
 import net.susu609.royalarena.client.state.ClientMatchState;
+import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.MatchState;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
@@ -69,9 +73,11 @@ public final class BattleHudOverlay implements IGuiOverlay {
     public void render(ForgeGui gui, GuiGraphics graphics, float partialTick,
             int screenWidth, int screenHeight)
     {
-        if (!ClientMatchState.active())
-            return;
         Minecraft mc = Minecraft.getInstance();
+        if (!ClientMatchState.active()) {
+            drawMenuHint(graphics, mc);
+            return;
+        }
         // The result screen shows the end of the match on its own.
         if (mc.screen instanceof ResultScreen)
             return;
@@ -86,6 +92,22 @@ public final class BattleHudOverlay implements IGuiOverlay {
         drawCrowns(graphics, mc.font, layout);
         drawBanner(graphics, mc.font, layout);
         CrownFlights.draw(graphics, layout);
+    }
+
+    /**
+     * Outside a match, with no screen open: a small reminder in the top left
+     * corner of which key opens the Royal Arena screen.
+     */
+    private static void drawMenuHint(GuiGraphics graphics, Minecraft mc) {
+        if (!ArenaClientConfig.MENU_HINT.get() || mc.player == null ||
+                mc.screen != null || mc.options.renderDebug)
+            return;
+        Component key = RoyalArenaKeyMappings.OPEN_MATCHING
+                .getTranslatedKeyMessage().copy()
+                .withStyle(ChatFormatting.YELLOW);
+        graphics.drawString(mc.font,
+                Component.translatable("hud.royalarena.open_hint", key), 6, 6,
+                0xFFFFFF, true);
     }
 
     /** Shows a short banner when the elixir rate or overtime changes. */

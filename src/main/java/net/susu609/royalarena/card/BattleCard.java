@@ -120,7 +120,7 @@ public enum BattleCard {
                     0.0D, 0.0D, 0, 0, 0, 80, false)),
     TNT("TNT", 5, "minecraft:tnt",
             new SpellStats(3.0D, 30, 1, 1, 30.0D, 0.5D, 2.0D, 0.0D, 0, 0, 0,
-                    0, false));
+                    0, false, true));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;

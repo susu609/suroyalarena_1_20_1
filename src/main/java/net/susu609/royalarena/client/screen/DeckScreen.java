@@ -516,6 +516,8 @@ public final class DeckScreen extends Screen {
             if (s.freezeTicks() > 0)
                 lines.add(line("Freezes troops and towers for %.0f s",
                         s.freezeTicks() / 20.0D));
+            if (s.middleReach())
+                lines.add(line("Reaches only to the middle of the bridge"));
             if (s.knockback() > 0)
                 lines.add(line("Knocks back %.1f block", s.knockback()));
             if (s.burnTicks() > 0)

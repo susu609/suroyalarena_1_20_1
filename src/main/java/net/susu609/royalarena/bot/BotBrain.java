@@ -170,7 +170,8 @@ public final class BotBrain {
             }
             for (int[] aim : aims) {
                 int x = clamp(aim[0], arena.minX(), arena.maxX());
-                int z = clamp(aim[1], arena.minZ(), arena.maxZ());
+                int z = arena.nearestReach(side, card,
+                        clamp(aim[1], arena.minZ(), arena.maxZ()));
                 double value = spellValue(match, engine, card, x + 0.5D,
                         z + 0.5D);
                 if (value >= needed && value > bestValue) {
