@@ -60,7 +60,7 @@ public final class NewMobsSmokeTest {
         check(first.teleports().size() == 1 &&
                 first.teleports().get(0).unit().equals(ender.id()),
                 "the Enderman teleports away from a Fireball");
-        near(ender.health(), 58.0D, "and takes no damage");
+        near(ender.health(), BattleCard.ENDERMAN.stats().health(), "and takes no damage");
         TickResult.Teleport to = first.teleports().get(0);
         double moved = Math.hypot(to.x() - 0.5D, to.z() - 1.0D);
         check(moved > 3.5D, "it steps several blocks away: " + moved);
@@ -75,7 +75,7 @@ public final class NewMobsSmokeTest {
                 ender.z());
         TickResult second = engine.tick();
         check(second.teleports().isEmpty(), "no second dodge during the cooldown");
-        near(ender.health(), 33.0D, "the Fireball hits it: 58 - 25");
+        near(ender.health(), 43.0D, "the Fireball hits it: 68 - 25");
 
         // Once the cooldown is over it dodges again (the burn ticks on meanwhile).
         for (int i = 0; i < 160; i++)
@@ -100,7 +100,7 @@ public final class NewMobsSmokeTest {
                 a -> zombie.id().equals(a.attackerUnit())),
                 "the zombie strikes the Enderman");
         check(result.teleports().isEmpty(), "a blow is not dodged");
-        check(ender.health() < 58.0D, "and it takes the damage");
+        check(ender.health() < BattleCard.ENDERMAN.stats().health(), "and it takes the damage");
     }
 
     private static void caveSpiderPoisons() {

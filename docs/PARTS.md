@@ -545,3 +545,13 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `server/battle/BattleField.java` (an angry Bee face on its sting)
 - `MobsWave2SmokeTest.beeStingsAgainAndPoisons`, `DeckSmokeTest` (Big Slime
   health 108, starter deck average 26/8); `docs/CARDS.md`, `docs/COMBAT.md`
+
+## Part 47 — Range and body tuning, smarter healing
+
+- `card/BattleCard.java` and the JSON files: Ghast and Skeleton Archer range
+  5.0, Husk 3 x 13 HP (slow 2 s, speed 1.0), Hoglin 50/10, Enderman 68 HP
+  (teleport every 5 s), Evoker range 4.5
+- `bot/BotBrain.java` (`fighting`, `HEAL_BELOW`): the healing potion only goes
+  on fighting troops at 70% health or less
+- Tests: `SpellSmokeTest` (Hoglin 50 - 40), `NewMobsSmokeTest` (Enderman
+  health from the card), `MobsWave2SmokeTest` (rider range 5.0)

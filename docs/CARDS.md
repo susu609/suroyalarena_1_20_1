@@ -17,7 +17,7 @@ Move speed is in blocks per second.
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Elixir |
 |---|---|---|---|---|---|---|---|---|
 | Zombie | `minecraft:zombie` | 2 | 20 | 3 | 1.0 | 1.2 | 0.83 | **3** |
-| Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 5.5 | 1.0 | **2** |
+| Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 5.0 | 1.0 | **2** |
 | Spider | `minecraft:spider` | 4 | 10 | 2 | 1.0 | 1.2 | 1.5 | **3** |
 | Skeletons | `minecraft:skeleton` (bare hands) | 3 | 11 | 1.5 | 0.9 | 1.2 | 1.33 | **2** |
 | Big Slime | `minecraft:slime` | 1 | 36 | 5 | 1.4 | 1.2 | 0.75 | **4** |
@@ -133,7 +133,7 @@ target, and enemy towers whose footprint does (`TroopTraits`,
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Trait | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
-| Hoglin | `minecraft:hoglin` | 1 | 45 | 8 | 1.4 | 1.2 | 1.6 | charges the towers, ignores troops | **3** |
+| Hoglin | `minecraft:hoglin` | 1 | 50 | 10 | 1.4 | 1.2 | 1.6 | charges the towers, ignores troops | **3** |
 | Pillager | `minecraft:pillager` (crossbow) | 1 | 30 | 8 | 2.0 | 6.5 | 1.0 | long range, charges its crossbow | **3** |
 | Magma Cube | `minecraft:magma_cube` | 1 | 36 | 7 | 1.4 | 1.2 | 0.83 | splits once into 2 (18 HP, 3.5 damage) | **4** |
 
@@ -194,10 +194,10 @@ health scale like the rest. Elixir comes from `CostFormula`, and the band
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
-| Enderman | `minecraft:enderman` | 1 | 58 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 8 s; a blow is not dodged | **4** |
+| Enderman | `minecraft:enderman` | 1 | 68 | 6 | 1.2 | 1.2 | 1.0 | teleports out of a ranged shot or a spell that would hit it, 4.5 blocks away, once every 5 s; a blow is not dodged | **4** |
 | Cave Spider | `minecraft:cave_spider` | 4 | 6 | 2 | 1.0 | 1.2 | 1.6 | each bite poisons for 3 s at 1 a second (pale green drips); a new bite replaces the poison, so the cost counts the 1 a bite adds before the next | **3** |
 | Vex | `minecraft:vex` | 3 | 4 | 16 | 1.0 | 1.2 | 2.0 | dies when it strikes: one big blow and gone | **2** |
-| Ghast | `minecraft:ghast` | 1 | 33 | 19 | 3.0 | 5.5 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **5** |
+| Ghast | `minecraft:ghast` | 1 | 33 | 19 | 3.0 | 5.0 | 0.35 | slow, long-ranged fireball with a 1.5 blast; range stays under the Princess tower (7) | **5** |
 | Drowned | `minecraft:drowned` | 1 | 22 | 4 | 2.0 | 5.0 | 1.0 | trident from 5 blocks; may also be played on the river | **2** |
 | Zombified Piglin | `minecraft:zombified_piglin` | 2 | 26 | 4 | 1.2 | 1.2 | 0.9 | a tougher Zombie: more health and hits harder, golden sword | **3** |
 | Blaze | `minecraft:blaze` | 1 | 30 | 8 | 2.0 | 6.0 | 1.0 | hovers 1.5 blocks up; crosses the river anywhere (no bridge); frost weakness: Freeze and frost hits (Stray arrows, snowballs) hurt it twice as hard, Freeze holds it twice as long; water weakness: 1.5x damage while on the river | **3** |
@@ -218,6 +218,12 @@ formula, and was measured over 2000-4000 matches.
 | Freeze | 4 -> 3 elixir, damage 4 -> 8 | A 6 s freeze won no more than 4 s, so a second of freeze now costs 2 instead of 4 in the spell formula. The bot also only counts a freeze on enemies fighting its own troops or towers (`docs/BOT.md`). | 24% -> 44% |
 | Enderman | HP 50 -> 58 (still 4) | Was at the low edge. | 42% -> 48% |
 | Ghast (again) | HP 28 -> 33, damage 22 -> 19 (still 5) | Back at 59-60% after later changes; the HP-damage swap keeps the cost and makes it a bit easier to kill. | 60% -> 57% |
+| Ghast, Skeleton Archer | range 5.5 -> 5.0 (still 5 and 2) | The user's pick: the Princess tower (7) now outranges them by 2. The Spider Jockey's rider shoots 5.0 too. | 60% -> 55%, 59% -> 55% |
+| Husk | 2 x 18 HP, 3 dmg -> 3 x 13 HP, 2.5 dmg; slow 1 s -> 2 s; speed 0.83 -> 1.0 (still 3) | The user's pick (more, smaller bodies). The body swap alone moved it 41% -> 42%; the longer slow and walking speed (both formula-neutral) did the rest. | 41% -> 45% |
+| Hoglin | HP 45 -> 50, damage 8 -> 10 (still 3, raw 3.27) | Slowing it to 1.33 made it arrive under 60% health (`tanksReachTheTowerHealthy`), so it keeps 1.6 and gets the room the formula had. | 43% -> 44% |
+| Enderman | HP 58 -> 68, teleport every 8 s -> 5 s (still 4) | The formula left room (raw 3.78 -> 4.09); the cooldown is formula-neutral. | 43% -> 50% |
+| Evoker | range 5.0 -> 4.5 (still 4) | Rose to 59% once the archers lost range. | 59% -> 56% |
+| Potion of Healing | no stat change: the bot heals only troops that are fighting and at 70% health or less (`docs/BOT.md`) | It was thrown on troops walking in the back. | 43% -> 45% |
 | Cave Spider | HP 5 -> 6, bite 1 -> 1.5 (still 3) | The formula counted the full 3 poison per bite, but a new bite replaces the poison, so a bite adds 1. Now counted right, which left room for more. It deals the least damage per elixir of any troop. | 44% -> 43% |
 | Creeper | speed 1.33 -> 1.6 (still 3) | Already counted as fast in the formula; reaching its target sooner is free. HP did nothing. | 45% -> 43% |
 
@@ -231,14 +237,14 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
-| Husk | `minecraft:husk` | 2 | 18 | 3 | 1.0 | 1.2 | 0.83 | its hit slows for 1 s (hunger) | **3** |
+| Husk | `minecraft:husk` | 3 | 13 | 2.5 | 1.0 | 1.2 | 1.0 | its hit slows for 2 s (hunger) | **3** |
 | Wither Skeleton | `minecraft:wither_skeleton` | 1 | 38 | 10 | 1.6 | 1.5 | 1.0 | stone sword; withers: 1.5 a second for 3 s (black dust) | **3** |
 | Piglin Brute | `minecraft:piglin_brute` | 1 | 60 | 14 | 1.8 | 1.2 | 1.0 | golden axe: big, slow blows | **4** |
 | Polar Bear | `minecraft:polar_bear` | 1 | 76 | 7 | 1.2 | 1.2 | 1.0 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **4** |
 | Phantom | `minecraft:phantom` | 1 | 34 | 6 | 1.0 | 1.2 | 2.0 | flies 2 blocks up straight over the river and only goes for towers | **3** |
 | Silverfish | `minecraft:silverfish` | 5 | 4 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
 | Bee | `minecraft:bee` | 5 | 4 | 1 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once a second, each sting poisons 1 a second for 3 s; turns angry (vanilla angry face) on its first sting | **2** |
-| Evoker | `minecraft:evoker` | 1 | 30 | 10 | 2.0 | 5.0 | 0.8 | fangs bite every enemy on a 1.2 wide line from it through its target | **4** |
+| Evoker | `minecraft:evoker` | 1 | 30 | 10 | 2.0 | 4.5 | 0.8 | fangs bite every enemy on a 1.2 wide line from it through its target | **4** |
 | Guardian | `minecraft:guardian` | 1 | 46 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **4** |
 | Zombie Villager | `minecraft:zombie_villager` | 5 | 9 | 2 | 1.2 | 1.2 | 0.8 | a big, weak swarm: each one is far weaker than a Zombie, five of them together are not (model 0.85) | **3** |
 | Spider Jockey | `minecraft:spider` | 1 | 41 | 3 | 1.0 | 4.5 | 1.4 | one unit: a Skeleton on a Spider (model 0.9), sturdier than the four-Spider card; shoots from the saddle, and when the spider dies the Skeleton stays as a Skeleton Archer (20 health, range 5.5) | **4** |

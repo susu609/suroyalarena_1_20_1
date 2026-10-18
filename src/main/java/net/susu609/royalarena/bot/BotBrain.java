@@ -52,6 +52,8 @@ public final class BotBrain {
     public static final int DRAG_TICKS = 14;
     /** Enemy health a spell must take off, per elixir it costs. */
     public static final double SPELL_VALUE_PER_ELIXIR = 8.0D;
+    /** A healing potion is only worth it on troops at or under this share. */
+    private static final double HEAL_BELOW = 0.7D;
     /** Blocks past a range at which an enemy still counts as fighting. */
     private static final double ENGAGED_MARGIN = 2.0D;
 
@@ -205,9 +207,14 @@ public final class BotBrain {
             if (Math.hypot(unit.x() - x, unit.z() - z) >
                     spell.radius() + unit.radius())
                 continue;
-            if (spell.heal())
-                values.add(Math.min(unit.maxHealth() - unit.health(),
-                        perTarget));
+            if (spell.heal()) {
+                // Health only matters to a troop that is fighting now and
+                // has lost a good share of it.
+                if (fighting(match, engine, unit) &&
+                        unit.health() <= unit.maxHealth() * HEAL_BELOW)
+                    values.add(Math.min(unit.maxHealth() - unit.health(),
+                            perTarget));
+            }
             else
                 values.add(Math.min(unit.health(), perTarget) +
                         (engaged(match, engine, unit) ? seconds *
@@ -235,6 +242,32 @@ public final class BotBrain {
         for (int i = 0; i < count; i++)
             value += values.get(i);
         return value;
+    }
+
+    /**
+     * Whether an own troop is fighting: an enemy troop or tower is within its
+     * range or the enemy's own, give or take {@link #ENGAGED_MARGIN}.
+     */
+    private boolean fighting(MatchInstance match, CombatEngine engine,
+            CombatUnit own)
+    {
+        double reach = own.stats().range() + ENGAGED_MARGIN;
+        for (CombatUnit enemy : engine.units()) {
+            if (enemy.side() == side || !enemy.alive())
+                continue;
+            double edge = Math.hypot(own.x() - enemy.x(),
+                    own.z() - enemy.z()) - own.radius() - enemy.radius();
+            if (edge <= Math.max(reach, enemy.stats().range() + ENGAGED_MARGIN))
+                return true;
+        }
+        for (TowerId id : TowerId.values()) {
+            if (id.side() != side && !match.tower(id).isDestroyed() &&
+                    match.arena().distanceToTower(own.x(), own.z(), id) -
+                            own.radius() <= Math.max(reach,
+                            id.kind().range() + ENGAGED_MARGIN))
+                return true;
+        }
+        return false;
     }
 
     /**

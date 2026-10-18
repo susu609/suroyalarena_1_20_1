@@ -9,13 +9,13 @@
   "model_scale": 1.0,
   "count": 1,
   "unit": {
-    "health": 58,
+    "health": 68,
     "damage": 6,
     "attack_interval_ticks": 24,
     "range": 1.2,
     "move_speed": 1.0,
     "targets": "ground",
-    "teleport_cooldown_ticks": 160,
+    "teleport_cooldown_ticks": 100,
     "flying": false
   }
 }

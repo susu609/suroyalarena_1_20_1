@@ -36,7 +36,8 @@ It thinks every 10 ticks and never plays twice within 40 ticks.
   of the bot's own troops' range (+2 blocks) of an own troop or tower. Freeze
   can also go on an enemy tower while own troops stand in its range; the
   tower's missed shots count. Lightning counts only its 3 strongest targets,
-  and a healing potion goes on its own damaged troops (the health it would
+  and a healing potion goes on its own damaged troops that are fighting (an
+  enemy troop or tower within reach) and at 70% health or less (the health it would
   give back).
 - **Attack.** Otherwise, once it has 7 elixir, it plays a random affordable
   troop card near the back of the lane whose enemy Princess tower is weaker (or the

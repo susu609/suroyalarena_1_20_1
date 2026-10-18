@@ -93,8 +93,8 @@ public final class MobsWave2SmokeTest {
                 rider.generation() == 1 && rider.invulnerableTicks() > 0,
                 "full health, same side, a short moment of safety");
         CombatUnit archer = engine.add(UUID.randomUUID(), rider);
-        check(archer.stats().range() == 5.5D && archer.stats().split() == null,
-                "the archer shoots from 5.5 blocks and never splits again");
+        check(archer.stats().range() == 5.0D && archer.stats().split() == null,
+                "the archer shoots from 5 blocks and never splits again");
     }
 
     private static void polarBearIgnoresFrost() {

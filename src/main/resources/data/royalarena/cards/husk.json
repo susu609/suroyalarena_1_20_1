@@ -7,15 +7,15 @@
   "elixir": 3,
   "entity": "minecraft:husk",
   "model_scale": 1.0,
-  "count": 2,
+  "count": 3,
   "unit": {
-    "health": 18,
-    "damage": 3,
+    "health": 13,
+    "damage": 2.5,
     "attack_interval_ticks": 20,
     "range": 1.2,
-    "move_speed": 0.83,
+    "move_speed": 1.0,
     "targets": "ground",
-    "slow_ticks": 20,
+    "slow_ticks": 40,
     "flying": false
   }
 }
