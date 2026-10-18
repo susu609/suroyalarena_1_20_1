@@ -51,7 +51,8 @@ public final class MatchManager {
         if (blue == red || isInMatch(blue.getUUID()) ||
                 isInMatch(red.getUUID()))
             return false;
-        return launch(blue.getServer(), blue.getUUID(), red.getUUID(), false);
+        return launch(blue.getServer(), blue.getUUID(), red.getUUID(), false,
+                false);
     }
 
     /**
