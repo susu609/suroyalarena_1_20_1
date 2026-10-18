@@ -101,6 +101,7 @@ https://susu609.github.io/suroyalarena_1_20_1/. See `docs/stats/README.md`.
 
 ```
 value  = damagePerTarget + (stun + freeze seconds) * 2
+         + slow seconds * 1 + haste seconds * 1
 share  = min(1, maxTargets / 4)        (1 when the spell hits everything)
 elixir = round(1 + value * radius * share / spell_cost_divisor)
 spell_cost_divisor = 20.8
@@ -110,7 +111,11 @@ The divisor is anchored on a 4-elixir fireball (325 damage, radius 2.5 in the
 reference data, i.e. 270 / 13). Burn damage is not counted. A second of
 freeze or stun is worth 2 damage per target; healing counts like damage. (It
 was 4, but in bot matches a 6 s Freeze won no more than a 4 s one: stopping
-troops is worth less than hurting them.)
+troops is worth less than hurting them.) A second of a target slowed (a web:
+60% slower walk, half-speed attack) or of an own troop hastened is worth 1,
+half a second of freeze; a slow lasts from the first pulse to its slow time
+after the last. Poison (Poison Cloud) counts as damage at 1x. Flight time,
+tower share and burn are not counted, so they are free levers.
 
 | Spell | Damage per target | Radius | Raw | Elixir |
 |---|---|---|---|---|
@@ -120,9 +125,14 @@ troops is worth less than hurting them.)
 | Potion of Healing | 16 healing | 3.0 | 3.31 | 3 |
 | Freeze | 8 + 4 s freeze (16) | 3.0 | 3.31 | 3 |
 | TNT | 30 | 3.0 | 5.33 | 5 |
+| Poison Cloud | 12 poison | 3.8 | 3.19 | 3 |
+| Cobweb | 5.75 s slow | 3.5 | 1.97 | 2 |
+| Swiftness Potion | 6 s haste | 3.5 | 2.01 | 2 |
+| Snowball Volley | 6 + 1.5 s slow (7.5) | 2.5 | 1.90 | 2 |
 
-Spells deal 30% damage to towers (`spell_tower_damage_multiplier`); TNT
-deals 50%, and a healing potion never touches towers. TNT can be cast only on
+Spells deal 30% damage to towers (`spell_tower_damage_multiplier`); Arrow
+Storm and TNT deal 50%, Lightning 45%, Freeze 80%, and a healing potion,
+Swiftness, Cobweb and Poison Cloud never touch towers. TNT can be cast only on
 the caster's own half and up to the middle of the bridge
 (`SpellStats.middleReach`), so it defends and cannot be thrown at an enemy
 tower; the formula does not count reach.

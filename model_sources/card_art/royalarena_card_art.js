@@ -61,6 +61,10 @@
         'healing_potion': 3,
         'freeze': 3,
         'tnt': 5,
+        'poison_cloud': 3,
+        'cobweb': 2,
+        'swiftness_potion': 2,
+        'snowball_volley': 2,
     };
     const CARD_IDS = Object.keys(CARDS);
 

@@ -62,6 +62,10 @@ public final class BotBrain {
     public static final int DRAG_TICKS = 14;
     /** Enemy health a spell must take off, per elixir it costs. */
     public static final double SPELL_VALUE_PER_ELIXIR = 8.0D;
+    /** Share of its damage per second a hastened troop adds. */
+    private static final double HASTE_ATTACK = 0.75D;
+    /** Share of its damage per second a slowed (webbed) troop loses. */
+    private static final double WEB_ATTACK = 0.5D;
     /** A healing potion is only worth it on troops at or under this share. */
     private static final double HEAL_BELOW = 0.7D;
     /** Opponent elixir (tenths) at or under which a cheap attack punishes. */
@@ -335,7 +339,8 @@ public final class BotBrain {
             ArenaPoint at = arena.towerPoint(id);
             for (int slot = 0; slot < BattleDeck.HAND_SIZE; slot++) {
                 BattleCard card = hand.get(slot);
-                if (!card.isSpell() || card.spell().heal() ||
+                if (!card.isSpell() || card.spell().friendly() ||
+                        card.spell().towerMultiplier() <= 0.0D ||
                         card.spell().damagePerPulse() <= 0.0D ||
                         !me.elixir().canSpend(card.cost()) ||
                         !arena.canPlay(side, card, at.x(), at.z()) ||
@@ -359,7 +364,10 @@ public final class BotBrain {
             BattleCard card, double x, double z)
     {
         TeamSide enemy = side.opponent();
-        if (card.spell().heal() || engine.kingAwake(enemy))
+        // Only a hit that takes health off wakes the King.
+        if (card.spell().friendly() || card.spell().poison() ||
+                card.spell().damagePerPulse() * card.spell().towerMultiplier()
+                        <= 0.0D || engine.kingAwake(enemy))
             return false;
         return match.arena().distanceToTower(x, z, TowerId.king(enemy)) <=
                 card.spell().radius();
@@ -404,10 +412,14 @@ public final class BotBrain {
             if (!card.isSpell() || !me.elixir().canSpend(card.cost()))
                 continue;
             double needed = card.cost() * SPELL_VALUE_PER_ELIXIR;
-            boolean heal = card.spell().heal();
+            // A spell that deals nothing (Cobweb, Swiftness) only pays off
+            // in a big fight: it waits for half as much again.
+            if (card.spell().damagePerPulse() <= 0.0D)
+                needed *= 1.5D;
+            boolean heal = card.spell().friendly();
             List<int[]> aims = new ArrayList<>();
             for (CombatUnit aim : engine.units()) {
-                // A healing potion goes on own troops, the rest on enemies.
+                // Healing and Swiftness go on own troops, the rest on enemies.
                 if ((aim.side() == side) != heal || !aim.alive())
                     continue;
                 // Enemies walk toward this side (own troops away from it)
@@ -452,7 +464,11 @@ public final class BotBrain {
      * this side the damage the unit does not deal meanwhile (only the
      * strongest few for a spell with {@code maxTargets}), plus the shots a
      * frozen enemy tower does not fire at own troops; or the health a
-     * healing potion would give back to own troops. 0 below 2 targets.
+     * healing potion would give back to own troops. Poison counts by what
+     * each target is made of; a slow (Cobweb, Snowball Volley) is worth its
+     * seconds on an enemy that has crossed to this side; Swiftness is worth
+     * a third of the damage per second of each own troop that is fighting,
+     * for as long as it lasts, plus the walk it saves. 0 below 2 targets.
      */
     private double spellValue(MatchInstance match, CombatEngine engine,
             BattleCard card, double x, double z)
@@ -462,12 +478,30 @@ public final class BotBrain {
         double seconds = Math.max(spell.freezeTicks(), spell.stunTicks()) /
                 20.0D;
         List<Double> values = new ArrayList<>();
+        double slowSeconds = spell.slowTicks() <= 0 ? 0.0D :
+                (spell.durationTicks() + spell.slowTicks()) / 20.0D;
+        double hasteSeconds = spell.hasteTicks() / 20.0D;
         for (CombatUnit unit : engine.units()) {
-            if ((unit.side() == side) != spell.heal() || !unit.alive())
+            if ((unit.side() == side) != spell.friendly() || !unit.alive())
                 continue;
             if (Math.hypot(unit.x() - x, unit.z() - z) >
                     spell.radius() + unit.radius())
                 continue;
+            double dps = unit.stats().damage() * 20.0D /
+                    unit.stats().attackTicks();
+            if (hasteSeconds > 0.0D) {
+                // Only troops already in a fight gain from it.
+                if (fighting(match, engine, unit))
+                    values.add(hasteSeconds * dps * HASTE_ATTACK);
+                continue;
+            }
+            if (spell.poison()) {
+                BattleCard of = BattleCard.forStats(unit.stats());
+                double factor = of == null ? 1.0D : of.body().poisonFactor();
+                if (factor > 0.0D)
+                    values.add(Math.min(unit.health(), perTarget * factor));
+                continue;
+            }
             if (spell.heal()) {
                 // Health only matters to a troop that is fighting now and
                 // has lost a good share of it.
@@ -478,9 +512,9 @@ public final class BotBrain {
             }
             else
                 values.add(Math.min(unit.health(), perTarget) +
-                        (engaged(match, engine, unit) ? seconds *
-                                unit.stats().damage() * 20.0D /
-                                unit.stats().attackTicks() : 0.0D));
+                        (engaged(match, engine, unit) ? seconds * dps : 0.0D) +
+                        (slowSeconds > 0.0D && engaged(match, engine, unit) ?
+                                slowSeconds * dps * WEB_ATTACK : 0.0D));
         }
         if (seconds > 0.0D) {
             for (TowerId id : TowerId.values()) {

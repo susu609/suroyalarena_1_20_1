@@ -253,6 +253,14 @@ public final class CombatSmokeTest {
         if (json.contains("\"knockback\""))
             near(number(json, "knockback"), s.knockback(), id + " knockback");
         check(s.heal() == json.contains("heal_per_pulse"), id + " heals");
+        near(json.contains("\"slow_ticks\"") ? number(json, "slow_ticks") : 0.0D,
+                s.slowTicks(), id + " slow");
+        near(json.contains("\"haste_ticks\"") ? number(json, "haste_ticks") :
+                0.0D, s.hasteTicks(), id + " haste");
+        check(s.poison() == json.contains("\"poison\": true"), id + " poison");
+        if (json.contains("\"burn\""))
+            near(number(json, "damage_per_second"), s.burnPerSecond(),
+                    id + " burn");
         near(json.contains("\"tower_multiplier\"") ?
                 number(json, "tower_multiplier") : s.heal() ? 0.0D : 0.3D,
                 s.towerMultiplier(), id + " tower multiplier");

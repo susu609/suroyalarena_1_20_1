@@ -5,8 +5,8 @@
   "roles": ["attack", "support"],
   "elixir": 3,
   "radius": 3.0,
-  "travel_ticks": 10,
+  "travel_ticks": 5,
   "damage": 8,
   "freeze_ticks": 80,
-  "tower_multiplier": 0.3
+  "tower_multiplier": 0.8
 }

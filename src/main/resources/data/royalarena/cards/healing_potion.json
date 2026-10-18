@@ -5,7 +5,7 @@
   "roles": ["support"],
   "elixir": 3,
   "radius": 3.0,
-  "travel_ticks": 10,
+  "travel_ticks": 6,
   "duration_ticks": 80,
   "pulse_interval_ticks": 10,
   "heal_per_pulse": 2,

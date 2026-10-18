@@ -33,6 +33,8 @@ public final class CombatUnit {
     private BattleCard burnSource;
     private int frozenTicks;
     private int slowTicks;
+    private int hasteTicks;
+    private int webTicks;
     private int teleportCooldown;
     private int poisonTicks;
     private double poisonPerTick;
@@ -116,6 +118,17 @@ public final class CombatUnit {
     public boolean slowed() {
         return slowTicks > 0;
     }
+    /** Ticks the unit still walks and attacks faster (Swiftness). */
+    public int hasteTicks() {
+        return hasteTicks;
+    }
+    public boolean hasted() {
+        return hasteTicks > 0;
+    }
+    /** Caught in a web (Cobweb, Snowball Volley): walks and attacks slower. */
+    public boolean webbed() {
+        return webTicks > 0;
+    }
     /** Enemy unit currently chased, or null when heading for a tower. */
     public UUID target() {
         return target;
@@ -139,6 +152,18 @@ public final class CombatUnit {
             invulnerableTicks--;
         if (slowTicks > 0)
             slowTicks--;
+        // Hastened: the attack charges 75% faster.
+        if (hasteTicks > 0) {
+            hasteTicks--;
+            if (hasteTicks % 4 != 0 && frozenTicks <= 0 && cooldown > 0)
+                cooldown--;
+        }
+        // Webbed (a slowing spell): the attack charges at half speed.
+        if (webTicks > 0) {
+            webTicks--;
+            if (webTicks % 2 == 0 && frozenTicks <= 0 && cooldown > 0)
+                cooldown++;
+        }
         if (teleportCooldown > 0)
             teleportCooldown--;
         // A frozen unit's attack does not charge.
@@ -204,6 +229,22 @@ public final class CombatUnit {
     void slow(int ticks) {
         if (!stats.traits().frostImmune())
             slowTicks = Math.max(slowTicks, ticks);
+    }
+
+    /**
+     * A slowing spell (Cobweb, Snowball Volley): slower walk and a slower
+     * attack for {@code ticks}.
+     */
+    void web(int ticks) {
+        if (stats.traits().frostImmune())
+            return;
+        slow(ticks);
+        webTicks = Math.max(webTicks, ticks);
+    }
+
+    /** Hastens the unit for {@code ticks}; a longer haste wins. */
+    void haste(int ticks) {
+        hasteTicks = Math.max(hasteTicks, ticks);
     }
 
     /** Stops the unit for {@code ticks}; a longer freeze wins. */

@@ -69,8 +69,8 @@ public final class SpellTargetHighlighter {
             double z, Set<Entity> out)
     {
         ArenaLayout arena = ClientMatchState.arena();
-        // A healing potion lights up the own troops it would heal.
-        TeamSide target = spell.heal() ? ClientMatchState.side() :
+        // Healing and Swiftness light up the own troops they would reach.
+        TeamSide target = spell.friendly() ? ClientMatchState.side() :
                 ClientMatchState.side().opponent();
         List<Entity> hits = new ArrayList<>();
         List<Double> health = new ArrayList<>();
@@ -78,7 +78,9 @@ public final class SpellTargetHighlighter {
             if (entity instanceof CrownTowerEntity ||
                     entity instanceof KingTowerEntity) {
                 TowerId id = arena.towerAt(entity.getX(), entity.getZ());
-                if (!spell.heal() && id != null && id.side() == target &&
+                if (!spell.friendly() && !spell.poison() &&
+                        spell.towerMultiplier() > 0.0D && id != null &&
+                        id.side() == target &&
                         ClientMatchState.towerHealth(id) > 0 &&
                         arena.distanceToTower(x, z, id) <= spell.radius()) {
                     hits.add(entity);

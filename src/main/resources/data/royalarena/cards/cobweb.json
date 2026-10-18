@@ -1,0 +1,14 @@
+{
+  "id": "cobweb",
+  "type": "spell",
+  "display_name": "Cobweb",
+  "roles": ["defense", "support"],
+  "elixir": 2,
+  "radius": 3.5,
+  "travel_ticks": 8,
+  "duration_ticks": 100,
+  "pulse_interval_ticks": 20,
+  "damage_per_pulse": 0,
+  "slow_ticks": 35,
+  "tower_multiplier": 0.0
+}

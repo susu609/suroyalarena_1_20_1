@@ -1,0 +1,14 @@
+{
+  "id": "poison_cloud",
+  "type": "spell",
+  "display_name": "Poison Cloud",
+  "roles": ["attack", "defense"],
+  "elixir": 3,
+  "radius": 3.8,
+  "travel_ticks": 10,
+  "duration_ticks": 120,
+  "pulse_interval_ticks": 20,
+  "damage_per_pulse": 2,
+  "poison": true,
+  "tower_multiplier": 0.0
+}

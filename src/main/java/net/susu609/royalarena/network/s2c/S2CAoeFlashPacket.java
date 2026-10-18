@@ -19,6 +19,9 @@ public record S2CAoeFlashPacket(float x, float y, float z, float radius,
     public static final int YELLOW = 0xFFE040;
     public static final int GREEN = 0x40FF60;
     public static final int ICE = 0x80D8FF;
+    public static final int POISON = 0x6A9A2A;
+    public static final int WEB = 0xE8E8E8;
+    public static final int SWIFT = 0x7CAFC6;
 
     public static void encode(S2CAoeFlashPacket p, FriendlyByteBuf buffer) {
         buffer.writeFloat(p.x);

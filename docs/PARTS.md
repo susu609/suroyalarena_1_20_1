@@ -622,3 +622,20 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   range 4.5; card art cost; protocol 16
 - `MobsWave2SmokeTest.foxesAreAFastCheapPack`, the rider test follows the
   archer's range; `docs/CARDS.md`, `docs/BALANCE.md`, `docs/CARD_QUEUE.md`
+
+## Part 53 — Spell buffs and four new spells
+
+- `card/SpellStats.java` (`slowTicks`, `poison`, `hasteTicks`, `friendly()`,
+  slow and haste in `controlValue`), `combat/CombatEngine.java` (friendly
+  targets, poison by body and never on towers, webs, `HASTE_SPEED`,
+  `WEB_SPEED`), `combat/CombatUnit.java` (`web`, `haste`)
+- `card/BattleCard.java` and JSON: free buffs (flight time, tower share,
+  burn) for Arrow Storm, Fireball, Lightning, Healing, Freeze, TNT; new
+  POISON_CLOUD, COBWEB, SWIFTNESS_POTION, SNOWBALL_VOLLEY; protocol 17
+- `bot/BotBrain.java` (values of poison, webs and haste; no-damage spells
+  wait for 1.5x the value), `client/render/SpellTargetHighlighter.java`,
+  `client/screen/DeckScreen.java` (tooltip), `server/battle/BattleField.java`
+  (thrown potions, webs and snowballs; clouds, web bits, swiftness puffs),
+  `S2CAoeFlashPacket` (poison, web and swiftness colours)
+- `SpellSmokeTest` (four new tests; flight, burn and tower numbers follow the
+  buffs), `CombatSmokeTest` (spell JSON keys), `MatchLogSmokeTest` (burn)

@@ -49,8 +49,9 @@ public final class MatchLogSmokeTest {
         check(fireball.kills() == 1, "and the Zombie counts as a kill");
         for (int i = 0; i < 80; i++)
             engine.tick();
-        near(fireball.damage(), 48.0D, "the burn is the Fireball's too");
-        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 28.0D,
+        near(fireball.damage(), 45.0D + 4.5D,
+                "the burn (1.5 a second for 3 s) is the Fireball's too");
+        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 29.5D,
                 "the Golem lost exactly that");
     }
 

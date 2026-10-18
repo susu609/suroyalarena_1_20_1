@@ -534,6 +534,20 @@ public final class BattleField {
                             SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.8F,
                             1.0F);
                 }
+                case POISON_CLOUD, SWIFTNESS_POTION, COBWEB,
+                        SNOWBALL_VOLLEY -> {
+                    // The King throws a potion, a web or snowballs.
+                    boolean potion = deploy.card() == BattleCard.POISON_CLOUD ||
+                            deploy.card() == BattleCard.SWIFTNESS_POTION;
+                    sendProjectile(potion ? S2CProjectilePacket.Kind.POTION :
+                                    S2CProjectilePacket.Kind.SNOWBALL,
+                            hand, new double[] {tx, floor + 0.3D, tz},
+                            deploy.ticksLeft(), 4.0F);
+                    level.playSound(null, hand[0], hand[1], hand[2],
+                            potion ? SoundEvents.LINGERING_POTION_THROW :
+                                    SoundEvents.SNOWBALL_THROW,
+                            SoundSource.HOSTILE, 0.8F, 1.0F);
+                }
                 case HEALING_POTION, FREEZE -> {
                     // The King throws a splash potion or a snowball.
                     sendProjectile(deploy.card() == BattleCard.FREEZE ?
@@ -647,6 +661,47 @@ public final class BattleField {
                         SoundSource.HOSTILE, 0.8F, 1.4F);
                 level.playSound(null, x, floor, z, SoundEvents.POWDER_SNOW_PLACE,
                         SoundSource.HOSTILE, 1.0F, 0.8F);
+            }
+            case POISON_CLOUD -> {
+                flash(x, z, radius, S2CAoeFlashPacket.POISON);
+                level.sendParticles(ParticleTypes.ENTITY_EFFECT, x,
+                        floor + 0.4D, z, 30, radius * 0.5D, 0.3D,
+                        radius * 0.5D, 1.0D);
+                if (pulse.index() == 0)
+                    level.playSound(null, x, floor, z,
+                            SoundEvents.SPLASH_POTION_BREAK,
+                            SoundSource.HOSTILE, 0.8F, 0.7F);
+            }
+            case COBWEB -> {
+                flash(x, z, radius, S2CAoeFlashPacket.WEB);
+                level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM,
+                                new ItemStack(Items.COBWEB)), x, floor + 0.2D,
+                        z, 16, radius * 0.5D, 0.05D, radius * 0.5D, 0.02D);
+                if (pulse.index() == 0)
+                    level.playSound(null, x, floor, z, SoundEvents.WOOL_PLACE,
+                            SoundSource.HOSTILE, 1.0F, 0.8F);
+            }
+            case SWIFTNESS_POTION -> {
+                flash(x, z, radius, S2CAoeFlashPacket.SWIFT);
+                level.sendParticles(ParticleTypes.EFFECT, x, floor + 0.3D, z,
+                        40, radius * 0.5D, 0.2D, radius * 0.5D, 0.1D);
+                level.playSound(null, x, floor, z,
+                        SoundEvents.SPLASH_POTION_BREAK, SoundSource.HOSTILE,
+                        0.8F, 1.3F);
+                for (TickResult.Strike strike : pulse.strikes())
+                    level.sendParticles(ParticleTypes.CLOUD, strike.x(),
+                            floor + 0.3D, strike.z(), 4, 0.2D, 0.05D, 0.2D,
+                            0.02D);
+            }
+            case SNOWBALL_VOLLEY -> {
+                flash(x, z, radius, S2CAoeFlashPacket.ICE);
+                level.sendParticles(ParticleTypes.ITEM_SNOWBALL, x,
+                        floor + 0.4D, z, 40, radius * 0.5D, 0.2D, radius * 0.5D,
+                        0.15D);
+                level.sendParticles(ParticleTypes.SNOWFLAKE, x, floor + 0.5D,
+                        z, 20, radius * 0.5D, 0.3D, radius * 0.5D, 0.02D);
+                level.playSound(null, x, floor, z, SoundEvents.SNOW_BREAK,
+                        SoundSource.HOSTILE, 1.0F, 1.0F);
             }
             case HEALING_POTION -> {
                 if (pulse.index() % 2 == 0)

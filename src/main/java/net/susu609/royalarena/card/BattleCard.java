@@ -109,23 +109,34 @@ public enum BattleCard {
     FOX("Fox", 2, "minecraft:fox", null, 0,
             new TroopStats(3, 6, 2, 14, 1.2D, 1.9D, 0.3D)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
-            new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
-                    0.0D, 0.0D, 0)),
+            new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
             new SpellStats(2.5D, 20, 1, 1, 25.0D, SpellStats.TOWER_MULTIPLIER,
-                    1.0D, 1.0D, 60)),
+                    1.0D, 1.5D, 60)),
     LIGHTNING("Lightning", 6, "minecraft:lightning_rod",
-            new SpellStats(3.5D, 15, 1, 1, 40.0D, SpellStats.TOWER_MULTIPLIER,
-                    0.0D, 0.0D, 0, 3, 10, 0, false)),
+            new SpellStats(3.5D, 15, 1, 1, 40.0D, 0.45D, 0.0D, 0.0D, 0, 3, 10,
+                    0, false)),
     HEALING_POTION("Potion of Healing", 3, "minecraft:splash_potion",
-            new SpellStats(3.0D, 10, 8, 10, 2.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
+            new SpellStats(3.0D, 6, 8, 10, 2.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
                     0, true)),
     FREEZE("Freeze", 3, "minecraft:powder_snow_bucket",
-            new SpellStats(3.0D, 10, 1, 1, 8.0D, SpellStats.TOWER_MULTIPLIER,
-                    0.0D, 0.0D, 0, 0, 0, 80, false)),
+            new SpellStats(3.0D, 5, 1, 1, 8.0D, 0.8D, 0.0D, 0.0D, 0, 0, 0, 80,
+                    false)),
     TNT("TNT", 5, "minecraft:tnt",
-            new SpellStats(3.0D, 30, 1, 1, 30.0D, 0.5D, 2.0D, 0.0D, 0, 0, 0,
-                    0, false, true));
+            new SpellStats(3.0D, 24, 1, 1, 30.0D, 0.5D, 2.0D, 0.0D, 0, 0, 0,
+                    0, false, true)),
+    POISON_CLOUD("Poison Cloud", 3, "minecraft:lingering_potion",
+            new SpellStats(3.8D, 10, 6, 20, 2.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
+                    0, false, false, 0, true, 0)),
+    COBWEB("Cobweb", 2, "minecraft:cobweb",
+            new SpellStats(3.5D, 8, 5, 20, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
+                    0, false, false, 35, false, 0)),
+    SWIFTNESS_POTION("Swiftness Potion", 2, "minecraft:sugar",
+            new SpellStats(3.5D, 5, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
+                    0, false, false, 0, false, 120)),
+    SNOWBALL_VOLLEY("Snowball Volley", 2, "minecraft:snowball",
+            new SpellStats(2.5D, 12, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
+                    1.5D, 0.0D, 0, 0, 0, 0, false, false, 30, false, 0));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;
@@ -239,21 +250,21 @@ public enum BattleCard {
      */
     public Set<CardTactic> tactics() {
         return switch (this) {
-            case ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
+            case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
-                    SNOW_GOLEM, ARROW_STORM ->
+                    SNOW_GOLEM, ARROW_STORM, COBWEB ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
-                    FIREBALL, TNT ->
+                    FIREBALL, TNT, POISON_CLOUD ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.DEFENSE);
             case DROWNED, BLAZE, FREEZE ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.SUPPORT);
-            case HEALING_POTION ->
+            case HEALING_POTION, SWIFTNESS_POTION ->
                     EnumSet.of(CardTactic.SUPPORT);
         };
     }

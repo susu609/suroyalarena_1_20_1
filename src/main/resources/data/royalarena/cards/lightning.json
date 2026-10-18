@@ -9,5 +9,5 @@
   "damage": 40,
   "max_targets": 3,
   "stun_ticks": 10,
-  "tower_multiplier": 0.3
+  "tower_multiplier": 0.45
 }

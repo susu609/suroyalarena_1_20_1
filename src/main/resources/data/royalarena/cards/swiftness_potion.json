@@ -1,0 +1,13 @@
+{
+  "id": "swiftness_potion",
+  "type": "spell",
+  "display_name": "Swiftness Potion",
+  "roles": ["support"],
+  "elixir": 2,
+  "radius": 3.5,
+  "travel_ticks": 5,
+  "damage": 0,
+  "haste_ticks": 120,
+  "targets": "own troops",
+  "tower_multiplier": 0.0
+}

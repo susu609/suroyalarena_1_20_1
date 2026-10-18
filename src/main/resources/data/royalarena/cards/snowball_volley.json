@@ -1,0 +1,12 @@
+{
+  "id": "snowball_volley",
+  "type": "spell",
+  "display_name": "Snowball Volley",
+  "roles": ["defense"],
+  "elixir": 2,
+  "radius": 2.5,
+  "travel_ticks": 12,
+  "damage": 6,
+  "knockback": 1.5,
+  "slow_ticks": 30
+}

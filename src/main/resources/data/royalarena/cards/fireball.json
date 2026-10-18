@@ -9,7 +9,7 @@
   "damage": 25,
   "knockback": 1.0,
   "burn": {
-    "damage_per_second": 1,
+    "damage_per_second": 1.5,
     "duration_ticks": 60
   }
 }

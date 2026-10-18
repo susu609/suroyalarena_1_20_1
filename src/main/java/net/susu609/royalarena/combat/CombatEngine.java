@@ -61,6 +61,10 @@ public final class CombatEngine {
     private final Map<TowerId, Integer> towerFrozen =
             new EnumMap<>(TowerId.class);
     private final List<ActiveSpell> spells = new ArrayList<>();
+    /** Walking speed of a hastened troop (Swiftness), times its own. */
+    public static final double HASTE_SPEED = 1.5D;
+    /** Walking speed left in a web (Cobweb, Snowball Volley). */
+    public static final double WEB_SPEED = 0.4D;
     /** The card every unit came from (split children included). */
     private final Map<UUID, BattleCard> cardOf = new HashMap<>();
     private final CombatStats stats = new CombatStats();
@@ -252,7 +256,9 @@ public final class CombatEngine {
             ArenaWaypoint waypoint = stats.traits().crossesRiver() ?
                     new ArenaWaypoint(targetX, targetZ) :
                     arena.route(unit.x(), unit.z(), targetX, targetZ);
-            double slow = unit.slowed() ? TroopTraits.SLOW_SPEED : 1.0D;
+            double slow = (unit.webbed() ? WEB_SPEED : unit.slowed() ?
+                    TroopTraits.SLOW_SPEED : 1.0D) *
+                    (unit.hasted() ? HASTE_SPEED : 1.0D);
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
                     stats.speedPerTick() * speedMultiplier * slow));
             return;
@@ -438,7 +444,7 @@ public final class CombatEngine {
                 continue;
             }
             SpellStats spell = active.card.spell();
-            List<Hit> pulseHits = spell.heal() ? healTargets(active) :
+            List<Hit> pulseHits = spell.friendly() ? healTargets(active) :
                     spellTargets(active);
             List<TickResult.Strike> strikes = new ArrayList<>();
             for (Hit hit : pulseHits) {
@@ -478,12 +484,16 @@ public final class CombatEngine {
             double reach = spell.radius() + unit.radius();
             if (Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
                     reach + EPSILON) {
-                hits.add(new Hit(unit, null, spell.damagePerPulse(), active));
+                // Poison (Poison Cloud) works by what the target is made of.
+                double damage = spell.poison() ? spell.damagePerPulse() *
+                        bodyOf(unit).poisonFactor() : spell.damagePerPulse();
+                hits.add(new Hit(unit, null, damage, active));
                 health.add(unit.health());
             }
         }
         for (TowerId id : TowerId.values()) {
-            if (id.side() == active.side || match.tower(id).isDestroyed())
+            if (id.side() == active.side || match.tower(id).isDestroyed() ||
+                    spell.poison())
                 continue;
             if (distanceToTower(active.x, active.z, id) <=
                     spell.radius() + EPSILON) {
@@ -505,7 +515,10 @@ public final class CombatEngine {
         return kept;
     }
 
-    /** The caster's own units inside the circle (towers are not healed). */
+    /**
+     * The caster's own units inside the circle, for healing or haste
+     * (towers are never healed).
+     */
     private List<Hit> healTargets(ActiveSpell active) {
         SpellStats spell = active.card.spell();
         List<Hit> hits = new ArrayList<>();
@@ -538,11 +551,15 @@ public final class CombatEngine {
                 continue;
             }
             CombatUnit unit = hit.unit();
-            if (spell.heal()) {
-                double before = unit.health();
-                unit.heal(hit.damage());
-                stats.healing(hit.spell().side, hit.spell().card,
-                        unit.health() - before);
+            if (spell.friendly()) {
+                if (spell.heal()) {
+                    double before = unit.health();
+                    unit.heal(hit.damage());
+                    stats.healing(hit.spell().side, hit.spell().card,
+                            unit.health() - before);
+                }
+                if (spell.hasteTicks() > 0)
+                    unit.haste(spell.hasteTicks());
                 continue;
             }
             if (unit.canTeleport()) {
@@ -554,9 +571,17 @@ public final class CombatEngine {
                     unit.stats().traits().frostWeak();
             double damage = frostWeak ? hit.damage() *
                     TroopTraits.FROST_WEAKNESS : hit.damage();
-            if (!damageUnit(unit, damage, hit.spell().side,
-                    hit.spell().card))
+            // A spell that only slows (Cobweb) deals nothing; a poison that
+            // a golem shrugs off does nothing at all.
+            if (damage > 0.0D) {
+                if (!damageUnit(unit, damage, hit.spell().side,
+                        hit.spell().card))
+                    continue;
+            } else if (spell.damagePerPulse() > 0.0D || !unit.alive()) {
                 continue;
+            }
+            if (spell.slowTicks() > 0)
+                unit.web(spell.slowTicks());
             if (spell.freezeTicks() > 0 && !unit.stats().traits().frostImmune())
                 unit.freeze(frostWeak ? spell.freezeTicks() * 2 :
                         spell.freezeTicks());

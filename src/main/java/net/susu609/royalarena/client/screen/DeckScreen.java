@@ -498,16 +498,31 @@ public final class DeckScreen extends Screen {
             SpellStats s = card.spell();
             lines.add(line("Radius %.1f blocks, lands after %.1f s",
                     s.radius(), s.castTicks() / 20.0D));
-            String effect = s.heal() ? "healing" : "damage";
-            if (s.pulses() > 1)
+            String effect = s.heal() ? "healing" : s.poison() ? "poison" :
+                    "damage";
+            if (s.damagePerPulse() <= 0.0D) {
+                // Cobweb stays a while; Swiftness has no damage line.
+                if (s.pulses() > 1)
+                    lines.add(line("Stays %.0f s", s.pulses() *
+                            s.pulseInterval() / 20.0D));
+            } else if (s.pulses() > 1) {
                 lines.add(line("%.0f " + effect + " over %.1f s (%.0f every " +
                                 "%.2f s)", s.damagePerPulse() * s.pulses(),
                         s.pulses() * s.pulseInterval() / 20.0D,
                         s.damagePerPulse(), s.pulseInterval() / 20.0D));
-            else
+            } else {
                 lines.add(line("%.0f " + effect, s.damagePerPulse()));
+            }
             if (s.heal())
                 lines.add(line("Heals your own troops, never towers"));
+            if (s.poison())
+                lines.add(line("Poison: 1.5x on the living, none on golems"));
+            if (s.slowTicks() > 0)
+                lines.add(line("Slows enemies' walk 60%% and attack 50%% for %.1f s",
+                        (s.durationTicks() + s.slowTicks()) / 20.0D));
+            if (s.hasteTicks() > 0)
+                lines.add(line("Your troops walk 50%% and attack 75%% faster " +
+                        "for %.0f s", s.hasteTicks() / 20.0D));
             if (s.maxTargets() > 0)
                 lines.add(line("Strikes the %d targets with the most health",
                         s.maxTargets()));
@@ -523,9 +538,11 @@ public final class DeckScreen extends Screen {
             if (s.burnTicks() > 0)
                 lines.add(line("Burns %.0f/s for %.0f s", s.burnPerSecond(),
                         s.burnTicks() / 20.0D));
-            if (!s.heal())
+            if (!s.friendly() && !s.poison() && s.damagePerPulse() > 0.0D)
                 lines.add(line("%.0f%% damage to towers",
                         s.towerMultiplier() * 100));
+            else if (s.poison())
+                lines.add(line("Never hurts towers"));
             return lines;
         }
         TroopStats s = card.stats();

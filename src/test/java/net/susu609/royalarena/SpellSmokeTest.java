@@ -4,6 +4,8 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.bot.BotBrain;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.tower.TowerKind;
+import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.TickResult;
@@ -35,6 +37,10 @@ public final class SpellSmokeTest {
         freezeStopsTroopsAndTowers();
         tntHitsHardAndPushesFar();
         tntReachesOnlyTheMiddleOfTheBridge();
+        poisonCloudPoisonsByBodyNeverTowers();
+        cobwebSlowsWithoutDamage();
+        swiftnessHastensOwnTroops();
+        snowballVolleyHitsPushesAndSlows();
         System.out.println("RoyalArena spell smoke tests: PASS");
     }
 
@@ -80,8 +86,10 @@ public final class SpellSmokeTest {
         for (int i = 0; i < BattleCard.ARROW_STORM.deployTicks() - 1; i++)
             match.tick();
         check(match.drainReadyDeploys().isEmpty() &&
-                match.pendingDeploys().get(0).progress() > 0.85F,
-                "still in flight one tick early");
+                match.pendingDeploys().get(0).progress() >=
+                        1.0F - 1.0F / BattleCard.ARROW_STORM.deployTicks() -
+                        1.0E-4F,
+                "still in flight one tick early (the arrows fly 6 ticks)");
         match.tick();
         check(match.drainReadyDeploys().size() == 1,
                 "the spell lands after its travel time");
@@ -151,7 +159,8 @@ public final class SpellSmokeTest {
         check(golem.burnTicks() > 0, "the Iron Golem is burning");
         for (int i = 0; i < 80; i++)
             engine.tick();
-        near(golem.health(), 132.0D, "the burn deals 1 per second for 3 s");
+        near(golem.health(), 135.0D - 4.5D,
+                "the burn deals 1.5 per second for 3 s (was 1: a free buff)");
         check(golem.burnTicks() == 0, "the burn ends");
     }
 
@@ -174,8 +183,8 @@ public final class SpellSmokeTest {
         for (int i = 0; i < 100; i++)
             engine.tick();
         check(match.tower(TowerId.RED_KING).health() ==
-                        (int) Math.ceil(185 - 16 * 0.3D),
-                "Arrow Storm deals 30% of 16 to the King");
+                        (int) Math.ceil(185 - 16 * 0.5D),
+                "Arrow Storm deals 50% of 16 to the King (its own share)");
         check(engine.kingAwake(TeamSide.RED), "a spell on the King wakes it");
 
         ArenaPoint own = match.arena().towerPoint(TowerId.BLUE_LEFT);
@@ -260,8 +269,8 @@ public final class SpellSmokeTest {
         siegeEngine.castSpell(TeamSide.BLUE, BattleCard.LIGHTNING,
                 princess.x(), princess.z() + 3.5D);
         siegeEngine.tick();
-        check(siege.tower(TowerId.RED_LEFT).health() == 110 - 12,
-                "Lightning deals 30% of 40 to a tower: " +
+        check(siege.tower(TowerId.RED_LEFT).health() == 110 - 18,
+                "Lightning deals 45% of 40 to a tower: " +
                         siege.tower(TowerId.RED_LEFT).health());
         check(siegeEngine.towerFrozenTicks(TowerId.RED_LEFT) > 0,
                 "and stuns it");
@@ -390,6 +399,79 @@ public final class SpellSmokeTest {
                 arena.nearestReach(TeamSide.RED, BattleCard.TNT, 9) == -1 &&
                 arena.nearestReach(TeamSide.BLUE, BattleCard.FIREBALL, -9) == -9,
                 "a bot aims at the nearest row TNT reaches");
+    }
+
+    private static void poisonCloudPoisonsByBodyNeverTowers() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit living = unit(engine, BattleCard.VINDICATOR, TeamSide.RED,
+                0.5D, -6.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                -1.0D, -6.0D);
+        CombatUnit golem = unit(engine, BattleCard.IRON_GOLEM, TeamSide.RED,
+                1.5D, -7.0D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.POISON_CLOUD, 0.0D, -6.0D);
+        double zombieBefore = zombie.health();
+        double golemBefore = golem.health();
+        for (int i = 0; i < 125; i++)
+            engine.tick();
+        SpellStats cloud = BattleCard.POISON_CLOUD.spell();
+        double total = cloud.damagePerPulse() * cloud.pulses();
+        near(zombieBefore - zombie.health(), total,
+                "the undead take the poison as it is");
+        near(golem.health(), golemBefore, "a golem shrugs the poison off");
+        near(BattleCard.VINDICATOR.stats().health() - living.health(),
+                total * 1.5D, "living flesh takes 1.5x");
+        ArenaPoint princess = match.arena().towerPoint(TowerId.RED_LEFT);
+        engine.castSpell(TeamSide.BLUE, BattleCard.POISON_CLOUD, princess.x(),
+                princess.z());
+        for (int i = 0; i < 125; i++)
+            engine.tick();
+        check(match.tower(TowerId.RED_LEFT).health() ==
+                TowerKind.PRINCESS.maxHealth(), "the cloud never hurts towers");
+    }
+
+    private static void cobwebSlowsWithoutDamage() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                0.5D, -6.0D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.COBWEB, 0.5D, -6.0D);
+        engine.tick();
+        check(zombie.slowed(), "the web slows the troops in it");
+        near(zombie.health(), BattleCard.ZOMBIE.stats().health(),
+                "and deals nothing");
+    }
+
+    private static void swiftnessHastensOwnTroops() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit own = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                0.5D, 6.0D);
+        CombatUnit enemy = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                1.0D, 6.5D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.SWIFTNESS_POTION, 0.5D,
+                6.0D);
+        engine.tick();
+        check(own.hasted(), "own troops in the circle are hastened");
+        check(!enemy.hasted(), "enemies are not");
+        check(BattleCard.SWIFTNESS_POTION.spell().friendly(),
+                "Swiftness counts as a spell for own troops");
+    }
+
+    private static void snowballVolleyHitsPushesAndSlows() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                1.0D, -6.0D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.SNOWBALL_VOLLEY, 0.0D,
+                -6.0D);
+        TickResult first = engine.tick();
+        near(zombie.health(), BattleCard.ZOMBIE.stats().health() - 6.0D,
+                "6 damage");
+        check(zombie.slowed(), "slowed");
+        check(first.pushes().stream().anyMatch(
+                push -> push.unit().equals(zombie.id())), "and pushed back");
     }
 
     private static void near(double actual, double expected, String name) {

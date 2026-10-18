@@ -5,7 +5,7 @@
   "roles": ["attack", "defense"],
   "elixir": 5,
   "radius": 3.0,
-  "travel_ticks": 30,
+  "travel_ticks": 24,
   "damage": 30,
   "knockback": 2.0,
   "reach": "bridge_middle",

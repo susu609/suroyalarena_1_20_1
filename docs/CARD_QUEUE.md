@@ -58,11 +58,11 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
   quick shots then a long reload. Reuses ranged.
 - [ ] Allay (`minecraft:allay`) **(by hand)**: flies beside the nearest own
   troop and heals those within 2 blocks a little each second; does not fight.
-- [ ] Poison Cloud (spell) **(by hand)**: a circle that poisons everyone in
+- [x] Poison Cloud (spell) **(by hand)**: a circle that poisons everyone in
   it for 5 s (2 a second); stays 5 s.
-- [ ] Cobweb (spell) **(by hand)**: a circle for 4 s; troops in it walk 40%
+- [x] Cobweb (spell) **(by hand)**: a circle for 4 s; troops in it walk 40%
   slower; no damage.
-- [ ] Swiftness Potion (spell) **(by hand)**: own troops in the circle run 40%
+- [x] Swiftness Potion (spell) **(by hand)**: own troops in the circle run 40%
   faster for 5 s.
 
 ## Done

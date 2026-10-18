@@ -62,12 +62,16 @@ circle, and enemy towers whose footprint touches it for **30%** of the damage
 
 | Spell | Elixir | Behaviour |
 |---|---|---|
-| Arrow Storm | **3** | Arrows fly 0.5 s, then a circle of radius 3 blocks for 4 s; every 5 ticks (0.25 s) deals 1 damage to each enemy inside: **16 total**, 4 DPS. |
-| Fireball | **4** | Travels 1 s, explodes radius 2.5 blocks for **25** damage, knocks back 1 block, burns 1 damage/s for 3 s. |
-| Lightning | **6** | After 0.75 s, real (harmless) lightning bolts strike the **3** enemy troops or towers with the most health in a 3.5 block circle: **40** damage each (12 to a tower), and a 0.5 s stun that also restarts their attack. |
-| Potion of Healing | **3** | The King throws a splash potion of healing (0.5 s); for 4 s, every 0.5 s it heals each **own** troop inside a 3 block circle by 2: **16 total**, never above full health, never towers. |
-| Freeze | **3** | The King throws a snowball (0.5 s); every enemy troop and tower in a 3 block circle takes 8 damage and is **frozen for 4 s**: no walking, no attacking, their attack does not charge. Frozen mobs shake like in powder snow. |
-| TNT | **5** | Primed TNT falls from the sky for 1.5 s, then explodes in a 3 block circle: **30** damage, knocks back 2 blocks, and **50%** (15) to towers instead of 30%. It can be cast only on your own half and up to the middle of the bridge, never on the enemy half. |
+| Arrow Storm | **3** | Arrows fly 0.3 s, then a circle of radius 3 blocks for 4 s; every 5 ticks (0.25 s) deals 1 damage to each enemy inside: **16 total**, 4 DPS; **50%** to towers. |
+| Fireball | **4** | Travels 1 s, explodes radius 2.5 blocks for **25** damage, knocks back 1 block, burns 1.5 damage/s for 3 s. |
+| Lightning | **6** | After 0.75 s, real (harmless) lightning bolts strike the **3** enemy troops or towers with the most health in a 3.5 block circle: **40** damage each (18 to a tower, 45%), and a 0.5 s stun that also restarts their attack. |
+| Potion of Healing | **3** | The King throws a splash potion of healing (0.3 s); for 4 s, every 0.5 s it heals each **own** troop inside a 3 block circle by 2: **16 total**, never above full health, never towers. |
+| Freeze | **3** | The King throws a snowball (0.25 s); every enemy troop and tower in a 3 block circle takes 8 damage (6 to a tower, 80%) and is **frozen for 4 s**: no walking, no attacking, their attack does not charge. Frozen mobs shake like in powder snow. |
+| TNT | **5** | Primed TNT falls from the sky for 1.2 s, then explodes in a 3 block circle: **30** damage, knocks back 2 blocks, and **50%** (15) to towers instead of 30%. It can be cast only on your own half and up to the middle of the bridge, never on the enemy half. |
+| Poison Cloud | **3** | The King throws a lingering potion (0.5 s); a 3.8 block cloud stays 6 s and poisons every enemy troop in it 2 a second: **12 total**, 1.5x on the living (18), as it is on the undead, nothing on golems. Never hurts towers. |
+| Cobweb | **2** | The King throws a web (0.4 s); for 5 s every enemy troop in a 3.5 block circle walks 60% slower and attacks at half speed, and keeps it 1.75 s after leaving. No damage. Frost-proof troops (Polar Bear) ignore it. |
+| Swiftness Potion | **2** | The King throws a splash potion of swiftness (0.25 s); every **own** troop in a 3.5 block circle walks 50% and attacks 75% faster for 6 s. |
+| Snowball Volley | **2** | A burst of snowballs (0.6 s) on a 2.5 block circle: **6** damage, knocks back 1.5 blocks, and webs the troops for 1.5 s (60% slower walk, half-speed attack). 30% to towers. |
 
 Burning troops are shown on fire; the burn damage comes from the engine (the
 mobs themselves are invulnerable).
@@ -225,6 +229,7 @@ formula, and was measured over 2000-4000 matches.
 | Evoker | range 5.0 -> 4.5 (still 4) | Rose to 59% once the archers lost range. | 59% -> 56% |
 | Creeper (again) | speed 1.6 -> 1.8, blast 2.5 -> 3.0, HP 20 -> 23 (still 3, raw 3.48) | At 40% once the bots got personalities; speed past 1.33 and splash size are free in the formula, the HP used the room left. | 40% -> 43-45% |
 | Skeleton Archer (again) | range 5.0 -> 4.5 (still 2) | At 59-60% after Fox joined; slower walking did nothing. The Spider Jockey's rider shoots 4.5 too. | 60% -> 56% |
+| Spells (free buffs) | Arrow Storm flies 0.3 s (was 0.5) and does 50% to towers (30%); Fireball burns 1.5/s (1); Lightning 45% to towers (30%); Healing flies 0.3 s (0.5); Freeze flies 0.25 s (0.5) and does 80% to towers (30%); TNT falls 1.2 s (1.5). Costs unchanged | Flight time, tower share and burn are not in the spell formula. | Freeze 43% -> 50%, Arrow Storm 45% -> 48%; the rest 48-50% |
 | Potion of Healing | no stat change: the bot heals only troops that are fighting and at 70% health or less (`docs/BOT.md`) | It was thrown on troops walking in the back. | 43% -> 45% |
 | Cave Spider | HP 5 -> 6, bite 1 -> 1.5 (still 3) | The formula counted the full 3 poison per bite, but a new bite replaces the poison, so a bite adds 1. Now counted right, which left room for more. It deals the least damage per elixir of any troop. | 44% -> 43% |
 | Creeper | speed 1.33 -> 1.6 (still 3) | Already counted as fast in the formula; reaching its target sooner is free. HP did nothing. | 45% -> 43% |

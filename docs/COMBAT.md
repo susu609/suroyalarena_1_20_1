@@ -183,6 +183,22 @@ client-side only and has not been seen in the game yet.
   arrival. The bot aims spells a little further ahead to allow for it. In a
   match between two players nothing of the other player's hand is shown.
 
+## Lingering and support spells
+
+- **Poison Cloud.** Six pulses a second apart; each is poison: the damage is
+  scaled by the target's body (1.5x living, 1x undead, nothing on golems)
+  and never lands on a tower (`SpellStats.poison`).
+- **Web (Cobweb, Snowball Volley).** Each pulse webs the enemies it touches
+  for `slowTicks`: they walk at 40% (`CombatEngine.WEB_SPEED`) and their
+  attack charges at half speed. Frost-proof troops ignore it.
+- **Haste (Swiftness Potion).** Lands on own troops like a healing potion
+  (`SpellStats.friendly()`); they walk 1.5x (`HASTE_SPEED`) and their attack
+  charges 75% faster for `hasteTicks`.
+- **The bot** counts poison by body, a web as the damage per second it takes
+  off fighting enemies (half), haste as three quarters of the damage per
+  second of own troops already fighting, and waits for half as much value
+  again before a spell that deals nothing (Cobweb, Swiftness).
+
 ## Not built yet
 
 Flying and tower-only troops (Phantom, Blaze, Ghast, Iron Golem, Hoglin),
@@ -191,8 +207,6 @@ now. Still missing, for the "(by hand)" cards in `docs/CARD_QUEUE.md`:
 
 - **Buildings.** A card that stands still on its own half with health that
   drains with time, attacked like a troop (Shulker).
-- **Lingering zones.** A spell that stays on the ground and acts every second
-  (Poison Cloud, Cobweb, Swiftness Potion).
 - **Moving a troop by spell.** Teleporting or pushing one troop by a capped
   distance (Ender Pearl).
 - **Drawn to noise.** A troop that leaves its target for the loudest recent
