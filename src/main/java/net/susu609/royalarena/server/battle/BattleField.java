@@ -690,6 +690,7 @@ public final class BattleField {
             beam(from, to);
             return;
         }
+        double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
         if (attacker instanceof SnowGolem) {
             sendProjectile(S2CProjectilePacket.Kind.SNOWBALL, from, to,
                     attack.flightTicks(), (float) (distance * 0.15D));
@@ -698,7 +699,6 @@ public final class BattleField {
                     1.0F);
             return;
         }
-        double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
         if (attacker instanceof Ghast || attacker instanceof Blaze) {
             sendProjectile(S2CProjectilePacket.Kind.FIREBALL, from, to,
                     attack.flightTicks(), (float) (distance * 0.2D));
