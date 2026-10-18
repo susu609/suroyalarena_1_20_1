@@ -239,15 +239,16 @@ public final class BattleField {
                     card.entityId(), card.id());
             return null;
         }
-        if (card == BattleCard.SPIDER_JOCKEY)
+        if (card == BattleCard.SPIDER_JOCKEY ||
+                card == BattleCard.SKELETON_RIDER)
             mountRider(entity);
         return entity;
     }
 
     /**
-     * The Skeleton on a Spider Jockey's back. It is only for show: the
-     * engine fights with the spider's unit, and when that dies the rider's
-     * own Skeleton Archer unit takes over.
+     * The Skeleton on a Spider Jockey's or Skeleton Rider's back. It is only
+     * for show: the engine fights with the mount's unit (for the Spider
+     * Jockey, the rider's own Skeleton Archer unit takes over when it dies).
      */
     private void mountRider(Entity spider) {
         Entity rider = EntityType.SKELETON.create(level);

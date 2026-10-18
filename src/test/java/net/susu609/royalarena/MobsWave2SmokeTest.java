@@ -42,6 +42,7 @@ public final class MobsWave2SmokeTest {
         poisonDependsOnTheBody();
         spiderJockeyLeavesItsArcher();
         foxesAreAFastCheapPack();
+        skeletonRiderIgnoresTroops();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -65,6 +66,31 @@ public final class MobsWave2SmokeTest {
     {
         return engine.add(UUID.randomUUID(), side,
                 new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void skeletonRiderIgnoresTroops() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit rider = unit(engine, BattleCard.SKELETON_RIDER,
+                TeamSide.BLUE, -6.0D, -5.0D);
+        CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
+                -6.0D, -6.5D);
+        boolean hitTroop = false;
+        boolean hitTower = false;
+        for (int i = 0; i < 200; i++) {
+            for (TickResult.Attack a : engine.tick().attacks()) {
+                if (!rider.id().equals(a.attackerUnit()))
+                    continue;
+                hitTroop |= a.victimUnit() != null;
+                hitTower |= a.victimTower() != null;
+            }
+        }
+        check(!hitTroop, "the Skeleton Rider never shoots a troop");
+        check(hitTower, "it shoots the tower from its saddle");
+        var s = BattleCard.SKELETON_RIDER.stats();
+        check(s.range() < 7.0D && s.health() < BattleCard.HOGLIN.stats().health()
+                        && BattleCard.SKELETON_RIDER.body() == Body.UNDEAD,
+                "a fragile undead archer that stays out-ranged by towers");
     }
 
     private static void foxesAreAFastCheapPack() {

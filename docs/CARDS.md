@@ -229,6 +229,8 @@ formula, and was measured over 2000-4000 matches.
 | Evoker | range 5.0 -> 4.5 (still 4) | Rose to 59% once the archers lost range. | 59% -> 56% |
 | Creeper (again) | speed 1.6 -> 1.8, blast 2.5 -> 3.0, HP 20 -> 23 (still 3, raw 3.48) | At 40% once the bots got personalities; speed past 1.33 and splash size are free in the formula, the HP used the room left. | 40% -> 43-45% |
 | Skeleton Archer (again) | range 5.0 -> 4.5 (still 2) | At 59-60% after Fox joined; slower walking did nothing. The Spider Jockey's rider shoots 4.5 too. | 60% -> 56% |
+| Skeleton Rider | started at 24 HP / 6 damage / range 4.5 / speed 1.8: 10 tower damage per elixir, under the tower-only band (12); 26 / 8 / 5.5 passes it; then 60% in bot matches, so speed 1.8 -> 1.4 (free above 1.33) | Autopilot cycle 5. | 60% -> 57% |
+| Wither Skeleton | speed 1.0 -> 0.85 (still 3) | Reached 59-60%; walking speed under 1.33 is free. Cave Spider (41%) did not move with 1.6 -> 1.9, reverted. | 60% -> 58% |
 | Spells (free buffs) | Arrow Storm flies 0.3 s (was 0.5) and does 50% to towers (30%); Fireball burns 1.5/s (1); Lightning 45% to towers (30%); Healing flies 0.3 s (0.5); Freeze flies 0.25 s (0.5) and does 80% to towers (30%); TNT falls 1.2 s (1.5). Costs unchanged | Flight time, tower share and burn are not in the spell formula. | Freeze 43% -> 50%, Arrow Storm 45% -> 48%; the rest 48-50% |
 | Potion of Healing | no stat change: the bot heals only troops that are fighting and at 70% health or less (`docs/BOT.md`) | It was thrown on troops walking in the back. | 43% -> 45% |
 | Cave Spider | HP 5 -> 6, bite 1 -> 1.5 (still 3) | The formula counted the full 3 poison per bite, but a new bite replaces the poison, so a bite adds 1. Now counted right, which left room for more. It deals the least damage per elixir of any troop. | 44% -> 43% |
@@ -245,7 +247,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Card | Mob | Count | HP | Damage | Interval | Range | Speed | Rule | Elixir |
 |---|---|---|---|---|---|---|---|---|---|
 | Husk | `minecraft:husk` | 3 | 13 | 2.5 | 1.0 | 1.2 | 1.0 | its hit slows for 2 s (hunger) | **3** |
-| Wither Skeleton | `minecraft:wither_skeleton` | 1 | 38 | 10 | 1.6 | 1.5 | 1.0 | stone sword; withers: 1.5 a second for 3 s (black dust) | **3** |
+| Wither Skeleton | `minecraft:wither_skeleton` | 1 | 38 | 10 | 1.6 | 1.5 | 0.85 | stone sword; withers: 1.5 a second for 3 s (black dust) | **3** |
 | Piglin Brute | `minecraft:piglin_brute` | 1 | 60 | 14 | 1.8 | 1.2 | 1.0 | golden axe: big, slow blows | **4** |
 | Polar Bear | `minecraft:polar_bear` | 1 | 76 | 7 | 1.2 | 1.2 | 1.0 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **4** |
 | Phantom | `minecraft:phantom` | 1 | 34 | 6 | 1.0 | 1.2 | 2.0 | flies 2 blocks up straight over the river and only goes for towers | **3** |
@@ -255,6 +257,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Guardian | `minecraft:guardian` | 1 | 46 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **4** |
 | Zombie Villager | `minecraft:zombie_villager` | 5 | 9 | 2 | 1.2 | 1.2 | 0.8 | a big, weak swarm: each one is far weaker than a Zombie, five of them together are not (model 0.85) | **3** |
 | Spider Jockey | `minecraft:spider` | 1 | 41 | 3 | 1.0 | 4.5 | 1.4 | one unit: a Skeleton on a Spider (model 0.9), sturdier than the four-Spider card; shoots from the saddle, and when the spider dies the Skeleton stays as a Skeleton Archer (20 health, range 5.5) | **4** |
+| Skeleton Rider | `minecraft:skeleton_horse` | 1 | 26 | 8 | 1.0 | 5.5 | 1.4 | a Skeleton on a skeleton horse that only shoots towers, fragile; the rider is for show (model 1.0) | **3** |
 | Fox | `minecraft:fox` | 3 | 6 | 2 | 0.7 | 1.2 | 1.9 | a fast small pack with quick bites, the fastest walker; nothing special (no armour piercing) | **2** |
 | Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 

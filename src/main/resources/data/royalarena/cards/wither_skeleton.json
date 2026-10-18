@@ -14,7 +14,7 @@
     "damage": 10,
     "attack_interval_ticks": 32,
     "range": 1.5,
-    "move_speed": 1.0,
+    "move_speed": 0.85,
     "targets": "ground",
     "poison_ticks": 60,
     "poison_per_second": 1.5,

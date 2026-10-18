@@ -1,0 +1,20 @@
+{
+  "id": "skeleton_rider",
+  "type": "troop",
+  "display_name": "Skeleton Rider",
+  "roles": ["attack"],
+  "body": "undead",
+  "elixir": 3,
+  "entity": "minecraft:skeleton_horse",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 26,
+    "damage": 8,
+    "attack_interval_ticks": 20,
+    "range": 5.5,
+    "move_speed": 1.4,
+    "flying": false,
+    "targets": "buildings"
+  }
+}

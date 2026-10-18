@@ -23,7 +23,7 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
   Archer). Around 4 elixir.
 - [x] Fox (`minecraft:fox`): a fast small pack, nothing special (no armour
   piercing). Count 3-4, low health, quick bites.
-- [ ] Skeleton Rider (`minecraft:skeleton_horse` with a Skeleton Archer on
+- [x] Skeleton Rider (`minecraft:skeleton_horse` with a Skeleton Archer on
   it): one archer on a war horse that goes for the towers (buildings only),
   very fragile ("bones fall apart"). Horse carries it fast. Reuses
   `buildingsOnly`; ranged, range under 7.

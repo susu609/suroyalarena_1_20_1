@@ -639,3 +639,11 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `S2CAoeFlashPacket` (poison, web and swiftness colours)
 - `SpellSmokeTest` (four new tests; flight, burn and tower numbers follow the
   buffs), `CombatSmokeTest` (spell JSON keys), `MatchLogSmokeTest` (burn)
+
+## Part 54 — Skeleton Rider (autopilot cycle 5)
+
+- `card/BattleCard.java` and `skeleton_rider.json` (26 HP, 8 damage a
+  second, range 5.5, speed 1.4, towers only, undead, 3 elixir), card art
+  cost, `server/battle/BattleField.java` (a Skeleton rides the horse, as on
+  the Spider Jockey), protocol 18; Wither Skeleton speed 0.85
+- `MobsWave2SmokeTest.skeletonRiderIgnoresTroops`

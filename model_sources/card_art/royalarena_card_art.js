@@ -55,6 +55,7 @@
         'zombie_villager': 3,
         'spider_jockey': 4,
         'fox': 2,
+        'skeleton_rider': 3,
         'arrow_storm': 3,
         'fireball': 4,
         'lightning': 6,

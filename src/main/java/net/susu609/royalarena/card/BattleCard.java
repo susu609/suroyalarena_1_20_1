@@ -76,7 +76,7 @@ public enum BattleCard {
                     TroopTraits.slowing(40))),
     WITHER_SKELETON("Wither Skeleton", 3, "minecraft:wither_skeleton",
             "minecraft:stone_sword", 0,
-            new TroopStats(1, 38, 10, 32, 1.5D, 1.0D, 0.35D,
+            new TroopStats(1, 38, 10, 32, 1.5D, 0.85D, 0.35D,
                     TroopTraits.poisoning(60, 1.5D))),
     PIGLIN_BRUTE("Piglin Brute", 4, "minecraft:piglin_brute",
             "minecraft:golden_axe", 0,
@@ -108,6 +108,9 @@ public enum BattleCard {
                     SplitRule.into(SKELETON_ARCHER.stats()))),
     FOX("Fox", 2, "minecraft:fox", null, 0,
             new TroopStats(3, 6, 2, 14, 1.2D, 1.9D, 0.3D)),
+    SKELETON_RIDER("Skeleton Rider", 3, "minecraft:skeleton_horse", null, 0,
+            new TroopStats(1, 26, 8, 20, 5.5D, 1.4D, 0.45D,
+                    TroopTraits.BUILDINGS)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
@@ -256,7 +259,7 @@ public enum BattleCard {
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
                     SNOW_GOLEM, ARROW_STORM, COBWEB ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
-            case SPIDER, SPIDER_JOCKEY, FOX, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
@@ -280,7 +283,7 @@ public enum BattleCard {
             case ZOMBIE, SKELETON_ARCHER, SKELETONS,
                     STRAY, ZOMBIFIED_PIGLIN, HUSK,
                     WITHER_SKELETON, DROWNED, PHANTOM,
-                    ZOMBIE_VILLAGER, BLAZE, VEX ->
+                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER ->
                     Body.UNDEAD;
             default -> Body.LIVING;
         };
