@@ -64,7 +64,9 @@ The card win rates in `scripts/balance.sh` are measured on plain random
 decks (with tribes on: a plain deck often reaches step 2 somewhere), so the
 40-60% band means the same as before.
 
-See the latest numbers on the card config page or by running the script.
+The tribes page, https://claude.ai/artifact/RswrRHCnGdbZyWxXkaVQp1 (built
+by `scripts/card-library.sh` as `tribes.html`), shows the latest numbers
+and has a deck tester; republish it when tribes or cards change.
 Known issue: decks of 6 Skeleton-tribe cards already win about 85% against
 plain decks without any bonus (cheap ranged troops together); the tribe
 bonus is not the cause, and the cards each sit inside 40-60%.
