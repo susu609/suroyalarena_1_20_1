@@ -1,0 +1,264 @@
+<title>Kho thẻ Royal Arena</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: a card binder. Summary strip, branch strip (master -> working branch),
+   group tabs, then a grid of trading-card tiles; the queue closes the page. */
+:root {
+  --bg: #e9ecef;
+  --panel: #f8f9fb;
+  --ink: #1c2229;
+  --muted: #5e6873;
+  --line: #cfd5dc;
+  --elixir: #9b3fd6;
+  --elixir-ink: #ffffff;
+  --blue: #1f4fd6;
+  --red: #c81e1e;
+  --gold: #b88a00;
+  --band: rgba(31, 79, 214, 0.12);
+  --good: #23874f;
+  --warn: #b0611a;
+  --new-bg: #fff1c9;
+  --new-ink: #6a4b00;
+  --font-display: 'Pixelify Sans', 'Courier New', monospace;
+  --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181d; --panel: #1d232a; --ink: #e6eaee; --muted: #9aa5b1; --line: #2e3740;
+    --elixir: #c07bff; --elixir-ink: #1a0b26; --blue: #6f97ff; --red: #ff6b6b; --gold: #e3b93b;
+    --band: rgba(111, 151, 255, 0.16); --good: #57c486; --warn: #e39a4f;
+    --new-bg: #4a3a0e; --new-ink: #ffe08a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181d; --panel: #1d232a; --ink: #e6eaee; --muted: #9aa5b1; --line: #2e3740;
+  --elixir: #c07bff; --elixir-ink: #1a0b26; --blue: #6f97ff; --red: #ff6b6b; --gold: #e3b93b;
+  --band: rgba(111, 151, 255, 0.16); --good: #57c486; --warn: #e39a4f;
+  --new-bg: #4a3a0e; --new-ink: #ffe08a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--font-body);
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font: 700 32px/1.1 var(--font-display); }
+h2 { font: 700 21px/1.2 var(--font-display); }
+.lead { display: flex; flex-direction: column; gap: 10px; }
+.lead p { margin: 0; color: var(--muted); max-width: 66ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat { background: var(--panel); border: 1px solid var(--line); padding: 10px 14px; min-width: 120px; display: flex; flex-direction: column; }
+.stat b { font: 700 24px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+.branches { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.branch { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.branch .name { font: 600 13px/1.3 var(--font-mono); overflow-wrap: anywhere; }
+.branch .sub { color: var(--muted); font-size: 13px; margin: 0; }
+.branch ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; }
+.tools { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); min-width: 92px; }
+button.chip { font: 500 13px/1 var(--font-body); color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 8px 12px; min-height: 36px; cursor: pointer; }
+button.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button.chip:focus-visible, input:focus-visible { outline: 2px solid var(--elixir); outline-offset: 2px; }
+input[type="search"] { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); padding: 8px 12px; min-height: 38px; width: min(100%, 320px); }
+.count { color: var(--muted); font-size: 13px; }
+.group { display: flex; flex-direction: column; gap: 12px; }
+.group h3 { font: 700 16px/1.2 var(--font-display); display: flex; gap: 8px; align-items: baseline; }
+.group h3 small { font: 400 13px var(--font-body); color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 12px; min-width: 0; position: relative; }
+.art { width: 64px; height: 80px; background: var(--bg); border: 2px solid var(--line); display: grid; place-items: center; overflow: hidden; position: relative; }
+.art img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.art .glyph { font: 700 26px/1 var(--font-display); color: var(--muted); }
+.art.spell { border-color: var(--elixir); }
+.cost { position: absolute; left: -2px; top: -2px; width: 22px; height: 22px; background: var(--elixir); color: var(--elixir-ink); font: 700 13px/22px var(--font-display); text-align: center; }
+.body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.title { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.title b { font-weight: 600; }
+.new { font-size: 11px; font-weight: 600; background: var(--new-bg); color: var(--new-ink); padding: 1px 6px; }
+.meta { font: 12px/1.4 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; border: 1px solid var(--line); padding: 1px 6px; color: var(--muted); }
+.tag.t-attack { color: var(--red); border-color: currentColor; }
+.tag.t-defense { color: var(--blue); border-color: currentColor; }
+.tag.t-support { color: var(--good); border-color: currentColor; }
+.meter { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.bar { position: relative; height: 8px; background: var(--bg); border: 1px solid var(--line); }
+.bar .band { position: absolute; top: 0; bottom: 0; left: 42%; width: 16%; background: var(--band); }
+.bar .mid { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px; background: var(--muted); }
+.bar .dot { position: absolute; top: -3px; width: 4px; height: 12px; margin-left: -2px; background: var(--ink); }
+.bar .dot.low, .bar .dot.high { background: var(--warn); }
+.pct { font: 600 12px var(--font-mono); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+.queue { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.q { background: var(--panel); border: 1px dashed var(--line); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.q b { font-weight: 600; }
+.q span { font-size: 13px; color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: no-preference) { button.chip { transition: background .12s, color .12s; } }
+</style>
+
+<main>
+  <header class="lead">
+    <h1>Kho thẻ Royal Arena</h1>
+    <p>Toàn bộ thẻ đang có trong mod, kèm chỉ số, chiến thuật và tỉ lệ thắng bot đấu bot ({{MATCHES}} trận). Thẻ đánh dấu <span class="new">Mới</span> mới có trên nhánh làm việc, chưa lên master.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="branches" aria-label="Nhánh">
+    <div class="branch">
+      <h2>master</h2>
+      <div class="name">{{MASTER_HASH}}</div>
+      <p class="sub" id="masterSub"></p>
+    </div>
+    <div class="branch">
+      <h2>Nhánh làm việc</h2>
+      <div class="name">ccr-7ae41114-t0mcxu · {{BRANCH_HASH}}</div>
+      <p class="sub" id="branchSub"></p>
+      <ul id="branchNew"></ul>
+    </div>
+  </section>
+
+  <section class="tools" aria-label="Lọc">
+    <div class="row"><span class="label">Nhóm theo</span><div class="row" id="groupBy"></div></div>
+    <div class="row"><span class="label">Loại</span><div class="row" id="kind"></div></div>
+    <div class="row"><span class="label">Chiến thuật</span><div class="row" id="tactic"></div></div>
+    <div class="row"><span class="label">Nhánh</span><div class="row" id="branch"></div></div>
+    <div class="row"><input type="search" id="q" placeholder="Tìm thẻ, ví dụ: poison, golem" aria-label="Tìm thẻ"><span class="count" id="count"></span></div>
+  </section>
+
+  <section id="groups" class="group" aria-live="polite"></section>
+
+  <section class="group">
+    <h2>Sắp có</h2>
+    <div class="queue" id="queue"></div>
+    <p class="note">Thanh dưới mỗi thẻ: dải xanh nhạt là khoảng cân bằng 42–58%, vạch giữa là 50%. Giá elixir của mọi thẻ theo công thức trong docs/BALANCE.md; số "raw" là giá chưa làm tròn.</p>
+  </section>
+</main>
+
+<script>
+const CARDS = {{CARDS}};
+const QUEUE = {{QUEUE}};
+const T = { Attack: 'Tấn công', Defense: 'Phòng thủ', Support: 'Hỗ trợ' };
+const R = { Spell: 'Phép', Tank: 'Tank', Ranged: 'Đánh xa', Swarm: 'Bầy', 'Area damage': 'Sát thương vùng', 'Targets towers': 'Chỉ đánh trụ', Melee: 'Cận chiến' };
+const BODY = { living: 'Sống', undead: 'Xác sống', construct: 'Golem' };
+const state = { group: 'kind', kind: 'all', tactic: 'all', branch: 'all', q: '' };
+try { Object.assign(state, JSON.parse(localStorage.getItem('ra-cards') || '{}')); state.q = ''; } catch (e) {}
+
+function chips(id, key, opts) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  for (const [v, label] of opts) {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.textContent = label;
+    b.setAttribute('aria-pressed', state[key] === v ? 'true' : 'false');
+    b.addEventListener('click', () => { state[key] = v; save(); renderAll(); });
+    el.appendChild(b);
+  }
+}
+function save() { try { localStorage.setItem('ra-cards', JSON.stringify({ group: state.group, kind: state.kind, tactic: state.tactic, branch: state.branch })); } catch (e) {} }
+
+function stats() {
+  const troops = CARDS.filter(c => c.kind === 'troop').length;
+  const spells = CARDS.length - troops;
+  const onMaster = CARDS.filter(c => c.master).length;
+  const avg = (CARDS.reduce((s, c) => s + c.cost, 0) / CARDS.length).toFixed(2).replace('.', ',');
+  const wins = CARDS.map(c => c.win);
+  const items = [[CARDS.length, 'thẻ'], [troops, 'lính'], [spells, 'phép'], [avg, 'elixir trung bình'], [Math.min(...wins) + '–' + Math.max(...wins) + '%', 'khoảng tỉ lệ thắng']];
+  document.getElementById('stats').innerHTML = items.map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
+  document.getElementById('masterSub').textContent = `${onMaster} thẻ (${CARDS.filter(c => c.master && c.kind === 'spell').length} phép)`;
+  const fresh = CARDS.filter(c => !c.master);
+  document.getElementById('branchSub').textContent = `${CARDS.length} thẻ: master + ${fresh.length} thẻ mới, chưa đưa lên master`;
+  document.getElementById('branchNew').innerHTML = fresh.map(c => `<li>${c.name} <span class="meta">${c.cost} elixir · ${c.kind === 'spell' ? 'phép' : 'lính'}</span></li>`).join('');
+}
+
+function matches(c) {
+  if (state.kind !== 'all' && c.kind !== state.kind) return false;
+  if (state.tactic !== 'all' && !c.tactics.includes(state.tactic)) return false;
+  if (state.branch === 'master' && !c.master) return false;
+  if (state.branch === 'new' && c.master) return false;
+  const q = state.q.trim().toLowerCase();
+  if (q) {
+    const hay = [c.name, c.id, ...(c.facts || []), ...(c.roles || []), c.body || ''].join(' ').toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+function groupsOf(list) {
+  const g = new Map();
+  const add = (k, c) => { if (!g.has(k)) g.set(k, []); g.get(k).push(c); };
+  for (const c of list) {
+    if (state.group === 'kind') add(c.kind === 'spell' ? 'Phép' : 'Lính', c);
+    else if (state.group === 'tactic') c.tactics.forEach(t => add(T[t] || t, c));
+    else if (state.group === 'cost') add(c.cost + ' elixir', c);
+    else if (state.group === 'body') add(c.kind === 'spell' ? 'Phép' : BODY[c.body] || c.body, c);
+    else add('Tất cả', c);
+  }
+  let keys = [...g.keys()];
+  if (state.group === 'cost') keys.sort((a, b) => parseInt(a) - parseInt(b));
+  if (state.group === 'tactic') keys.sort((a, b) => ['Tấn công', 'Phòng thủ', 'Hỗ trợ'].indexOf(a) - ['Tấn công', 'Phòng thủ', 'Hỗ trợ'].indexOf(b));
+  if (state.group === 'body') keys.sort((a, b) => ['Sống', 'Xác sống', 'Golem', 'Phép'].indexOf(a) - ['Sống', 'Xác sống', 'Golem', 'Phép'].indexOf(b));
+  return keys.map(k => [k, g.get(k).sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name))]);
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]); }
+
+function tile(c) {
+  const art = c.art ? `<img src="${c.art}" alt="">` : `<span class="glyph" aria-hidden="true">${esc(c.name[0])}</span>`;
+  const meta = c.kind === 'troop'
+    ? `${c.count > 1 ? c.count + '× ' : ''}${c.hp} máu · ${c.dmg} st/${String(c.every).replace('.', ',')}s · tầm ${String(c.range).replace('.', ',')} · tốc ${String(c.speed).replace('.', ',')}`
+    : (c.facts || []).slice(0, 3).join(' · ');
+  const tags = [];
+  c.tactics.forEach(t => tags.push(`<span class="tag t-${t.toLowerCase()}">${T[t] || t}</span>`));
+  if (c.kind === 'troop') {
+    (c.roles || []).forEach(r => tags.push(`<span class="tag">${R[r] || r}</span>`));
+    tags.push(`<span class="tag">${BODY[c.body] || c.body}</span>`);
+    if (c.fire) tags.push('<span class="tag">Miễn lửa</span>');
+    (c.facts || []).forEach(f => tags.push(`<span class="tag">${esc(f)}</span>`));
+  } else {
+    (c.facts || []).slice(3).forEach(f => tags.push(`<span class="tag">${esc(f)}</span>`));
+  }
+  const cls = c.win < 42 ? 'low' : c.win > 58 ? 'high' : '';
+  return `<article class="card">
+    <div class="art ${c.kind}">${art}<span class="cost" title="Giá elixir">${c.cost}</span></div>
+    <div class="body">
+      <div class="title"><b>${esc(c.name)}</b>${c.master ? '' : '<span class="new">Mới</span>'}</div>
+      <div class="meta">${esc(meta)}</div>
+      <div class="tags">${tags.join('')}</div>
+      <div class="meter" title="Tỉ lệ thắng bot đấu bot">
+        <div class="bar"><span class="band"></span><span class="mid"></span><span class="dot ${cls}" style="left:${Math.max(0, Math.min(100, c.win))}%"></span></div>
+        <span class="pct">${c.win}%</span>
+      </div>
+      <div class="meta">raw ${String(c.raw).replace('.', ',')} · <code>${c.id}</code></div>
+    </div>
+  </article>`;
+}
+
+function renderAll() {
+  chips('groupBy', 'group', [['kind', 'Loại'], ['tactic', 'Chiến thuật'], ['cost', 'Elixir'], ['body', 'Thân'], ['none', 'Không nhóm']]);
+  chips('kind', 'kind', [['all', 'Tất cả'], ['troop', 'Lính'], ['spell', 'Phép']]);
+  chips('tactic', 'tactic', [['all', 'Tất cả'], ['Attack', 'Tấn công'], ['Defense', 'Phòng thủ'], ['Support', 'Hỗ trợ']]);
+  chips('branch', 'branch', [['all', 'Cả hai'], ['master', 'Đã lên master'], ['new', 'Chỉ trên nhánh']]);
+  const list = CARDS.filter(matches);
+  document.getElementById('count').textContent = `${list.length} / ${CARDS.length} thẻ`;
+  const out = groupsOf(list).map(([k, cs]) => `<div class="group"><h3>${esc(k)} <small>${cs.length} thẻ</small></h3><div class="grid">${cs.map(tile).join('')}</div></div>`);
+  document.getElementById('groups').innerHTML = out.join('') || '<p class="note">Không có thẻ nào khớp bộ lọc. Bỏ bớt bộ lọc để xem lại.</p>';
+}
+
+document.getElementById('q').addEventListener('input', e => { state.q = e.target.value; renderAll(); });
+document.getElementById('queue').innerHTML = QUEUE.map(q => `<div class="q"><b>${esc(q.name)}</b><span>${esc(q.note)}</span></div>`).join('');
+stats();
+renderAll();
+</script>

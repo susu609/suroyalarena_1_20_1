@@ -60,11 +60,29 @@ Edit this file to change what the cycles do; the next cycle reads it fresh.
    1000 docs/BALANCE_REPORT.md`, a Part in `docs/PARTS.md` when code changed,
    one line in `docs/AUTOPILOT_LOG.md`:
    `- <UTC date> <short hash>: added X; tuned Y (a% -> b%); band lo-hi%`.
-6. **Push.** Commit (clear message, the session's trailers), then
+6. **Card library.** If the cycle changed a card, or any PNG under
+   `textures/gui/card/` changed since the last cycle (`git log` on that
+   folder), run `scripts/card-library.sh 4000` and republish
+   `build/card-library/card-library.html` with the Artifact tool to the same
+   page, `https://claude.ai/artifact/XacLG7UXY8A8PQ9mjAyjkk` (pass it as
+   `url`; never create a new page).
+7. **Push.** Commit (clear message, the session's trailers), then
    `git push -u origin ccr-7ae41114-t0mcxu`. If nothing changed, push nothing.
-7. **Report** in one short message (Vietnamese): what was added, tuned,
+8. **Report** in one short message (Vietnamese): what was added, tuned,
    fixed, the band, anything that needs the user (a design question, a
    blocker).
+
+## Card library
+
+The page above shows every card with its art, stats, win rate and whether
+it is on `master` yet. Its art is each card's
+`src/main/resources/assets/royalarena/textures/gui/card/<id>.png` (the same
+file the deck screen uses), embedded into the page when it is built. To add
+or change art: put the PNG there under the card's id, commit and push it on
+the branch; the next cycle (or any session asked to "cập nhật kho thẻ")
+rebuilds and republishes the page. The page's Vietnamese queue notes live in
+`scripts/card-library/queue-vi.json`; a queue card missing there shows its
+English text from `docs/CARD_QUEUE.md`.
 
 ## Schedule
 
