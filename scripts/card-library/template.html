@@ -53,8 +53,8 @@ body {
 }
 main { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
-h1 { font: 700 32px/1.1 var(--font-display); }
-h2 { font: 700 21px/1.2 var(--font-display); }
+h1 { font: 700 30px/1.15 var(--font-body); }
+h2 { font: 600 20px/1.25 var(--font-body); }
 .lead { display: flex; flex-direction: column; gap: 10px; }
 .lead p { margin: 0; color: var(--muted); max-width: 66ch; }
 .stats { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -75,7 +75,7 @@ button.chip:focus-visible, input:focus-visible { outline: 2px solid var(--elixir
 input[type="search"] { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); padding: 8px 12px; min-height: 38px; width: min(100%, 320px); }
 .count { color: var(--muted); font-size: 13px; }
 .group { display: flex; flex-direction: column; gap: 12px; }
-.group h3 { font: 700 16px/1.2 var(--font-display); display: flex; gap: 8px; align-items: baseline; }
+.group h3 { font: 600 16px/1.25 var(--font-body); display: flex; gap: 8px; align-items: baseline; }
 .group h3 small { font: 400 13px var(--font-body); color: var(--muted); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
 .card { background: var(--panel); border: 1px solid var(--line); display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 12px; min-width: 0; position: relative; }

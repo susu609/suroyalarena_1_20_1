@@ -16,3 +16,6 @@ java -cp build/pure net.susu609.royalarena.CardLibraryReport "$N" build/card-lib
 python3 scripts/card-library/build.py build/card-library/cards.json "$N" "$OUT"
 # The card config page (edit stats, live cost, saved for Claude to apply).
 python3 scripts/card-library/config.py build/card-library/cards.json "$N" "$(dirname "$OUT")/card-config.html" ${BEFORE:+"$BEFORE"}
+# The tribes page (scripts/tribes.sh measures what each step is worth).
+java -cp build/pure net.susu609.royalarena.TribeReport 400 build/card-library/tribes.json >/dev/null
+python3 scripts/card-library/tribes.py build/card-library/cards.json build/card-library/tribes.json "$(dirname "$OUT")/tribes.html"

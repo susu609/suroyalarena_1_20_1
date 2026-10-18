@@ -1,0 +1,191 @@
+<title>Tộc hệ Royal Arena</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: how tribes work (the 2/4/6/8 ladder), one panel per tribe with its
+   cards, its four steps and the measured gain, then a deck tester. */
+:root {
+  --bg: #e9ecef; --panel: #f8f9fb; --ink: #1c2229; --muted: #5e6873; --line: #cfd5dc;
+  --elixir: #9b3fd6; --elixir-ink: #ffffff; --gold: #8a6a00; --gold-bg: #fff1c9;
+  --good: #23874f; --warn: #b0611a; --off: #9aa5b1; --on: #1f4fd6;
+  --font-display: 'Pixelify Sans', 'Courier New', monospace;
+  --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181d; --panel: #1d232a; --ink: #e6eaee; --muted: #9aa5b1; --line: #2e3740;
+    --elixir: #c07bff; --elixir-ink: #1a0b26; --gold: #e3b93b; --gold-bg: #4a3a0e;
+    --good: #57c486; --warn: #e39a4f; --off: #5e6873; --on: #6f97ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181d; --panel: #1d232a; --ink: #e6eaee; --muted: #9aa5b1; --line: #2e3740;
+  --elixir: #c07bff; --elixir-ink: #1a0b26; --gold: #e3b93b; --gold-bg: #4a3a0e;
+  --good: #57c486; --warn: #e39a4f; --off: #5e6873; --on: #6f97ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body);
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font: 700 30px/1.15 var(--font-body); }
+h2 { font: 600 20px/1.25 var(--font-body); }
+h3 { font: 600 17px/1.25 var(--font-body); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+h3 small { font: 400 13px var(--font-body); color: var(--muted); }
+p { margin: 0; }
+.lead { display: flex; flex-direction: column; gap: 10px; }
+.lead p, .note { color: var(--muted); max-width: 70ch; }
+.note { font-size: 13px; }
+.ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.rung { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rung b { font: 700 22px/1 var(--font-display); }
+.rung span { font-size: 12px; color: var(--muted); }
+.tribes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+.tribe { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.members { display: flex; flex-wrap: wrap; gap: 6px; }
+.member { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); padding: 3px 8px 3px 3px; font-size: 13px; background: var(--bg); }
+.member .face { width: 22px; height: 22px; display: grid; place-items: center; background: var(--panel); font: 700 12px var(--font-display); color: var(--muted); overflow: hidden; }
+.member .face img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.member .el { font: 600 11px var(--font-mono); color: var(--elixir); }
+.member.two { border-color: var(--gold); }
+.steps { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.steps li { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: baseline; font-size: 14px; }
+.steps li b { font: 700 15px var(--font-display); text-align: center; background: var(--bg); border: 1px solid var(--line); }
+.steps li.fx b { background: var(--gold-bg); color: var(--gold); border-color: currentColor; }
+.steps li.locked { color: var(--muted); }
+.gain { display: flex; flex-direction: column; gap: 6px; }
+.gain .row { display: grid; grid-template-columns: 54px 1fr 54px; gap: 8px; align-items: center; font: 12px var(--font-mono); font-variant-numeric: tabular-nums; }
+.bars { position: relative; height: 14px; background: var(--bg); border: 1px solid var(--line); }
+.bars .mid { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px; background: var(--muted); }
+.bars .off, .bars .on { position: absolute; top: 2px; height: 4px; left: 0; }
+.bars .off { background: var(--off); }
+.bars .on { top: 7px; background: var(--on); }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 14px; height: 4px; vertical-align: middle; margin-right: 4px; }
+.flag { border-left: 3px solid var(--warn); padding: 8px 12px; background: var(--panel); font-size: 14px; }
+.tester { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.picks { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick { font: 500 13px var(--font-body); color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 6px 10px; min-height: 34px; cursor: pointer; }
+.pick[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pick:focus-visible { outline: 2px solid var(--elixir); outline-offset: 2px; }
+.result { font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+.result .line { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.result .line b { font-weight: 600; }
+@media (max-width: 480px) { .ladder { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+
+<main>
+  <header class="lead">
+    <h1>Tộc hệ</h1>
+    <p>Mỗi thẻ lính thuộc 1 hoặc 2 tộc. Deck có 2, 4, 6, 8 thẻ khác nhau cùng tộc thì mọi lính tộc đó được thưởng cả trận, cộng dồn các mốc. Phép không thuộc tộc nào. Đã có trong game (nhánh {{BRANCH_HASH}}), bật/tắt bằng config <code>troops.tribes</code>.</p>
+  </header>
+
+  <section class="ladder" aria-label="Các mốc">
+    <div class="rung"><b>2</b><span>Buff chỉ số nhẹ</span></div>
+    <div class="rung"><b>4</b><span>Mở hiệu ứng thứ nhất</span></div>
+    <div class="rung"><b>6</b><span>Mở hiệu ứng thứ hai</span></div>
+    <div class="rung"><b>8</b><span>Buff chỉ số lớn (cả deck một tộc)</span></div>
+  </section>
+
+  <section aria-labelledby="h-tribes" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-tribes">10 tộc</h2>
+    <div class="legend"><span><i style="background:var(--off)"></i>Tắt thưởng tộc</span><span><i style="background:var(--on)"></i>Bật thưởng tộc</span><span>Deck xây quanh tộc đấu deck bot ngẫu nhiên, {{MATCHES}} trận mỗi dòng; vạch giữa = 50%.</span></div>
+    <div class="tribes" id="tribes"></div>
+  </section>
+
+  <section class="flag" aria-label="Lưu ý">
+    <b>Cần bạn quyết:</b> deck 6 thẻ tộc Xương thắng khoảng 85% deck ngẫu nhiên ngay cả khi tắt thưởng tộc (nhiều xạ thủ rẻ đi chung). Thưởng tộc không gây ra chuyện này và từng thẻ vẫn trong 40–60%. Cách sửa có thể: giảm tầm Skeletons/Stray, hoặc bỏ hiệu ứng mốc 6 của tộc Xương.
+  </section>
+
+  <section class="tester" aria-labelledby="h-test">
+    <h2 id="h-test">Thử deck</h2>
+    <p class="note">Chọn tới 8 thẻ để xem tộc nào đạt mốc và lính được gì.</p>
+    <div class="picks" id="picks"></div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </section>
+</main>
+
+<script>
+const DATA = {{DATA}};
+const CARDS = {{CARDS}};
+const THRESHOLDS = [2, 4, 6, 8];
+const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const VI = {
+  '+5% health': '+5% máu', '+15% health': '+15% máu', '+25% health': '+25% máu',
+  '+5% damage': '+5% sát thương', '+25% damage': '+25% sát thương',
+  'heals 0.15 health a second': 'hồi 0,15 máu mỗi giây', 'heals 5% of the damage it deals': 'hút 5% sát thương gây ra',
+  'hits ignore armour': 'đòn đánh xuyên giáp', 'attacks 10% faster': 'đánh nhanh hơn 10%', 'attacks 5% faster': 'đánh nhanh hơn 5%',
+  'attacks 25% faster': 'đánh nhanh hơn 25%', '+20% damage to towers': '+20% sát thương lên trụ',
+  'hits burn: 0.5 a second for 2 s': 'đòn đánh đốt 0,5/giây trong 2 giây', '+1 armour': '+1 giáp', '+2 armour': '+2 giáp',
+  'walks 10% faster': 'đi nhanh hơn 10%', 'walks 5% faster': 'đi nhanh hơn 5%',
+  'hits poison: 0.5 a second for 2 s': 'đòn đánh gây độc 0,5/giây trong 2 giây', '+20% health and damage': '+20% máu và sát thương',
+  'heals 10% of the damage it deals': 'hút 10% sát thương gây ra', '+3% health and damage': '+3% máu và sát thương',
+  'its first hit freezes the target for 0.2 s': 'đòn đầu tiên làm đứng hình 0,2 giây', '+15% health and damage': '+15% máu và sát thương',
+  '+25% damage from the river': '+25% sát thương khi đứng trên sông'
+};
+const vi = t => VI[t] || t;
+const tribesOf = id => DATA.tribes.filter(t => t.members.includes(id));
+
+function face(c) {
+  return `<span class="face">${c.art ? `<img src="${c.art}" alt="">` : esc(c.name[0])}</span>`;
+}
+
+function tribePanel(t) {
+  const members = t.members.map(id => {
+    const c = byId[id]; const two = tribesOf(id).length > 1;
+    const other = two ? tribesOf(id).find(x => x.id !== t.id).labelVi : '';
+    return `<span class="member${two ? ' two' : ''}" title="${two ? 'Cũng thuộc tộc ' + esc(other) : ''}">${face(c)}${esc(c.name)} <span class="el">${c.cost}</span></span>`;
+  }).join('');
+  const steps = THRESHOLDS.map((n, i) => {
+    const text = t.steps[i];
+    if (!text) return '';
+    const reachable = t.members.length >= n;
+    return `<li class="${i % 2 ? 'fx' : ''}${reachable ? '' : ' locked'}"><b>${n}</b><span>${esc(vi(text))}${reachable ? '' : ' (chưa đủ thẻ)'}</span></li>`;
+  }).join('');
+  const rows = DATA.rows.filter(r => r.tribe === t.id).map(r => `
+    <div class="row"><span>${r.cards} thẻ</span>
+      <div class="bars" title="Tắt ${r.off}% · Bật ${r.on}%"><span class="mid"></span><span class="off" style="width:${r.off}%"></span><span class="on" style="width:${r.on}%"></span></div>
+      <span>${r.on >= r.off ? '+' : ''}${r.on - r.off} đ</span></div>`).join('');
+  return `<article class="tribe">
+    <h3>${esc(t.labelVi)} <small>${t.members.length} thẻ</small></h3>
+    <div class="members">${members}</div>
+    <ul class="steps">${steps}</ul>
+    ${rows ? `<div class="gain">${rows}</div>` : '<p class="note">Tộc nhỏ: chỉ có mốc 2, không đo riêng.</p>'}
+  </article>`;
+}
+
+document.getElementById('tribes').innerHTML = DATA.tribes.slice().sort((a, b) => b.members.length - a.members.length).map(tribePanel).join('');
+
+const picked = new Set();
+function renderTester() {
+  const troops = CARDS.filter(c => c.kind === 'troop').sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById('picks').innerHTML = troops.map(c => `<button type="button" class="pick" aria-pressed="${picked.has(c.id)}" data-id="${c.id}">${esc(c.name)}</button>`).join('');
+  const counts = {};
+  for (const id of picked) for (const t of tribesOf(id)) counts[t.id] = (counts[t.id] || 0) + 1;
+  const lines = DATA.tribes.filter(t => counts[t.id] >= 2).map(t => {
+    const n = counts[t.id];
+    const got = t.steps.filter((s, i) => n >= THRESHOLDS[i]).map(vi);
+    const next = THRESHOLDS.find((x, i) => n < x && t.steps[i]);
+    return `<div class="line"><b>${esc(t.labelVi)} ${n}</b><span>${esc(got.join(' · '))}${next ? ` · mốc tiếp theo: ${next}` : ''}</span></div>`;
+  });
+  document.getElementById('result').innerHTML = `<span class="note">${picked.size}/8 thẻ</span>` + (lines.join('') || '<span class="note">Chưa tộc nào đạt mốc 2.</span>');
+}
+document.getElementById('picks').addEventListener('click', e => {
+  const b = e.target.closest('[data-id]'); if (!b) return;
+  const id = b.dataset.id;
+  if (picked.has(id)) picked.delete(id); else if (picked.size < 8) picked.add(id);
+  renderTester();
+});
+renderTester();
+</script>
