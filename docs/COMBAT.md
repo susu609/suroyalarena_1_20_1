@@ -185,5 +185,18 @@ client-side only and has not been seen in the game yet.
 
 ## Not built yet
 
-Flying and building-only troops, hit knockback,
-tower-count scoring and overtime.
+Flying and tower-only troops (Phantom, Blaze, Ghast, Iron Golem, Hoglin),
+knockback (Ravager, spells), tower-count scoring and overtime are all built
+now. Still missing, for the "(by hand)" cards in `docs/CARD_QUEUE.md`:
+
+- **Buildings.** A card that stands still on its own half with health that
+  drains with time, attacked like a troop (Shulker).
+- **Lingering zones.** A spell that stays on the ground and acts every second
+  (Poison Cloud, Cobweb, Swiftness Potion).
+- **Moving a troop by spell.** Teleporting or pushing one troop by a capped
+  distance (Ender Pearl).
+- **Drawn to noise.** A troop that leaves its target for the loudest recent
+  explosion (Warden).
+- **Healing support.** A troop that follows an ally and heals around it
+  without fighting (Allay).
+- **Emotes** (and their sounds, `docs/SOUND_DESIGN.md`).
