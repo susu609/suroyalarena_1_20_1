@@ -53,6 +53,10 @@ public final class ClientMatchState {
     public static boolean active() {
         return snapshot.active();
     }
+    /** Watching a bot-versus-bot match: the hand is shown, nothing is played. */
+    public static boolean spectating() {
+        return snapshot.spectating();
+    }
     public static java.util.UUID matchId() {
         return snapshot.matchId();
     }
@@ -127,7 +131,8 @@ public final class ClientMatchState {
     }
 
     public static void selectSlot(int slot) {
-        if (!active() || state() != MatchState.BATTLE || slot < 0 ||
+        if (!active() || spectating() || state() != MatchState.BATTLE ||
+                slot < 0 ||
                 slot >= hand().size())
             return;
         selectedSlot = slot;
@@ -159,8 +164,8 @@ public final class ClientMatchState {
      * whole arena for a spell, and enough elixir. The server validates again.
      */
     public static boolean canDeployAt(int slot, int worldX, int worldZ) {
-        if (!active() || state() != MatchState.BATTLE || slot < 0 ||
-                slot >= hand().size())
+        if (!active() || spectating() || state() != MatchState.BATTLE ||
+                slot < 0 || slot >= hand().size())
             return false;
         BattleCard card = hand().get(slot);
         if (card.cost() * 10 > elixirTenths())

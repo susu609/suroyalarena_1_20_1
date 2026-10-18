@@ -55,6 +55,7 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
         buffer.writeUUID(s.redPlayer());
         buffer.writeBoolean(s.overtime());
         buffer.writeVarInt(s.elixirRate());
+        buffer.writeBoolean(s.spectating());
     }
 
     public static S2CMatchSnapshotPacket decode(FriendlyByteBuf buffer) {
@@ -90,12 +91,13 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
         UUID redPlayer = buffer.readUUID();
         boolean overtime = buffer.readBoolean();
         int elixirRate = Math.max(1, Math.min(3, buffer.readVarInt()));
+        boolean spectating = buffer.readBoolean();
         return new S2CMatchSnapshotPacket(
                 new MatchSnapshot(
                         true, matchId, state, side, center, ticks, elixir,
                         List.copyOf(hand), next, towerHp, winner,
                         List.copyOf(pending), bluePlayer, redPlayer, overtime,
-                        elixirRate));
+                        elixirRate, spectating));
     }
 
     public static void handle(S2CMatchSnapshotPacket packet,

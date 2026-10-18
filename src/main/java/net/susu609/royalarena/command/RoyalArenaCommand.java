@@ -48,6 +48,17 @@ public final class RoyalArenaCommand {
                         .executes(RoyalArenaCommand::startSoloVsBot))
                 .then(Commands.literal("practice")
                         .executes(RoyalArenaCommand::startSoloVsBot))
+                .then(Commands.literal("watch").executes(ctx -> {
+                    // Bot against bot, watched from BLUE's seat.
+                    ServerPlayer player =
+                            ctx.getSource().getPlayerOrException();
+                    if (!MatchManager.INSTANCE.startWatch(player)) {
+                        ctx.getSource().sendFailure(Component.literal(
+                                "You are already in a match."));
+                        return 0;
+                    }
+                    return 1;
+                }))
                 .then(Commands.literal("debug_start")
                         .requires(source -> source.hasPermission(2))
                         .executes(ctx -> {

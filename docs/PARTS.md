@@ -569,3 +569,18 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `BotPersonalitySmokeTest`; `BotSmokeTest` (the counter score, a neutral
   personality for the settings test); `BalanceReport` prints each
   personality's win rate; `docs/BOT.md`, `docs/CONFIG.md`, `docs/MATCH_LOG.md`
+
+## Part 49 — Watch bot against bot
+
+- `server/match/ServerMatchSession.java` (a list of bots, each with its own
+  card drag; a spectator in BLUE's seat whose deploys are ignored; result
+  names "Bot (Rush)"), `MatchManager.startWatch` (and "Play again" for it),
+  `command/RoyalArenaCommand.java` (`/royalarena watch`),
+  `network/c2s/C2SStartPracticePacket.java` (`watch`),
+  `match/MatchSnapshot.java` and `S2CMatchSnapshotPacket` (`spectating`),
+  protocol 13
+- `client/screen/MatchingScreen.java` (Watch Bot vs Bot),
+  `client/state/ClientMatchState.java` (`spectating`: no selection or
+  deploy), `ClientForgeEvents` (no clicks), `BattleHudOverlay` (WATCHING),
+  `BotDragRenderer` (a blue hand for the BLUE bot), lang
+- `docs/BOT.md`

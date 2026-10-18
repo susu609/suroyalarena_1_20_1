@@ -24,6 +24,8 @@ import java.util.List;
  */
 public final class BotDragRenderer {
     private static final int RED = 0xFF4040;
+    /** A BLUE bot's hand, when two bots play each other. */
+    private static final int BLUE = 0x4A8CFF;
     /** Ticks the ghosts wait at the target until the real deploy shows. */
     private static final int LINGER = 6;
     private static final List<Drag> DRAGS = new ArrayList<>();
@@ -83,19 +85,21 @@ public final class BotDragRenderer {
             double z = d.fromZ() + dz * e + dx / length * wobble;
             double radius = d.card().isSpell() ? d.card().spell().radius() :
                     0.7D;
-            WorldShapes.disc(pose, buffers, x, floor + 0.01D, z, radius, RED,
+            int color = d.side() == TeamSide.BLUE ? BLUE : RED;
+            WorldShapes.disc(pose, buffers, x, floor + 0.01D, z, radius, color,
                     0.22F, 0.8F);
             DeployPreviewRenderer.ghosts(mc, pose, buffers, d.card(), x,
                     floor, z, d.side(), partial);
-            cursor(pose, buffers, event, x, floor + 2.2D, z);
+            cursor(pose, buffers, event, x, floor + 2.2D, z, color);
         }
         pose.popPose();
         buffers.endBatch();
     }
 
-    /** A red arrow cursor pointing down, always facing the camera. */
+    /** An arrow cursor pointing down, always facing the camera. */
     private static void cursor(PoseStack pose, MultiBufferSource buffers,
-            RenderLevelStageEvent event, double x, double y, double z)
+            RenderLevelStageEvent event, double x, double y, double z,
+            int color)
     {
         pose.pushPose();
         pose.translate(x, y, z);
@@ -103,9 +107,9 @@ public final class BotDragRenderer {
         pose.scale(0.5F, 0.5F, 0.5F);
         Matrix4f m = pose.last().pose();
         VertexConsumer quads = buffers.getBuffer(RenderType.debugQuads());
-        float r = ((RED >> 16) & 0xFF) / 255.0F;
-        float g = ((RED >> 8) & 0xFF) / 255.0F;
-        float b = (RED & 0xFF) / 255.0F;
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8) & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
         // Arrow head (tip down) and stem, both windings so it never culls.
         float[][] head = {{0.0F, -0.6F}, {-0.5F, 0.1F}, {0.5F, 0.1F},
                 {0.0F, -0.6F}};

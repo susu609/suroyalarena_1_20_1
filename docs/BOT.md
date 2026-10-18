@@ -10,6 +10,17 @@ the hand cycle, deploy areas and the one-second deploy delay all apply to it.
   `/royalarena practice`). You play BLUE; the bot plays RED.
 - Two players can still match with **Find Match** or `/royalarena debug_start`.
 
+## Watching bot against bot
+
+Press `M` and choose **Watch Bot vs Bot**, or run `/royalarena watch`. Two
+bots play each other with random decks and personalities (the config's
+`personality` sets the RED one; BLUE always draws its own). You sit in BLUE's
+seat: the camera, the HUD and BLUE's hand and elixir are the BLUE bot's, a
+"WATCHING" label sits under the timer, and clicks and card keys do nothing.
+The chat names both personalities. The BLUE bot's hand is drawn blue, the RED
+one's red. **Play again** on the result screen starts another watched match.
+The match log marks it `"mode": "watch"`.
+
 ## Its deck
 
 Each match the bot draws a random deck (`BotDeck`): 8 different cards with at

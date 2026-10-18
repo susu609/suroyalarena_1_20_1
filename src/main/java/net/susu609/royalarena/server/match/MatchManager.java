@@ -32,6 +32,8 @@ public final class MatchManager {
     private final Map<UUID, UUID> playerToMatch = new HashMap<>();
     /** Players to start a new bot match for on the next tick. */
     private final List<UUID> rematches = new ArrayList<>();
+    /** Players who asked to watch another bot-versus-bot match. */
+    private final List<UUID> rewatches = new ArrayList<>();
 
     private MatchManager() {
     }
@@ -61,11 +63,23 @@ public final class MatchManager {
             return false;
         MatchQueue.INSTANCE.leave(player, "Practice match");
         return launch(player.getServer(), player.getUUID(), UUID.randomUUID(),
-                true);
+                true, false);
+    }
+
+    /**
+     * A bot-versus-bot match the player watches from BLUE's seat: the BLUE
+     * hand is the BLUE bot's, and the player plays nothing.
+     */
+    public boolean startWatch(ServerPlayer player) {
+        if (isInMatch(player.getUUID()))
+            return false;
+        MatchQueue.INSTANCE.leave(player, "Watching bots");
+        return launch(player.getServer(), player.getUUID(), UUID.randomUUID(),
+                true, true);
     }
 
     private boolean launch(MinecraftServer server, UUID blueId, UUID redId,
-            boolean botForRed)
+            boolean botForRed, boolean botForBlue)
     {
         if (server == null)
             return false;
@@ -76,7 +90,7 @@ public final class MatchManager {
         // balanced deck.
         Random random = new Random(matchId.getMostSignificantBits());
         DeckStorage decks = DeckStorage.get(server);
-        BattleDeck blueDeck =
+        BattleDeck blueDeck = botForBlue ? BotDeck.random(random) :
                 new BattleDeck(decks.deckOf(blueId)).shuffled(random);
         BattleDeck redDeck = botForRed ? BotDeck.random(random) :
                 new BattleDeck(decks.deckOf(redId)).shuffled(random);
@@ -86,17 +100,33 @@ public final class MatchManager {
         BotBrain bot = botForRed ?
                 new BotBrain(TeamSide.RED, matchId.getLeastSignificantBits()) :
                 null;
+        // The watched BLUE bot draws its own personality; the config only
+        // sets the opponent's.
+        BotBrain blueBot = botForBlue ? new BotBrain(TeamSide.BLUE,
+                matchId.getMostSignificantBits() ^ 0x5DEECE66DL) : null;
+        ServerPlayer player = server.getPlayerList().getPlayer(blueId);
         if (bot != null) {
             bot.setPersonality(ArenaCommonConfig.botPersonality());
-            ServerPlayer player = server.getPlayerList().getPlayer(blueId);
-            if (player != null)
+            if (player != null && blueBot == null)
                 player.sendSystemMessage(Component.translatable(
                         "chat.royalarena.bot_personality",
                         Component.literal(bot.personality().displayName())
                                 .withStyle(ChatFormatting.RED)));
         }
-        ServerMatchSession session =
-                new ServerMatchSession(match, level, reservation, bot);
+        if (blueBot != null && player != null)
+            player.sendSystemMessage(Component.translatable(
+                    "chat.royalarena.watching",
+                    Component.literal(blueBot.personality().displayName())
+                            .withStyle(ChatFormatting.BLUE),
+                    Component.literal(bot.personality().displayName())
+                            .withStyle(ChatFormatting.RED)));
+        List<BotBrain> bots = new ArrayList<>();
+        if (blueBot != null)
+            bots.add(blueBot);
+        if (bot != null)
+            bots.add(bot);
+        ServerMatchSession session = new ServerMatchSession(match, level,
+                reservation, bots, botForBlue ? blueId : null);
         matches.put(matchId, session);
         playerToMatch.put(blueId, matchId);
         playerToMatch.put(redId, matchId);
@@ -119,11 +149,18 @@ public final class MatchManager {
                 playerToMatch.remove(session.match().red().playerId());
                 ArenaAllocator.INSTANCE.release(session.reservation());
                 it.remove();
-                rematches.addAll(session.rematchPlayers());
+                (session.watching() ? rewatches : rematches)
+                        .addAll(session.rematchPlayers());
             }
         }
         // "Play again" on the result screen: a new bot match once the old
         // one is cleared away.
+        while (!rewatches.isEmpty()) {
+            ServerPlayer player =
+                    server.getPlayerList().getPlayer(rewatches.remove(0));
+            if (player != null)
+                startWatch(player);
+        }
         while (!rematches.isEmpty()) {
             ServerPlayer player =
                     server.getPlayerList().getPlayer(rematches.remove(0));

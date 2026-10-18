@@ -264,6 +264,11 @@ public final class BattleHudOverlay implements IGuiOverlay {
                 String.format("%d:%02d", seconds / 60, seconds % 60),
                 box.centerX(), box.y() + 10.5F * u, textScale(layout, 8.0F),
                 last ? 0xFFFF5555 : 0xFFFFFFFF);
+        if (ClientMatchState.spectating())
+            text(graphics, font, Component.translatable(
+                            "hud.royalarena.watching").getString(),
+                    box.centerX(), box.bottom() + 6.0F * u,
+                    textScale(layout, 5.0F), 0xFF8FC8FF);
     }
 
     private static void drawCrowns(GuiGraphics graphics, Font font,

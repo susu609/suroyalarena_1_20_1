@@ -2,6 +2,8 @@
   "key.categories.royalarena": "Su Royal Arena",
   "key.royalarena.open_matching": "Open Matching",
   "chat.royalarena.bot_personality": "Your opponent plays %s",
+  "chat.royalarena.watching": "Watching: %s (blue) against %s (red)",
+  "hud.royalarena.watching": "WATCHING",
   "hud.royalarena.open_hint": "Press %s to open Royal Arena",
   "key.royalarena.card_1": "Select Card 1",
   "key.royalarena.card_2": "Select Card 2",

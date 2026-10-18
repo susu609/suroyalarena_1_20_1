@@ -13,7 +13,8 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
                             List<String> hand, String nextCard,
                             int[] towerHealth, TeamSide winner,
                             List<PendingDeploy> pending, UUID bluePlayer,
-                            UUID redPlayer, boolean overtime, int elixirRate)
+                            UUID redPlayer, boolean overtime, int elixirRate,
+                            boolean spectating)
 {
     /** Player of a side (the bot has a random id): its skin is the King's. */
     public UUID player(TeamSide side) {
@@ -21,6 +22,16 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
     }
 
     public static MatchSnapshot from(MatchInstance match, TeamSide localSide) {
+        return from(match, localSide, false);
+    }
+
+    /**
+     * {@code spectating}: the player only watches (a bot plays this side);
+     * the client shows the side's hand but plays nothing.
+     */
+    public static MatchSnapshot from(MatchInstance match, TeamSide localSide,
+            boolean spectating)
+    {
         List<String> hand = match.player(localSide).deck().hand().stream()
                 .map(BattleCard::id).toList();
         int[] hp = new int[TowerId.values().length];
@@ -34,7 +45,7 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
                 match.winner(), match.pendingDeploys(),
                 match.player(TeamSide.BLUE).playerId(),
                 match.player(TeamSide.RED).playerId(), match.overtime(),
-                match.elixirRate());
+                match.elixirRate(), spectating);
     }
 
     public static MatchSnapshot inactive() {
@@ -42,6 +53,6 @@ public record MatchSnapshot(boolean active, UUID matchId, MatchState state,
                 false, new UUID(0L, 0L), MatchState.WAITING, TeamSide.BLUE,
                 new ArenaPoint(0, 0, 0), 0, 0, List.of(), "",
                 new int[TowerId.values().length], null, List.of(),
-                new UUID(0L, 0L), new UUID(0L, 0L), false, 1);
+                new UUID(0L, 0L), new UUID(0L, 0L), false, 1, false);
     }
 }

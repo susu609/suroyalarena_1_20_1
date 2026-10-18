@@ -146,6 +146,7 @@ public final class ClientForgeEvents {
     public static void onMouse(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.screen != null || !ClientMatchState.active() ||
+                ClientMatchState.spectating() ||
                 ClientMatchState.state() != MatchState.BATTLE)
             return;
         if (event.getAction() != GLFW.GLFW_PRESS)

@@ -51,6 +51,11 @@ public final class MatchingScreen extends Screen {
                 button -> ModNetwork.sendToServer(new C2SStartPracticePacket()))
                 .bounds(width / 2 - 70, height / 2 + 52, 140, 20).build());
         addRenderableWidget(Button.builder(
+                Component.literal("Watch Bot vs Bot"),
+                button -> ModNetwork.sendToServer(
+                        new C2SStartPracticePacket(true)))
+                .bounds(width / 2 - 70, height / 2 + 76, 140, 20).build());
+        addRenderableWidget(Button.builder(
                 Component.literal("Deck"),
                 button -> minecraft.setScreen(new DeckScreen(this)))
                 .bounds(width / 2 - 70, height / 2 + 4, 140, 20).build());
@@ -69,7 +74,7 @@ public final class MatchingScreen extends Screen {
                 font, status, width / 2, height / 2 - 18, 0xFFCCCCCC);
         graphics.drawCenteredString(
                 font, "Solo: you play BLUE against a bot",
-                width / 2, height / 2 + 78, 0xFF999999);
+                width / 2, height / 2 + 102, 0xFF999999);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 

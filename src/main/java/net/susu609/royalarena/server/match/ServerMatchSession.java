@@ -60,12 +60,23 @@ public final class ServerMatchSession {
     private final Map<TowerId, UUID> towerHitboxes =
             new EnumMap<>(TowerId.class);
     private final BattleField battle;
-    private final BotBrain bot;
+    /** Bots, one per side they play; empty when both sides are players. */
+    private final List<Bot> bots = new ArrayList<>();
+    /** The player watching a bot-versus-bot match, or null. */
+    private final UUID spectator;
+
+    /** A bot and the card its "hand" is carrying to the arena. */
+    private static final class Bot {
+        final BotBrain brain;
+        BotBrain.Play dragging;
+        int dragTicksLeft;
+
+        Bot(BotBrain brain) {
+            this.brain = brain;
+        }
+    }
 
     private int tickCounter;
-    /** The bot's card on its way to the arena, and the ticks it still needs. */
-    private BotBrain.Play dragging;
-    private int dragTicksLeft;
     private static final int DRAG_MIN_TICKS = 10;
     private static final int DRAG_MAX_TICKS = 18;
     private int finishedTicks;
@@ -81,7 +92,21 @@ public final class ServerMatchSession {
     public ServerMatchSession(MatchInstance match, ServerLevel arenaLevel,
             ArenaReservation reservation, BotBrain bot)
     {
-        this.bot = bot;
+        this(match, arenaLevel, reservation,
+                bot == null ? List.of() : List.of(bot), null);
+    }
+
+    /**
+     * Any number of bots; with {@code spectator} set both sides are bots and
+     * that player (BLUE's id) only watches.
+     */
+    public ServerMatchSession(MatchInstance match, ServerLevel arenaLevel,
+            ArenaReservation reservation, List<BotBrain> bots,
+            UUID spectator)
+    {
+        for (BotBrain brain : bots)
+            this.bots.add(new Bot(brain));
+        this.spectator = spectator;
         this.match = match;
         this.arenaLevel = arenaLevel;
         this.reservation = reservation;
@@ -108,7 +133,7 @@ public final class ServerMatchSession {
         if (complete || sender.serverLevel() != arenaLevel)
             return;
         TeamSide side = match.sideOf(sender.getUUID());
-        if (side == null)
+        if (side == null || botOf(side) != null)
             return;
         int x = requested.getX();
         int z = requested.getZ();
@@ -130,8 +155,9 @@ public final class ServerMatchSession {
         logged = true;
         MatchLog.Side[] sides = new MatchLog.Side[2];
         for (TeamSide side : TeamSide.values()) {
-            sides[side.ordinal()] = bot != null && bot.side() == side ?
-                    MatchLog.Side.bot(bot.personality().id()) :
+            BotBrain brain = botOf(side);
+            sides[side.ordinal()] = brain != null ?
+                    MatchLog.Side.bot(brain.personality().id()) :
                     MatchLog.Side.player(match.player(side).playerId());
         }
         String version = ModList.get().getModContainerById(RoyalArena.MOD_ID)
@@ -139,28 +165,43 @@ public final class ServerMatchSession {
                 .orElse("unknown");
         MatchLogWriter.append(MatchLog.line(match, battle.engine().stats(),
                 sides[TeamSide.BLUE.ordinal()], sides[TeamSide.RED.ordinal()],
-                bot == null ? "pvp" : "bot", version, startedMillis));
+                spectator != null ? "watch" : bots.isEmpty() ? "pvp" : "bot",
+                version, startedMillis));
     }
 
-    /** The bot plays through the same rules as a player. */
-    private void botPlay(MinecraftServer server) {
-        if (bot == null)
-            return;
-        if (dragging != null) {
-            // The bot's "hand" is still carrying the card to its spot.
-            if (--dragTicksLeft > 0)
-                return;
-            BotBrain.Play play = dragging;
-            dragging = null;
-            if (match.tryDeploy(bot.side(), play.slot(), play.x(),
-                    play.z()).accepted())
-                sync(server);
-            return;
+    /** The bot playing this side, or null for a player. */
+    private BotBrain botOf(TeamSide side) {
+        for (Bot bot : bots) {
+            if (bot.brain.side() == side)
+                return bot.brain;
         }
-        bot.setSettings(ArenaCommonConfig.botSettings());
-        BotBrain.Play play = bot.tick(match, battle.engine());
-        if (play != null)
-            startDrag(server, play);
+        return null;
+    }
+
+    /** Whether this is a bot-versus-bot match someone watches. */
+    public boolean watching() {
+        return spectator != null;
+    }
+
+    /** Every bot plays through the same rules as a player. */
+    private void botPlay(MinecraftServer server) {
+        for (Bot bot : bots) {
+            if (bot.dragging != null) {
+                // The bot's "hand" is still carrying the card to its spot.
+                if (--bot.dragTicksLeft > 0)
+                    continue;
+                BotBrain.Play play = bot.dragging;
+                bot.dragging = null;
+                if (match.tryDeploy(bot.brain.side(), play.slot(), play.x(),
+                        play.z()).accepted())
+                    sync(server);
+                continue;
+            }
+            bot.brain.setSettings(ArenaCommonConfig.botSettings());
+            BotBrain.Play play = bot.brain.tick(match, battle.engine());
+            if (play != null)
+                startDrag(server, bot, play);
+        }
     }
 
     /**
@@ -168,20 +209,23 @@ public final class ServerMatchSession {
      * the bot's King tower to its spot (a red hand with the card's ghosts),
      * and the card is played when it arrives. Faraway spots take longer.
      */
-    private void startDrag(MinecraftServer server, BotBrain.Play play) {
-        ArenaPoint king = match.arena().towerPoint(TowerId.king(bot.side()));
+    private void startDrag(MinecraftServer server, Bot bot,
+            BotBrain.Play play)
+    {
+        TeamSide botSide = bot.brain.side();
+        ArenaPoint king = match.arena().towerPoint(TowerId.king(botSide));
         double fromX = king.x();
-        double fromZ = king.z() - ArenaLayout.sideSign(bot.side()) * 3.0D;
+        double fromZ = king.z() - ArenaLayout.sideSign(botSide) * 3.0D;
         double toX = play.x() + 0.5D;
         double toZ = play.z() + 0.5D;
         double distance = Math.hypot(toX - fromX, toZ - fromZ);
-        dragging = play;
-        dragTicksLeft = Math.max(DRAG_MIN_TICKS, Math.min(DRAG_MAX_TICKS,
+        bot.dragging = play;
+        bot.dragTicksLeft = Math.max(DRAG_MIN_TICKS, Math.min(DRAG_MAX_TICKS,
                 (int) Math.round(DRAG_MIN_TICKS + distance * 0.5D)));
-        BattleCard card = match.player(bot.side()).deck().cardAt(play.slot());
-        S2CBotDragPacket packet = new S2CBotDragPacket(card, bot.side(),
+        BattleCard card = match.player(botSide).deck().cardAt(play.slot());
+        S2CBotDragPacket packet = new S2CBotDragPacket(card, botSide,
                 (float) fromX, (float) fromZ, (float) toX, (float) toZ,
-                dragTicksLeft);
+                bot.dragTicksLeft);
         for (TeamSide side : TeamSide.values()) {
             ServerPlayer player = server.getPlayerList()
                     .getPlayer(match.player(side).playerId());
@@ -279,7 +323,8 @@ public final class ServerMatchSession {
             if (player != null) {
                 ModNetwork.sendToPlayer(
                         player, new S2CMatchSnapshotPacket(
-                                MatchSnapshot.from(match, side)));
+                                MatchSnapshot.from(match, side,
+                                        botOf(side) != null)));
             }
         }
     }
@@ -320,13 +365,14 @@ public final class ServerMatchSession {
     /** Opens the result screen of every player in the match. */
     private void sendResult(MinecraftServer server) {
         MatchResult result = MatchResult.of(match, battle.engine().stats(),
-                bot != null);
+                !bots.isEmpty());
         String[] names = new String[2];
         for (TeamSide side : TeamSide.values()) {
             ServerPlayer player = server.getPlayerList()
                     .getPlayer(match.player(side).playerId());
-            names[side.ordinal()] = bot != null && bot.side() == side ?
-                    "Bot" :
+            BotBrain brain = botOf(side);
+            names[side.ordinal()] = brain != null ?
+                    "Bot (" + brain.personality().displayName() + ")" :
                     player != null ? player.getGameProfile().getName() :
                             "Player";
         }
@@ -351,7 +397,7 @@ public final class ServerMatchSession {
         if (complete || match.state() != MatchState.FINISHED ||
                 !done.add(playerId))
             return;
-        if (again && bot != null)
+        if (again && !bots.isEmpty())
             rematch.add(playerId);
         ServerPlayer player = server.getPlayerList().getPlayer(playerId);
         if (player != null)
