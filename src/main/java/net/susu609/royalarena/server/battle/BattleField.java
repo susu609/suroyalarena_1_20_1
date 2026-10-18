@@ -6,6 +6,7 @@ import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -47,6 +48,7 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.arena.ArenaWaypoint;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.MobSounds;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.combat.ChildSpawn;
 import net.susu609.royalarena.combat.CombatEngine;
@@ -783,6 +785,8 @@ public final class BattleField {
             if (attack.attackerUnit() != null && !attack.ranged()) {
                 Entity attacker = level.getEntity(attack.attackerUnit());
                 animator.onHit(attacker, victim);
+                if (attacker != null)
+                    mobSound(attacker, MobSounds.attack(entityId(attacker)));
                 if (attacker instanceof IronGolem || attacker instanceof Ravager)
                     shake(to[0], to[2], 0.25F);
             }
@@ -811,10 +815,13 @@ public final class BattleField {
                     1.0F);
             return;
         }
-        level.playSound(null, to[0], to[1], to[2],
-                attack.ranged() ? SoundEvents.ARROW_HIT :
-                        SoundEvents.PLAYER_ATTACK_STRONG,
-                SoundSource.HOSTILE, 0.6F, 1.0F);
+        // A blow on a troop sounds like the troop's own hurt sound (played
+        // with its red flash); arrows and blows on towers keep a hit sound.
+        if (attack.ranged() || attack.victimUnit() == null)
+            level.playSound(null, to[0], to[1], to[2],
+                    attack.ranged() ? SoundEvents.ARROW_HIT :
+                            SoundEvents.PLAYER_ATTACK_STRONG,
+                    SoundSource.HOSTILE, 0.6F, 1.0F);
         level.sendParticles(ParticleTypes.CRIT, to[0], to[1], to[2], 3, 0.2D,
                 0.2D, 0.2D, 0.1D);
     }
@@ -905,6 +912,36 @@ public final class BattleField {
         flashedHealth.put(unit.id(), unit.health());
         flashedAt.put(unit.id(), now);
         level.broadcastDamageEvent(entity, level.damageSources().generic());
+        // Vanilla plays the hurt sound only for a real hit, which our
+        // invulnerable mobs never take.
+        mobSound(entity, MobSounds.hurt(entityId(entity), tiny(entity)));
+    }
+
+    /** The registry id of an entity's type, like "minecraft:zombie". */
+    private static String entityId(Entity entity) {
+        var key = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        return key == null ? "minecraft:pig" : key.toString();
+    }
+
+    private static boolean tiny(Entity entity) {
+        return entity instanceof Slime slime && slime.isTiny();
+    }
+
+    /**
+     * Plays a vanilla sound event at the mob, as vanilla would (a little
+     * random pitch), heard by everyone near.
+     */
+    private void mobSound(Entity entity, String eventId) {
+        if (eventId == null || entity.isSilent())
+            return;
+        SoundEvent sound = ForgeRegistries.SOUND_EVENTS.getValue(
+                RL.mc(eventId));
+        if (sound == null)
+            return;
+        float pitch = (level.random.nextFloat() - level.random.nextFloat()) *
+                0.2F + 1.0F;
+        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                sound, entity.getSoundSource(), 1.0F, pitch);
     }
 
     /**
@@ -996,6 +1033,7 @@ public final class BattleField {
         flashedAt.remove(death.unit());
         Entity entity = level.getEntity(death.unit());
         if (entity != null) {
+            mobSound(entity, MobSounds.death(entityId(entity), tiny(entity)));
             double y = entity.getY() + entity.getBbHeight() * 0.5D;
             double spread = entity.getBbWidth() * 0.4D;
             level.sendParticles(ParticleTypes.POOF, entity.getX(), y,

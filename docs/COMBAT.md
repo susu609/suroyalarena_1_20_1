@@ -95,6 +95,20 @@ can be turned down or off.
 | Final seconds | the last 10 s counted down big in the middle, the clock turns red; "x2 ELIXIR!", "x3 ELIXIR!", "OVERTIME!" banners; an "x2" tag on the elixir bar | `BattleHudOverlay` |
 | Footstep dust | Iron Golem, Ravager and Hoglin kick up the ground they walk on | `TroopEffects` |
 
+## Mob sounds
+
+Every troop sounds like its vanilla mob. Idle sounds and footsteps come from
+vanilla itself (it still runs them for a mob without AI). Because arena mobs
+are invulnerable and never really die, the server plays the rest
+(`card/MobSounds.java`, `BattleField.mobSound`): the mob's **hurt** sound with
+its red flash, its **death** sound as it vanishes, and its own **attack**
+sound for a melee blow where vanilla has one (Iron Golem, Ravager, Hoglin,
+Slime, Phantom bite, Polar Bear). A Cave Spider uses the Spider's sounds, a
+tiny slime the small ones, a Guardian on land its land ones.
+`MobSoundsSmokeTest` checks every id against the 1.20.1 sound list
+(`src/test/resources/vanilla_sound_events_1_20_1.txt`). A blow on a troop no
+longer adds the generic player hit; arrows and blows on towers keep theirs.
+
 ## Mobs with their own rules
 
 - **Teleport (Enderman).** A ranged shot still in flight that would land on

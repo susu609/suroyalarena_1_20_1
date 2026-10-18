@@ -491,3 +491,11 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `MobsWave2SmokeTest.poisonDependsOnTheBody`, CombatSmokeTest (JSON)
 - `docs/CARDS.md`, `docs/COMBAT.md`
 
+## Part 42 — Mob sounds
+
+- `card/MobSounds.java` (hurt, death, attack event per mob),
+  `server/battle/BattleField.java` (`mobSound`: hurt with the flash, death,
+  melee attack)
+- `MobSoundsSmokeTest`, `src/test/resources/vanilla_sound_events_1_20_1.txt`
+- `docs/COMBAT.md` (Mob sounds)
+
