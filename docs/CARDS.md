@@ -364,3 +364,11 @@ Each cost was taken again from the formula; the tuning to stay in 40-60%
 Band after: 41-58% (Snowball Volley 41%, Swiftness Potion 41-43%: within the
 2 points of noise).
 
+## Tribes (Part 56)
+
+Every troop belongs to one or two tribes (Zombie, Skeleton, Illager,
+Nether, Arthropod, Beast, Night, Golem, Slime, Aquatic); 2, 4, 6 and 8
+different cards of a tribe in a deck give its troops bonuses. The members,
+steps and how they were measured are in docs/TRIBES.md. A new card needs
+its tribes in `BattleCard.tribes()` (one or two).
+

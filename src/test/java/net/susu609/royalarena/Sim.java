@@ -202,8 +202,16 @@ final class Sim {
     static Outcome botMatch(BattleDeck blue, BattleDeck red, long seed,
             Map<BattleCard, Integer> plays)
     {
+        // Bot matches play as the game does, tribe bonuses included.
+        return botMatch(blue, red, seed, plays, true);
+    }
+
+    static Outcome botMatch(BattleDeck blue, BattleDeck red, long seed,
+            Map<BattleCard, Integer> plays, boolean tribes)
+    {
         MatchInstance match = battle(blue, red);
         CombatEngine engine = new CombatEngine(match);
+        engine.setTribes(tribes);
         List<BotBrain> bots = List.of(new BotBrain(TeamSide.BLUE, seed),
                 new BotBrain(TeamSide.RED, seed * 31L + 7L));
         int limit = MatchInstance.DEFAULT_BATTLE_TICKS +

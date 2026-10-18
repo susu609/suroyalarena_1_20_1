@@ -144,6 +144,7 @@ public final class BattleField {
         this.match = match;
         this.arena = match.arena();
         this.engine = new CombatEngine(match);
+        engine.setTribes(ArenaCommonConfig.TRIBES.get());
         this.onTowerDestroyed = onTowerDestroyed;
     }
 

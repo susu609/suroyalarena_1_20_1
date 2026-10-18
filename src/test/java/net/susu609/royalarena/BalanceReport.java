@@ -104,8 +104,10 @@ public final class BalanceReport {
             cards.put(card, new Tally());
         for (int i = 0; i < matches; i++) {
             int pair = i / 2;
-            BattleDeck a = BotDeck.random(new Random(pair * 2L + 1L));
-            BattleDeck b = BotDeck.random(new Random(pair * 2L + 2L));
+            // Plain decks, so each card is measured on its own; tribes are
+            // measured by TribeReport.
+            BattleDeck a = BotDeck.plain(new Random(pair * 2L + 1L));
+            BattleDeck b = BotDeck.plain(new Random(pair * 2L + 2L));
             // Each pairing twice, with the sides swapped.
             BattleDeck blue = i % 2 == 0 ? a : b;
             BattleDeck red = i % 2 == 0 ? b : a;

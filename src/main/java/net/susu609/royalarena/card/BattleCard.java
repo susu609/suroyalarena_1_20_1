@@ -235,6 +235,35 @@ public enum BattleCard {
             default -> java.util.List.of();
         };
     }
+    /** The one or two tribes the card belongs to (none for a spell). */
+    public java.util.Set<Tribe> tribes() {
+        return switch (this) {
+            case ZOMBIE -> EnumSet.of(Tribe.ZOMBIE, Tribe.NIGHT);
+            case HUSK, ZOMBIE_VILLAGER -> EnumSet.of(Tribe.ZOMBIE);
+            case DROWNED -> EnumSet.of(Tribe.ZOMBIE, Tribe.AQUATIC);
+            case ZOMBIFIED_PIGLIN -> EnumSet.of(Tribe.ZOMBIE, Tribe.NETHER);
+            case PHANTOM -> EnumSet.of(Tribe.ZOMBIE, Tribe.NIGHT);
+            case SKELETON_ARCHER -> EnumSet.of(Tribe.SKELETON, Tribe.NIGHT);
+            case SKELETONS, STRAY, SKELETON_RIDER -> EnumSet.of(Tribe.SKELETON);
+            case WITHER_SKELETON -> EnumSet.of(Tribe.SKELETON, Tribe.NETHER);
+            case SPIDER_JOCKEY -> EnumSet.of(Tribe.SKELETON, Tribe.ARTHROPOD);
+            case VINDICATOR, PILLAGER, EVOKER, VEX -> EnumSet.of(Tribe.ILLAGER);
+            case WITCH -> EnumSet.of(Tribe.ILLAGER, Tribe.NIGHT);
+            case RAVAGER -> EnumSet.of(Tribe.ILLAGER, Tribe.BEAST);
+            case PIGLIN_BRUTE, BLAZE, GHAST -> EnumSet.of(Tribe.NETHER);
+            case HOGLIN -> EnumSet.of(Tribe.NETHER, Tribe.BEAST);
+            case MAGMA_CUBE -> EnumSet.of(Tribe.NETHER, Tribe.SLIME);
+            case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
+            case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
+            case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
+            case WOLVES, FOX, POLAR_BEAR -> EnumSet.of(Tribe.BEAST);
+            case CREEPER, ENDERMAN -> EnumSet.of(Tribe.NIGHT);
+            case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
+            case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
+            case GUARDIAN -> EnumSet.of(Tribe.AQUATIC);
+            default -> EnumSet.noneOf(Tribe.class);
+        };
+    }
     /** Vanilla slime or magma cube size (4 = big), or 0 for other mobs. */
     public int mobSize() {
         return mobSize;

@@ -114,6 +114,10 @@ longer adds the generic player hit; arrows and blows on towers keep theirs.
 
 ## Mobs with their own rules
 
+- **Tribes.** With tribes on (the default), a deck's 2, 4, 6 or 8 cards of
+  one mob tribe give that tribe's troops health, damage, armour, healing,
+  burning or poisoning hits and more; see docs/TRIBES.md.
+
 - **Armour.** Each vanilla armour point takes 4% off every hit and every
   direct spell hit (up to 20 points, 80%), as in vanilla; poison, burning,
   withering and Poison Cloud go straight through it. Zombie-family mobs

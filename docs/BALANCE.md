@@ -73,6 +73,13 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 | Big Slime x1 | 108 | 3.57 | - | 3.64 | 4 |
 | Iron Golem x1 | 100 | 8.75 | towers only | 4.66 | 5 |
 
+## Tribes
+
+Tribe bonuses (docs/TRIBES.md) are power outside the formula. They are
+measured on their own with `scripts/tribes.sh` (decks built around a tribe,
+with and without the bonuses); the card win rates below are measured on
+plain random decks.
+
 ## Power band (`PowerCreepTest`)
 
 Cost alone misses how cards play out, so the build also measures every

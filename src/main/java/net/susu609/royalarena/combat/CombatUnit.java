@@ -1,6 +1,7 @@
 package net.susu609.royalarena.combat;
 
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.TribeBonus;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
@@ -41,6 +42,9 @@ public final class CombatUnit {
     private BattleCard poisonSource;
     /** Enemy id or tower a charging unit (Guardian) has locked on to. */
     private Object lockedOn;
+    /** What its tribes give it this match (none when tribes are off). */
+    private TribeBonus tribe = TribeBonus.NONE;
+    private boolean landedFirstHit;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -84,6 +88,24 @@ public final class CombatUnit {
     }
     public double radius() {
         return radius;
+    }
+    public TribeBonus tribe() {
+        return tribe;
+    }
+    void setTribe(TribeBonus tribe) {
+        this.tribe = tribe;
+    }
+    /** Share of a hit that gets through its armour and its tribe's. */
+    public double armorFactor() {
+        return 1.0D - TroopStats.ARMOR_PER_POINT * Math.min(TroopStats.MAX_ARMOR,
+                Math.max(0.0D, stats.armor() + tribe.armor()));
+    }
+    /** True the first time it is asked after the unit's first hit landed. */
+    boolean firstHit() {
+        if (landedFirstHit)
+            return false;
+        landedFirstHit = true;
+        return true;
     }
     public double x() {
         return x;
@@ -309,7 +331,7 @@ public final class CombatUnit {
         return cooldown <= 0;
     }
     void startCooldown() {
-        cooldown = stats.attackTicks();
+        cooldown = (int) Math.round(stats.attackTicks() / tribe.attackSpeed());
     }
     void lockTower(TowerId id) {
         lockedTower = id;

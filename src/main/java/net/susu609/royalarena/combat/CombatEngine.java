@@ -7,6 +7,8 @@ import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.Body;
 import net.susu609.royalarena.card.SpellStats;
 import net.susu609.royalarena.card.SplitRule;
+import net.susu609.royalarena.card.Tribe;
+import net.susu609.royalarena.card.TribeBonus;
 import net.susu609.royalarena.card.TroopTraits;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.combat.TickResult.Attack;
@@ -73,6 +75,10 @@ public final class CombatEngine {
     /** Shots in the air, with the ticks until they land. */
     private final List<InFlight> flying = new ArrayList<>();
     private double speedMultiplier = 1.0D;
+    /** Tribe bonuses (docs/TRIBES.md); off unless the match turns them on. */
+    private boolean tribes;
+    private final Map<TeamSide, Map<Tribe, Integer>> tribeLevels =
+            new EnumMap<>(TeamSide.class);
 
     /** A spell that has landed and still has pulses to deal. */
     private static final class ActiveSpell {
@@ -112,21 +118,58 @@ public final class CombatEngine {
         this.arena = match.arena();
     }
 
+    /**
+     * Turns the tribe bonuses on or off for the units added from now on
+     * (the game and the bot matches turn them on; most tests leave them off
+     * so a card's numbers stay its own).
+     */
+    public void setTribes(boolean on) {
+        this.tribes = on;
+        tribeLevels.clear();
+    }
+
+    public boolean tribes() {
+        return tribes;
+    }
+
+    /** The tribe steps a side's deck has reached (empty when off). */
+    public Map<Tribe, Integer> tribeLevels(TeamSide side) {
+        if (!tribes)
+            return Map.of();
+        return tribeLevels.computeIfAbsent(side,
+                s -> Tribe.levels(match.player(s).deck().cards()));
+    }
+
+    /** What a card's tribes give it on {@code side}. */
+    public TribeBonus tribeBonus(BattleCard card, TeamSide side) {
+        return tribes ? Tribe.bonusFor(card, tribeLevels(side)) :
+                TribeBonus.NONE;
+    }
+
     /** Registers a card's own unit at (x, z). */
     public CombatUnit add(UUID entityId, TeamSide side, TroopStats stats,
             double x, double z)
     {
-        return register(new CombatUnit(
-                entityId, side, stats, 0, stats.health(), stats.damage(),
-                stats.radius(), x, z, 0, null));
+        TribeBonus bonus = tribeBonus(BattleCard.forStats(stats), side);
+        CombatUnit unit = new CombatUnit(entityId, side, stats, 0,
+                stats.health() * bonus.health(),
+                stats.damage() * bonus.damage(), stats.radius(), x, z, 0, null);
+        unit.setTribe(bonus);
+        return register(unit);
     }
 
-    /** Registers a unit created by a split. */
+    /**
+     * Registers a unit created by a split; its health and damage already
+     * carry its tribe bonus ({@link #childrenOf}).
+     */
     public CombatUnit add(UUID entityId, ChildSpawn spawn) {
-        return register(new CombatUnit(
+        CombatUnit unit = new CombatUnit(
                 entityId, spawn.side(), spawn.stats(), spawn.generation(),
                 spawn.health(), spawn.damage(), spawn.radius(), spawn.x(),
-                spawn.z(), spawn.invulnerableTicks(), spawn.lockedTower()));
+                spawn.z(), spawn.invulnerableTicks(), spawn.lockedTower());
+        unit.setTribe(tribeBonus(BattleCard.forStats(spawn.stats()),
+                spawn.side()));
+        return register(unit);
     }
 
     /**
@@ -260,7 +303,8 @@ public final class CombatEngine {
                     TroopTraits.SLOW_SPEED : 1.0D) *
                     (unit.hasted() ? HASTE_SPEED : 1.0D);
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
-                    stats.speedPerTick() * speedMultiplier * slow));
+                    stats.speedPerTick() * speedMultiplier * slow *
+                            unit.tribe().speed()));
             return;
         }
         TroopTraits traits = stats.traits();
@@ -276,8 +320,11 @@ public final class CombatEngine {
         int flight = ranged && !traits.charges() && !traits.lines() ?
                 flightTicks(unit.x(), unit.z(), targetX, targetZ) : 0;
         double damage = unit.damage();
-        if (traits.riverStrong() && arena.isRiver((int) Math.floor(unit.z())))
+        boolean onRiver = arena.isRiver((int) Math.floor(unit.z()));
+        if (traits.riverStrong() && onRiver)
             damage *= TroopTraits.RIVER_STRENGTH;
+        if (onRiver)
+            damage *= unit.tribe().riverDamage();
         attacks.add(new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
                 damage, ranged, flight, unit.side(), targetX, targetZ,
@@ -634,6 +681,8 @@ public final class CombatEngine {
             if (burn > 0.0D)
                 damageUnit(unit, burn, unit.side().opponent(),
                         unit.burnSource(), true);
+            if (unit.tribe().regen() > 0.0D && unit.alive())
+                unit.heal(unit.tribe().regen() / 20.0D);
             double poison = unit.poisonStep();
             if (poison > 0.0D)
                 damageUnit(unit, poison * bodyOf(unit).poisonFactor(),
@@ -706,9 +755,12 @@ public final class CombatEngine {
                         source.stats().traits().poisons())
                     victim.poison(source.stats().traits().poisonTicks(),
                             source.stats().traits().poisonPerSecond(), source);
+                else if (victim != null)
+                    tribeHit(attack, victim, source);
             } else {
-                hitTower(attack.victimTower(), attack.damage(), destroyed,
-                        attack.side(), source);
+                hitTower(attack.victimTower(), attack.damage() *
+                                attackerTribe(attack, source).towerDamage(),
+                        destroyed, attack.side(), source);
             }
             if (attack.splash() > 0.0D)
                 splash(attack, victim, destroyed, source);
@@ -734,6 +786,39 @@ public final class CombatEngine {
         return damageUnit(victim, amount, by, source, false);
     }
 
+    /** The tribe bonus of whoever made an attack (it may have died since). */
+    private TribeBonus attackerTribe(Attack attack, BattleCard source) {
+        CombatUnit attacker = attack.attackerUnit() == null ? null :
+                unit(attack.attackerUnit());
+        return attacker != null ? attacker.tribe() :
+                attack.attackerUnit() == null ? TribeBonus.NONE :
+                        tribeBonus(source, attack.side());
+    }
+
+    /**
+     * A troop's hit landed on {@code victim}: its tribe's lifesteal, poison,
+     * burn and first-hit stun.
+     */
+    private void tribeHit(Attack attack, CombatUnit victim, BattleCard source) {
+        TribeBonus bonus = attackerTribe(attack, source);
+        if (bonus.none())
+            return;
+        CombatUnit attacker = unit(attack.attackerUnit());
+        if (attacker != null && attacker.alive() && bonus.lifesteal() > 0.0D)
+            attacker.heal(attack.damage() * victim.armorFactor() *
+                    bonus.lifesteal());
+        if (!victim.alive())
+            return;
+        if (bonus.poisonTicks() > 0 && bodyOf(victim).poisonable())
+            victim.poison(bonus.poisonTicks(), bonus.poisonPerSecond(), source);
+        BattleCard hurt = cardOf.get(victim.id());
+        if (bonus.burnTicks() > 0 && (hurt == null || !hurt.fireImmune()))
+            victim.ignite(bonus.burnTicks(), bonus.burnPerSecond(), source);
+        // Freezes without restarting the victim's swing (a stun would).
+        if (bonus.firstHitStun() > 0 && attacker != null && attacker.firstHit())
+            victim.freeze(bonus.firstHitStun());
+    }
+
     /**
      * Hurts a unit and credits {@code source} of side {@code by} (null: the
      * towers of that side) with the health really taken off. Armour takes
@@ -743,8 +828,10 @@ public final class CombatEngine {
     private boolean damageUnit(CombatUnit victim, double amount, TeamSide by,
             BattleCard source, boolean throughArmor)
     {
-        if (!throughArmor)
-            amount *= victim.stats().armorFactor();
+        // A Skeleton tribe's hits go through armour (docs/TRIBES.md).
+        if (!throughArmor && !(tribes && source != null && by != null &&
+                tribeBonus(source, by).pierce()))
+            amount *= victim.armorFactor();
         if (victim.stats().traits().waterWeak() &&
                 arena.isRiver((int) Math.floor(victim.z())))
             amount *= TroopTraits.WATER_WEAKNESS;
@@ -792,8 +879,9 @@ public final class CombatEngine {
                     match.tower(id).isDestroyed())
                 continue;
             if (distanceToTower(cx, cz, id) <= attack.splash() + EPSILON)
-                hitTower(id, attack.damage(), destroyed, attack.side(),
-                        source);
+                hitTower(id, attack.damage() *
+                                attackerTribe(attack, source).towerDamage(),
+                        destroyed, attack.side(), source);
         }
     }
 
@@ -848,8 +936,11 @@ public final class CombatEngine {
         if (rule.into() != null) {
             TroopStats rider = rule.into();
             ArenaWaypoint spot = arena.clampSpawn(parent.x(), parent.z(), sign);
+            TribeBonus bonus = tribeBonus(BattleCard.forStats(rider),
+                    parent.side());
             children.add(new ChildSpawn(parent.side(), rider,
-                    parent.generation() + 1, rider.health(), rider.damage(),
+                    parent.generation() + 1, rider.health() * bonus.health(),
+                    rider.damage() * bonus.damage(),
                     rider.radius(), spot.x(), spot.z(),
                     rule.invulnerableTicks(), parent.lockedTower()));
             return children;

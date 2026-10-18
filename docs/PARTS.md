@@ -661,3 +661,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   the card config page; `docs/CARDS.md`, `docs/COMBAT.md`, `docs/BALANCE.md`
 - tests follow the new health and armour (numbers from the code)
 
+## Part 56 — Tribes
+
+- `card/Tribe.java`, `card/TribeBonus.java`, `BattleCard.tribes()`;
+  `combat/CombatEngine.java` and `combat/CombatUnit.java` (tribe health,
+  damage, speed, attack rate, armour, piercing, healing, lifesteal, burn and
+  poison hits, first-hit freeze, tower and river damage; `setTribes`);
+  `bot/BotDeck.java` (`around`, `plain`; half the bot decks are built
+  around a tribe); `config/ArenaCommonConfig.java` (`tribes`);
+  `server/battle/BattleField.java`; `client/screen/DeckScreen.java` (tribe
+  line and tooltip)
+- `TribeSmokeTest`, `TribeReport` and `scripts/tribes.sh`; `BalanceReport`
+  measures cards on plain decks; card pages show tribes;
+  `docs/TRIBES.md`, `docs/CARDS.md`, `docs/COMBAT.md`, `docs/BALANCE.md`
+

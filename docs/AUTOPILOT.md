@@ -41,6 +41,9 @@ Edit this file to change what the cycles do; the next cycle reads it fresh.
      `model_sources/card_art/royalarena_card_art.js` (CARDS: id and cost)
    - tactics: `"roles"` in the JSON (`attack`, `defense`, `support`) and the
      same in `BattleCard.tactics()`
+   - one or two tribes in `BattleCard.tribes()` (docs/TRIBES.md); after
+     adding, run `scripts/tribes.sh 400` and note any tribe whose gain at 4
+     cards passes +10 or at 6 cards passes +15 in the log
    - a new rule: `card/TroopTraits.java` (+ formula modifier with a reason),
      `combat/CombatEngine.java`, `client/screen/DeckScreen.java` (tooltip),
      `server/battle/BattleField.java` (visuals), JSON trait key in

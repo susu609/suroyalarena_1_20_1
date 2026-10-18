@@ -24,6 +24,11 @@ public final class ArenaCommonConfig {
                     "1.0 = the card stats.")
             .defineInRange("speedMultiplier", 1.0D, 0.1D, 5.0D);
 
+    public static final ForgeConfigSpec.BooleanValue TRIBES = BUILDER
+            .comment("Tribe bonuses: a deck with 2, 4, 6 or 8 cards of one " +
+                    "mob tribe makes those troops stronger (docs/TRIBES.md).")
+            .define("tribes", true);
+
     static {
         BUILDER.pop();
         BUILDER.comment("The bot in solo matches.").push("bot");

@@ -94,6 +94,7 @@ input[type="search"] { font: inherit; color: var(--ink); background: var(--panel
 .tag.t-attack { color: var(--red); border-color: currentColor; }
 .tag.t-defense { color: var(--blue); border-color: currentColor; }
 .tag.t-support { color: var(--good); border-color: currentColor; }
+.tag.tribe { color: var(--gold); border-color: currentColor; }
 .meter { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
 .bar { position: relative; height: 8px; background: var(--bg); border: 1px solid var(--line); }
 .bar .band { position: absolute; top: 0; bottom: 0; left: 42%; width: 16%; background: var(--band); }
@@ -204,10 +205,12 @@ function groupsOf(list) {
     else if (state.group === 'tactic') c.tactics.forEach(t => add(T[t] || t, c));
     else if (state.group === 'cost') add(c.cost + ' elixir', c);
     else if (state.group === 'body') add(c.kind === 'spell' ? 'Phép' : BODY[c.body] || c.body, c);
+    else if (state.group === 'tribe') { if (c.kind === 'spell') add('Phép', c); else (c.tribes || []).forEach(t => add('Tộc ' + t, c)); }
     else add('Tất cả', c);
   }
   let keys = [...g.keys()];
   if (state.group === 'cost') keys.sort((a, b) => parseInt(a) - parseInt(b));
+  if (state.group === 'tribe') keys.sort((a, b) => (a === 'Phép') - (b === 'Phép') || g.get(b).length - g.get(a).length);
   if (state.group === 'tactic') keys.sort((a, b) => ['Tấn công', 'Phòng thủ', 'Hỗ trợ'].indexOf(a) - ['Tấn công', 'Phòng thủ', 'Hỗ trợ'].indexOf(b));
   if (state.group === 'body') keys.sort((a, b) => ['Sống', 'Xác sống', 'Golem', 'Phép'].indexOf(a) - ['Sống', 'Xác sống', 'Golem', 'Phép'].indexOf(b));
   return keys.map(k => [k, g.get(k).sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name))]);
@@ -222,6 +225,7 @@ function tile(c) {
     : (c.facts || []).slice(0, 3).join(' · ');
   const tags = [];
   c.tactics.forEach(t => tags.push(`<span class="tag t-${t.toLowerCase()}">${T[t] || t}</span>`));
+  (c.tribes || []).forEach(t => tags.push(`<span class="tag tribe">Tộc ${esc(t)}</span>`));
   if (c.kind === 'troop') {
     (c.roles || []).forEach(r => tags.push(`<span class="tag">${R[r] || r}</span>`));
     tags.push(`<span class="tag">${BODY[c.body] || c.body}</span>`);
@@ -247,7 +251,7 @@ function tile(c) {
 }
 
 function renderAll() {
-  chips('groupBy', 'group', [['kind', 'Loại'], ['tactic', 'Chiến thuật'], ['cost', 'Elixir'], ['body', 'Thân'], ['none', 'Không nhóm']]);
+  chips('groupBy', 'group', [['kind', 'Loại'], ['tactic', 'Chiến thuật'], ['cost', 'Elixir'], ['body', 'Thân'], ['tribe', 'Tộc'], ['none', 'Không nhóm']]);
   chips('kind', 'kind', [['all', 'Tất cả'], ['troop', 'Lính'], ['spell', 'Phép']]);
   chips('tactic', 'tactic', [['all', 'Tất cả'], ['Attack', 'Tấn công'], ['Defense', 'Phòng thủ'], ['Support', 'Hỗ trợ']]);
   chips('branch', 'branch', [['all', 'Cả hai'], ['master', 'Đã lên master'], ['new', 'Chỉ trên nhánh']]);

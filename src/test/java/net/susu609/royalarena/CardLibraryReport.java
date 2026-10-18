@@ -44,6 +44,10 @@ public final class CardLibraryReport {
             for (CardTactic t : card.tactics())
                 tactics.add(t.label());
             c.put("tactics", tactics);
+            List<Object> tribes = new ArrayList<>();
+            for (net.susu609.royalarena.card.Tribe t : card.tribes())
+                tribes.add(t.labelVi());
+            c.put("tribes", tribes);
             if (card.isSpell())
                 spell(c, card.spell());
             else

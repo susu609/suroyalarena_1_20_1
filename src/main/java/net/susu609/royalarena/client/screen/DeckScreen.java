@@ -14,6 +14,7 @@ import net.susu609.royalarena.card.CardRole;
 import net.susu609.royalarena.card.CardTactic;
 import net.susu609.royalarena.card.DeckRules;
 import net.susu609.royalarena.card.SpellStats;
+import net.susu609.royalarena.card.Tribe;
 import net.susu609.royalarena.card.TroopStats;
 import net.susu609.royalarena.client.hud.CardFace;
 import net.susu609.royalarena.client.sound.ClientSounds;
@@ -426,9 +427,13 @@ public final class DeckScreen extends Screen {
                 DeckRules.averageElixir(cards));
         graphics.drawCenteredString(font, summary, width / 2,
                 deckY() + cardH + 6, 0xFFDDDDDD);
+        String tribes = Tribe.summary(cards);
         if (!status.isEmpty())
             graphics.drawCenteredString(font, status, width / 2,
                     deckY() + cardH + 18, statusColor);
+        else if (!tribes.isEmpty())
+            graphics.drawCenteredString(font, tribes, width / 2,
+                    deckY() + cardH + 18, 0xFFB8E07A);
 
         List<BattleCard> shown = shown();
         int pages = CardFilter.pages(shown.size());
@@ -546,6 +551,8 @@ public final class DeckScreen extends Screen {
             return lines;
         }
         TroopStats s = card.stats();
+        lines.add(line("Tribe: %s", String.join(", ", card.tribes().stream()
+                .map(Tribe::label).toList())));
         lines.add(line(s.count() > 1 ? "%.0f health x%d" : "%.0f health",
                 s.health(), s.count()));
         lines.add(line("%.0f damage every %.1f s", s.damage(),
