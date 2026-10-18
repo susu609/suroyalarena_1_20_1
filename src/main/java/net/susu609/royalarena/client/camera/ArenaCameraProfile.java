@@ -20,10 +20,10 @@ import net.susu609.royalarena.match.TeamSide;
  */
 public final class ArenaCameraProfile {
     public static final ArenaCameraProfile DEFAULT =
-            new ArenaCameraProfile(68.0F, 30.0D, 5.0D);
+            new ArenaCameraProfile(68.0F, 26.0D, 6.5D);
     /** Watching bots: pitch and distance of the high side-on view. */
     public static final float WATCH_PITCH = 74.0F;
-    public static final double WATCH_DISTANCE = 32.0D;
+    public static final double WATCH_DISTANCE = 28.0D;
 
     private final float pitch;
     private final double distance;

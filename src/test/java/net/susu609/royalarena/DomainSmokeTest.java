@@ -363,7 +363,7 @@ public final class DomainSmokeTest {
     }
 
     /** Screen share of each side panel while watching (SpectatorHud). */
-    static final double WATCH_PANEL = 0.2D;
+    static final double WATCH_PANEL = 0.17D;
 
     /**
      * Watching bots on a 16:9 window: the whole arena (towers included)

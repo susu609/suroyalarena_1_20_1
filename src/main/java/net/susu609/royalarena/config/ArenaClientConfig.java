@@ -56,6 +56,11 @@ public final class ArenaClientConfig {
                     "and towers.")
             .define("damageNumbers", true);
 
+    public static final ForgeConfigSpec.DoubleValue WORLD_TEXT_SCALE = BUILDER
+            .comment("Size of damage numbers and health bars over troops " +
+                    "and towers. 1 = normal.")
+            .defineInRange("worldTextScale", 1.0D, 0.5D, 2.0D);
+
     public static final ForgeConfigSpec.BooleanValue TEAM_RINGS = BUILDER
             .comment("A blue or red ring on the floor under every troop.")
             .define("teamRings", true);

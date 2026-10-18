@@ -12,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.susu609.royalarena.client.render.entity.KingFigure;
 import net.susu609.royalarena.client.state.ClientMatchState;
+import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
@@ -27,9 +28,14 @@ public final class WorldHealthBar {
     public static final int RED_RGB = 0xE0403A;
     private static final int SEGMENTS = 10;
     private static final int TOWER_SEGMENTS = 16;
-    private static final float TROOP_SCALE = 0.025F;
-    private static final float TOWER_SCALE = 0.045F;
+    private static final float TROOP_SCALE = 0.032F;
+    private static final float TOWER_SCALE = 0.065F;
     private static final int EMPTY = 0xC0202020;
+    /** Black frame around a bar, in font pixels: thick on towers. */
+    private static final float TROOP_BORDER = 1.0F;
+    private static final float TOWER_BORDER = 2.0F;
+    private static final int BORDER = 0xFF000000;
+    private static final int OUTLINE = 0x000000;
 
     private WorldHealthBar() {
     }
@@ -49,7 +55,7 @@ public final class WorldHealthBar {
         if (color == null)
             return;
         render(pose, buffer, entity.getBbHeight() * scale + 0.5D, health / max,
-                color.getValue(), null, SEGMENTS, TROOP_SCALE);
+                color.getValue(), null, SEGMENTS, TROOP_SCALE, TROOP_BORDER);
     }
 
     /** Ticks a tower (and its King) is tinted red after losing health. */
@@ -92,21 +98,38 @@ public final class WorldHealthBar {
                 KingFigure.FEET + 2.5D : entity.getBbHeight() + 0.9D;
         render(pose, buffer, above, health / (float) max,
                 id.side() == TeamSide.BLUE ? BLUE_RGB : RED_RGB,
-                health + "/" + max, TOWER_SEGMENTS, TOWER_SCALE);
+                health + "/" + max, TOWER_SEGMENTS, TOWER_SCALE, TOWER_BORDER);
     }
 
     private static void render(PoseStack pose, MultiBufferSource buffer,
             double heightAbove, float fraction, int rgb, String label,
-            int segments, float scale)
+            int segments, float scale, float border)
     {
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
+        scale *= ArenaClientConfig.WORLD_TEXT_SCALE.get().floatValue();
         pose.pushPose();
         pose.translate(0.0D, heightAbove, 0.0D);
         pose.mulPose(mc.getEntityRenderDispatcher().cameraOrientation());
         pose.scale(-scale, -scale, scale);
         Matrix4f matrix = pose.last().pose();
         int light = LightTexture.FULL_BRIGHT;
+
+        // The black frame: the same background box, stretched by the border
+        // on every side and pushed a little behind the bar (+z is away from
+        // the camera here).
+        float barWidth = font.width(" ".repeat(segments)) + 1.0F;
+        float boxLeft = -font.width(" ".repeat(segments)) / 2.0F - 1.0F;
+        float centerX = boxLeft + barWidth / 2.0F;
+        pose.pushPose();
+        pose.translate(centerX, 4.0F, 0.6F);
+        pose.scale((barWidth + 2.0F * border) / barWidth,
+                (10.0F + 2.0F * border) / 10.0F, 1.0F);
+        pose.translate(-centerX, -4.0F, 0.0F);
+        font.drawInBatch(" ".repeat(segments), boxLeft + 1.0F, 0.0F,
+                0xFFFFFFFF, false, pose.last().pose(), buffer,
+                Font.DisplayMode.NORMAL, BORDER, light);
+        pose.popPose();
 
         int filled = Math.round(Math.max(0.0F, Math.min(1.0F, fraction)) *
                 segments);
@@ -125,11 +148,30 @@ public final class WorldHealthBar {
                     EMPTY, light);
         }
         if (label != null) {
-            // On the bar, pushed in front of it so the two never z-fight.
-            font.drawInBatch(label, -font.width(label) / 2.0F, 0.0F,
-                    0xFFFFFFFF, true, matrix, buffer,
-                    Font.DisplayMode.POLYGON_OFFSET, 0, light);
+            // On the bar, pushed in front of it so the two never z-fight,
+            // with a black outline so it reads on any colour.
+            outlined(font, label, -font.width(label) / 2.0F, 0.0F, 0xFFFFFF,
+                    0xFF, matrix, buffer, Font.DisplayMode.POLYGON_OFFSET,
+                    light);
         }
         pose.popPose();
+    }
+
+    /**
+     * Text with a black outline on all four sides (not just a shadow): the
+     * black copies first, then the text; within one batch later quads draw
+     * over earlier ones.
+     */
+    public static void outlined(Font font, String text, float x, float y,
+            int rgb, int alpha, Matrix4f matrix, MultiBufferSource buffer,
+            Font.DisplayMode mode, int light)
+    {
+        int outline = (alpha << 24) | OUTLINE;
+        float[][] offsets = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        for (float[] o : offsets)
+            font.drawInBatch(text, x + o[0], y + o[1], outline, false, matrix,
+                    buffer, mode, 0, light);
+        font.drawInBatch(text, x, y, (alpha << 24) | rgb, false, matrix,
+                buffer, mode, 0, light);
     }
 }

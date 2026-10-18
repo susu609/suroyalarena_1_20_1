@@ -12,9 +12,13 @@ the hand cycle, deploy areas and the one-second deploy delay all apply to it.
 
 ## Watching bot against bot
 
-Press `M` and choose **Watch Bot vs Bot**, or run `/royalarena watch`. Two
-bots play each other with random decks and personalities (the config's
-`personality` sets the RED one; BLUE always draws its own). The camera looks at the
+Press `M` and choose **Watch Bot vs Bot**: a setup screen picks each bot's
+deck (**Random** balanced bot deck, **My deck** = the deck you saved in the
+Deck screen, or **Starter**: Zombie, Skeleton Archer, Spider, Skeletons, Big
+Slime, Iron Golem, Arrow Storm, Fireball) and personality (Random or one of
+the four), RED on the left and BLUE on the right; **Start** begins. The
+screen remembers the last choice, and **Play again** watches the same setup.
+`/royalarena watch` starts one with the last setup (random the first time). The camera looks at the
 whole arena from high up and side-on (`ArenaCameraProfile.watch`): RED's half
 on the left, BLUE's on the right. A panel at each edge of the screen
 (`SpectatorHud`, 20% of the width each, RED left, BLUE right) shows the team

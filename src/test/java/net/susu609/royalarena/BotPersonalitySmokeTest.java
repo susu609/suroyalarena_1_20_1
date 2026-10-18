@@ -32,6 +32,7 @@ public final class BotPersonalitySmokeTest {
         counterDoesNotOpen();
         lowOpponentElixirIsPunished();
         noSpellWakesTheKing();
+        watchSetupKeepsValidChoices();
         System.out.println("RoyalArena bot personality tests: PASS");
     }
 
@@ -164,6 +165,22 @@ public final class BotPersonalitySmokeTest {
                             play);
         }
         check(!engine.kingAwake(TeamSide.BLUE), "the BLUE King sleeps on");
+    }
+
+    private static void watchSetupKeepsValidChoices() {
+        var setup = new net.susu609.royalarena.match.WatchSetup(" Starter ",
+                "nope", "Rush", null);
+        check(setup.blueDeck().equals("starter") &&
+                setup.redDeck().equals("random"),
+                "deck choices are cleaned up, unknown ones are random");
+        check(BotPersonality.byId(setup.blueStyle()) == BotPersonality.RUSH &&
+                BotPersonality.byId(setup.redStyle()) == null,
+                "a style id picks that personality, none means random");
+        check(net.susu609.royalarena.match.WatchSetup.deckLabel("mine")
+                .equals("My deck"), "labels for the setup screen");
+        var starter = net.susu609.royalarena.card.BattleDeck.starter();
+        check(net.susu609.royalarena.card.DeckRules.problem(starter.cards()) ==
+                null, "the starter deck is a legal deck for a bot");
     }
 
     private static void check(boolean condition, String name) {

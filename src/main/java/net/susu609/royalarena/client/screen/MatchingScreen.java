@@ -52,8 +52,7 @@ public final class MatchingScreen extends Screen {
                 .bounds(width / 2 - 70, height / 2 + 52, 140, 20).build());
         addRenderableWidget(Button.builder(
                 Component.literal("Watch Bot vs Bot"),
-                button -> ModNetwork.sendToServer(
-                        new C2SStartPracticePacket(true)))
+                button -> minecraft.setScreen(new WatchSetupScreen(this)))
                 .bounds(width / 2 - 70, height / 2 + 76, 140, 20).build());
         addRenderableWidget(Button.builder(
                 Component.literal("Deck"),

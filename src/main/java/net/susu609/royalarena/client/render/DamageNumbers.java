@@ -174,13 +174,15 @@ public final class DamageNumbers {
             pose.translate(p.at().x - cam.x + p.drift() * age,
                     p.at().y - cam.y + rise, p.at().z - cam.z);
             pose.mulPose(event.getCamera().rotation());
-            float scale = 0.035F * p.size() * pop;
+            float scale = 0.052F * p.size() * pop *
+                    ArenaClientConfig.WORLD_TEXT_SCALE.get().floatValue();
             pose.scale(-scale, -scale, scale);
             Matrix4f matrix = pose.last().pose();
             int a = Math.max(5, Math.round(alpha * 255.0F));
-            font.drawInBatch(p.text(), -font.width(p.text()) / 2.0F, 0.0F,
-                    (a << 24) | p.rgb(), true, matrix, buffers,
-                    Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
+            WorldHealthBar.outlined(font, p.text(),
+                    -font.width(p.text()) / 2.0F, 0.0F, p.rgb(), a, matrix,
+                    buffers, Font.DisplayMode.SEE_THROUGH,
+                    LightTexture.FULL_BRIGHT);
             pose.popPose();
         }
         buffers.endBatch();

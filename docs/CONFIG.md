@@ -16,8 +16,8 @@ In a normal Minecraft install both files are in `.minecraft/config/`.
 ```toml
 [camera]
 	pitch = 68.0       # degrees below the horizontal; 90 = straight down (20..89)
-	distance = 30.0    # blocks from the camera to the point it looks at (5..80)
-	lookAhead = 5.0    # blocks from the arena centre toward your side that it looks at (-16..16)
+	distance = 26.0    # blocks from the camera to the point it looks at (5..80)
+	lookAhead = 6.5    # blocks from the arena centre toward your side that it looks at (-16..16)
 	fov = 0.0          # field of view in a match; 0 = keep your normal FOV (0..110)
 ```
 
@@ -40,6 +40,7 @@ panel, increase `lookAhead`.
 [effects]
 	cameraShake = 1.0      # how hard the camera shakes on heavy hits; 0 = never (0..2)
 	damageNumbers = true   # damage and healing numbers over troops and towers
+	worldTextScale = 1.0   # size of damage numbers and health bars (0.5..2)
 	teamRings = true       # a blue or red ring under every troop
 	battleMusic = true     # the Pigstep disc on the Music volume while a battle runs
 	menuHint = true        # "Press M to open Royal Arena" in the top left corner outside a match

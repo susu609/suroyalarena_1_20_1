@@ -598,3 +598,19 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `network/c2s/C2SWatchSpeedPacket.java`, `MatchManager.toggleWatchSpeed`,
   `ServerMatchSession` (`speed`, two ticks at x2)
 - `DomainSmokeTest.watchViewFitsBetweenThePanels`; `docs/BOT.md`
+
+## Part 51 — Readable numbers, closer cameras, watch setup
+
+- `client/render/WorldHealthBar.java` (bars 1.3-1.45x bigger, a black frame
+  2 px on towers and 1 px on troops, outlined "health/max"; `outlined`),
+  `client/render/DamageNumbers.java` (1.5x, outlined),
+  `ArenaClientConfig.WORLD_TEXT_SCALE` (`worldTextScale`)
+- `client/camera/ArenaCameraProfile.java`: player camera 30 -> 26 blocks
+  (look-ahead 5 -> 6.5), watch camera 32 -> 28 with 17% side panels
+- `match/WatchSetup.java`, `client/screen/WatchSetupScreen.java`,
+  `C2SStartPracticePacket` (the setup), `MatchManager.startWatch(player,
+  setup)` (decks: random, the spectator's own, starter; personalities),
+  protocol 15
+- `BotPersonalitySmokeTest.watchSetupKeepsValidChoices`,
+  `DomainSmokeTest` (camera framing at the new distances); `docs/BOT.md`,
+  `docs/CONFIG.md`

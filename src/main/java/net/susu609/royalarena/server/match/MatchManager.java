@@ -8,10 +8,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.susu609.royalarena.bot.BotBrain;
 import net.susu609.royalarena.bot.BotDeck;
+import net.susu609.royalarena.bot.BotPersonality;
 import net.susu609.royalarena.card.BattleDeck;
 import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
+import net.susu609.royalarena.match.WatchSetup;
 import net.susu609.royalarena.server.arena.ArenaAllocator;
 import net.susu609.royalarena.server.arena.ArenaDimension;
 import net.susu609.royalarena.server.arena.ArenaReservation;
@@ -34,6 +36,8 @@ public final class MatchManager {
     private final List<UUID> rematches = new ArrayList<>();
     /** Players who asked to watch another bot-versus-bot match. */
     private final List<UUID> rewatches = new ArrayList<>();
+    /** The last watch setup of each player, for "Play again". */
+    private final Map<UUID, WatchSetup> watchSetups = new HashMap<>();
 
     private MatchManager() {
     }
@@ -72,15 +76,41 @@ public final class MatchManager {
      * hand is the BLUE bot's, and the player plays nothing.
      */
     public boolean startWatch(ServerPlayer player) {
+        return startWatch(player, watchSetups.getOrDefault(player.getUUID(),
+                WatchSetup.DEFAULT));
+    }
+
+    /** As {@link #startWatch(ServerPlayer)} with the decks and personalities picked. */
+    public boolean startWatch(ServerPlayer player, WatchSetup setup) {
         if (isInMatch(player.getUUID()))
             return false;
         MatchQueue.INSTANCE.leave(player, "Watching bots");
+        // "Play again" watches the same setup.
+        watchSetups.put(player.getUUID(), setup);
         return launch(player.getServer(), player.getUUID(), UUID.randomUUID(),
-                true, true);
+                true, true, setup);
     }
 
     private boolean launch(MinecraftServer server, UUID blueId, UUID redId,
             boolean botForRed, boolean botForBlue)
+    {
+        return launch(server, blueId, redId, botForRed, botForBlue, null);
+    }
+
+    /** A watched match's deck: random, the spectator's own, or the starter. */
+    private static BattleDeck watchDeck(String choice, DeckStorage decks,
+            UUID spectator, Random random)
+    {
+        return switch (choice) {
+            case "mine" ->
+                    new BattleDeck(decks.deckOf(spectator)).shuffled(random);
+            case "starter" -> BattleDeck.starter().shuffled(random);
+            default -> BotDeck.random(random);
+        };
+    }
+
+    private boolean launch(MinecraftServer server, UUID blueId, UUID redId,
+            boolean botForRed, boolean botForBlue, WatchSetup setup)
     {
         if (server == null)
             return false;
@@ -91,10 +121,14 @@ public final class MatchManager {
         // balanced deck.
         Random random = new Random(matchId.getMostSignificantBits());
         DeckStorage decks = DeckStorage.get(server);
-        BattleDeck blueDeck = botForBlue ? BotDeck.random(random) :
-                new BattleDeck(decks.deckOf(blueId)).shuffled(random);
-        BattleDeck redDeck = botForRed ? BotDeck.random(random) :
-                new BattleDeck(decks.deckOf(redId)).shuffled(random);
+        BattleDeck blueDeck = setup != null ?
+                watchDeck(setup.blueDeck(), decks, blueId, random) :
+                botForBlue ? BotDeck.random(random) :
+                        new BattleDeck(decks.deckOf(blueId)).shuffled(random);
+        BattleDeck redDeck = setup != null ?
+                watchDeck(setup.redDeck(), decks, blueId, random) :
+                botForRed ? BotDeck.random(random) :
+                        new BattleDeck(decks.deckOf(redId)).shuffled(random);
         MatchInstance match =
                 MatchInstance.create(matchId, blueId, redId,
                         reservation.layout(), blueDeck, redDeck);
@@ -106,8 +140,14 @@ public final class MatchManager {
         BotBrain blueBot = botForBlue ? new BotBrain(TeamSide.BLUE,
                 matchId.getMostSignificantBits() ^ 0x5DEECE66DL) : null;
         ServerPlayer player = server.getPlayerList().getPlayer(blueId);
-        if (bot != null) {
+        if (setup != null) {
+            blueBot.setPersonality(BotPersonality.byId(setup.blueStyle()));
+            BotPersonality red = BotPersonality.byId(setup.redStyle());
+            bot.setPersonality(red);
+        } else if (bot != null) {
             bot.setPersonality(ArenaCommonConfig.botPersonality());
+        }
+        if (bot != null) {
             if (player != null && blueBot == null)
                 player.sendSystemMessage(Component.translatable(
                         "chat.royalarena.bot_personality",
