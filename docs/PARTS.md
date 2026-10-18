@@ -614,3 +614,11 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `BotPersonalitySmokeTest.watchSetupKeepsValidChoices`,
   `DomainSmokeTest` (camera framing at the new distances); `docs/BOT.md`,
   `docs/CONFIG.md`
+
+## Part 52 — Creeper up, Fox, Skeleton Archer range
+
+- `card/BattleCard.java` and JSON: Creeper 23 HP, speed 1.8, blast 3.0; FOX
+  (3 x 6 HP, 2 damage every 0.7 s, speed 1.9, 2 elixir); Skeleton Archer
+  range 4.5; card art cost; protocol 16
+- `MobsWave2SmokeTest.foxesAreAFastCheapPack`, the rider test follows the
+  archer's range; `docs/CARDS.md`, `docs/BALANCE.md`, `docs/CARD_QUEUE.md`

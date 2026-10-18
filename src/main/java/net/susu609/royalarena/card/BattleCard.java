@@ -14,7 +14,7 @@ public enum BattleCard {
             new TroopStats(2, 20, 3, 20, 1.2D, 0.83D, 0.3D)),
     SKELETON_ARCHER("Skeleton Archer", 2, "minecraft:skeleton",
             "minecraft:bow", 0,
-            new TroopStats(1, 20, 4, 20, 5.0D, 1.0D, 0.3D)),
+            new TroopStats(1, 20, 4, 20, 4.5D, 1.0D, 0.3D)),
     SPIDER("Spider", 3, "minecraft:spider", null, 0,
             new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.45D)),
     SKELETONS("Skeletons", 2, "minecraft:skeleton", null, 0,
@@ -32,8 +32,8 @@ public enum BattleCard {
             new TroopStats(1, 160, 12, 32, 1.5D, 0.9D, 0.7D,
                     TroopTraits.BUILDINGS)),
     CREEPER("Creeper", 3, "minecraft:creeper", null, 0,
-            new TroopStats(1, 20, 30, 20, 0.5D, 1.6D, 0.3D,
-                    new TroopTraits(2.5D, true, 0.0D))),
+            new TroopStats(1, 23, 30, 20, 0.5D, 1.8D, 0.3D,
+                    new TroopTraits(3.0D, true, 0.0D))),
     WITCH("Witch", 4, "minecraft:witch", null, 0,
             new TroopStats(1, 26, 8, 30, 5.0D, 0.8D, 0.3D,
                     new TroopTraits(1.5D, false, 0.0D))),
@@ -106,6 +106,8 @@ public enum BattleCard {
     SPIDER_JOCKEY("Spider Jockey", 4, "minecraft:spider", null, 0,
             new TroopStats(1, 41, 3, 20, 4.5D, 1.4D, 0.55D,
                     SplitRule.into(SKELETON_ARCHER.stats()))),
+    FOX("Fox", 2, "minecraft:fox", null, 0,
+            new TroopStats(3, 6, 2, 14, 1.2D, 1.9D, 0.3D)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 10, 16, 5, 1.0D, SpellStats.TOWER_MULTIPLIER,
                     0.0D, 0.0D, 0)),
@@ -243,7 +245,7 @@ public enum BattleCard {
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER,
                     SNOW_GOLEM, ARROW_STORM ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
-            case SPIDER, SPIDER_JOCKEY, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+            case SPIDER, SPIDER_JOCKEY, FOX, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,

@@ -7,6 +7,7 @@ import net.susu609.royalarena.card.Body;
 import net.susu609.royalarena.card.CardFilter;
 import net.susu609.royalarena.card.CardTactic;
 import net.susu609.royalarena.card.TroopStats;
+import net.susu609.royalarena.card.TroopTraits;
 import net.susu609.royalarena.combat.CombatEngine;
 import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.TickResult;
@@ -40,6 +41,7 @@ public final class MobsWave2SmokeTest {
         netherMobsDoNotBurn();
         poisonDependsOnTheBody();
         spiderJockeyLeavesItsArcher();
+        foxesAreAFastCheapPack();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -63,6 +65,21 @@ public final class MobsWave2SmokeTest {
     {
         return engine.add(UUID.randomUUID(), side,
                 new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void foxesAreAFastCheapPack() {
+        TroopStats fox = BattleCard.FOX.stats();
+        check(fox.count() == 3 && BattleCard.FOX.cost() == 2,
+                "Fox: a pack of three for 2 elixir");
+        for (BattleCard card : BattleCard.values()) {
+            if (!card.isSpell() && card != BattleCard.FOX &&
+                    !card.stats().traits().selfDestruct() &&
+                    card.stats().traits().hover() == 0.0D)
+                check(fox.speed() >= card.stats().speed(),
+                        "foxes outrun every walking fighter: " + card.id());
+        }
+        check(fox.traits().equals(TroopTraits.NONE),
+                "and have no special rule (no armour piercing)");
     }
 
     private static void spiderJockeyLeavesItsArcher() {
@@ -93,8 +110,10 @@ public final class MobsWave2SmokeTest {
                 rider.generation() == 1 && rider.invulnerableTicks() > 0,
                 "full health, same side, a short moment of safety");
         CombatUnit archer = engine.add(UUID.randomUUID(), rider);
-        check(archer.stats().range() == 5.0D && archer.stats().split() == null,
-                "the archer shoots from 5 blocks and never splits again");
+        check(archer.stats().range() ==
+                        BattleCard.SKELETON_ARCHER.stats().range() &&
+                        archer.stats().split() == null,
+                "the archer shoots like a Skeleton Archer and never splits again");
     }
 
     private static void polarBearIgnoresFrost() {

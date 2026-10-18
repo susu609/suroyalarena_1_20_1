@@ -21,7 +21,7 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
   sturdier than the four-Spider card: a Skeleton archer riding a Spider.
   Splits when the spider dies (the Skeleton stays and shoots, like a Skeleton
   Archer). Around 4 elixir.
-- [ ] Fox (`minecraft:fox`): a fast small pack, nothing special (no armour
+- [x] Fox (`minecraft:fox`): a fast small pack, nothing special (no armour
   piercing). Count 3-4, low health, quick bites.
 - [ ] Skeleton Rider (`minecraft:skeleton_horse` with a Skeleton Archer on
   it): one archer on a war horse that goes for the towers (buildings only),

@@ -1,0 +1,20 @@
+{
+  "id": "fox",
+  "type": "troop",
+  "display_name": "Fox",
+  "roles": ["attack"],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:fox",
+  "model_scale": 1.0,
+  "count": 3,
+  "unit": {
+    "health": 6,
+    "damage": 2,
+    "attack_interval_ticks": 14,
+    "range": 1.2,
+    "move_speed": 1.9,
+    "flying": false,
+    "targets": "ground"
+  }
+}

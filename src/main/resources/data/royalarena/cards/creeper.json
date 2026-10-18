@@ -9,14 +9,14 @@
   "model_scale": 1.0,
   "count": 1,
   "unit": {
-    "health": 20,
+    "health": 23,
     "damage": 30,
     "attack_interval_ticks": 20,
     "range": 0.5,
-    "move_speed": 1.6,
+    "move_speed": 1.8,
     "flying": false,
     "targets": "ground",
-    "splash_radius": 2.5,
+    "splash_radius": 3.0,
     "self_destruct": true
   }
 }
