@@ -111,11 +111,14 @@ public record TroopTraits(double splashRadius, boolean selfDestruct,
                 false, true, false, false, false, 0.0D, 0, false);
     }
 
-    /** Dies on its first sting and leaves poison (Bee). */
+    /**
+     * Stings again and again, each sting poisoning, and floats
+     * {@code hover} blocks up (Bee).
+     */
     public static TroopTraits stinging(int poisonTicks, double perSecond,
             double hover)
     {
-        return new TroopTraits(0.0D, true, 0.0D, false, 0, poisonTicks,
+        return new TroopTraits(0.0D, false, 0.0D, false, 0, poisonTicks,
                 perSecond, 0, hover, false, false, false, false, false, 0.0D,
                 0, false);
     }

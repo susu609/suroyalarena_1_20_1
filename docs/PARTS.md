@@ -536,3 +536,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `discardMob`), `client/screen/DeckScreen.java` (tooltip), protocol 12
 - `MobsWave2SmokeTest.spiderJockeyLeavesItsArcher`; `docs/CARDS.md`,
   `docs/COMBAT.md`, `docs/CARD_QUEUE.md`
+
+## Part 46 — Bee stings on, Big Slime 36 health
+
+- `card/TroopTraits.java` (`stinging` no longer self-destructs),
+  `card/BattleCard.java` (Bee 4/1, poison 1; Big Slime 36/5, speed 0.75,
+  4 elixir), `bee.json`, `big_slime.json`, card art cost,
+  `server/battle/BattleField.java` (an angry Bee face on its sting)
+- `MobsWave2SmokeTest.beeStingsAgainAndPoisons`, `DeckSmokeTest` (Big Slime
+  health 108, starter deck average 26/8); `docs/CARDS.md`, `docs/COMBAT.md`

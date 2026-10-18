@@ -49,7 +49,7 @@ public final class CostFormula {
             totalHealth = (s.health() + s.split().into().health()) * s.count();
         // Poison lands with every hit, so it counts as part of the damage;
         // the next hit replaces it, so only what runs until then counts (all
-        // of it for a unit that dies on its hit, like a Bee).
+        // of it for a unit that dies on its hit, like a Creeper).
         int poisonTicks = s.traits().selfDestruct() ? s.traits().poisonTicks() :
                 Math.min(s.traits().poisonTicks(), s.attackTicks());
         double perHit = s.damage() +

@@ -10,14 +10,13 @@
   "count": 5,
   "unit": {
     "health": 4,
-    "damage": 3,
+    "damage": 1,
     "attack_interval_ticks": 20,
     "range": 1.2,
     "move_speed": 2.0,
     "targets": "ground",
-    "self_destruct": true,
     "poison_ticks": 60,
-    "poison_per_second": 1.5,
+    "poison_per_second": 1.0,
     "hover": 1.0,
     "flying": false
   }

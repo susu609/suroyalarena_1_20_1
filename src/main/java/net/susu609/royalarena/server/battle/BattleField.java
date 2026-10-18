@@ -707,7 +707,10 @@ public final class BattleField {
         }
         if (attacker instanceof Vex)
             mobSound(attacker, ArenaSounds.VEX_CHARGE);
-        if (attacker instanceof Bee) {
+        if (attacker instanceof Bee bee) {
+            // The vanilla attack look: the angry face. Anger never runs out
+            // on a NoAI bee, so it stays angry once it has stung.
+            bee.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
             level.playSound(null, from[0], from[1], from[2],
                     SoundEvents.BEE_STING, SoundSource.HOSTILE, 0.6F, 1.0F);
             return;

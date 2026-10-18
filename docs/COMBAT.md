@@ -26,7 +26,7 @@ imports) and acted out in the world by `server/battle/BattleField`.
   Archer where it fell (`SplitRule.into`), with a short moment of safety. The
   cost counts the spider's and the archer's health together.
 - **Slimes.** When a Big Slime dies it splits into 2 slimes with half health,
-  damage and size, twice (20 -> 2x10 -> 4x5). Children keep team and lane,
+  damage and size, twice (36 -> 2x18 -> 4x9). Children keep team and lane,
   spawn near the parent (pushed out of the water) and are invulnerable for
   6 ticks.
 - **Formations.** The units of a card stand in a row (2), triangle (3) or grid
@@ -148,8 +148,8 @@ longer adds the generic player hit; arrows and blows on towers keep theirs.
   the river rows it hits 1.5x as hard. It may be played on the river.
 - **Frost hits (Stray, Snow Golem).** A hit that slows is frost: a
   frost-weak unit (Blaze) takes double damage from it.
-- **Sting (Bee).** Dies on its hit like the Vex, and the poison it leaves runs
-  its full 3 s.
+- **Sting (Bee).** Stings once a second and lives on; each sting poisons
+  again (a new sting replaces the poison).
 - **Tower diver (Phantom).** Only targets towers and flies straight over the
   river.
 

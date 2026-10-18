@@ -19,7 +19,7 @@ import java.util.UUID;
 /**
  * Pure-Java checks for the second wave of mobs: the Polar Bear shrugs off
  * frost, Evoker fangs bite along a line, the Guardian locks on before its
- * laser and hits harder from the river, a Bee stings once and leaves
+ * laser and hits harder from the river, a Bee stings again and again,
  * poison, the Phantom flies straight for a tower, and every card has
  * hand-written tactics.
  */
@@ -32,7 +32,7 @@ public final class MobsWave2SmokeTest {
         evokerFangsBiteAlongALine();
         guardianLocksOnFirst();
         guardianHitsHarderFromTheRiver();
-        beeStingsOnceAndPoisons();
+        beeStingsAgainAndPoisons();
         phantomGoesStraightForATower();
         everyCardHasATactic();
         libraryFiltersAndPages();
@@ -173,7 +173,7 @@ public final class MobsWave2SmokeTest {
                 .damage(), "one laser from the river: 1.5x damage");
     }
 
-    private static void beeStingsOnceAndPoisons() {
+    private static void beeStingsAgainAndPoisons() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         CombatUnit bee = engine.add(UUID.randomUUID(), TeamSide.BLUE,
@@ -182,14 +182,15 @@ public final class MobsWave2SmokeTest {
         TickResult first = engine.tick();
         check(first.attacks().stream().anyMatch(
                 a -> bee.id().equals(a.attackerUnit())), "the Bee stings");
-        check(!bee.alive(), "and dies");
+        check(bee.alive(), "and lives on (no more dying on the first sting)");
         check(target.poisoned(), "the sting poisons");
-        for (int i = 0; i < 80; i++)
-            engine.tick();
-        var traits = BattleCard.BEE.stats().traits();
-        near(200.0D - target.health(), BattleCard.BEE.stats().damage() +
-                traits.poisonTotal() * Body.LIVING.poisonFactor(),
-                "sting plus all of the poison, 1.5x on a living target");
+        int stings = 1;
+        for (int i = 0; i < 100; i++) {
+            stings += (int) engine.tick().attacks().stream().filter(
+                    a -> bee.id().equals(a.attackerUnit())).count();
+        }
+        check(stings >= 5, "it keeps stinging, once a second: " + stings);
+        check(target.poisoned(), "and keeps the target poisoned");
     }
 
     private static void phantomGoesStraightForATower() {
@@ -252,7 +253,7 @@ public final class MobsWave2SmokeTest {
                 2.0D * bite - 1.0E-6D, "the Blaze takes double");
     }
 
-    /** Poison damage a victim card really loses to one Bee sting. */
+    /** Damage a victim card really loses to one Bee sting and its poison. */
     private static double lostToBee(BattleCard victim) {
         CombatEngine engine = new CombatEngine(battle());
         CombatUnit bee = unit(engine, BattleCard.BEE, TeamSide.BLUE, 0.0D,
@@ -260,9 +261,11 @@ public final class MobsWave2SmokeTest {
         CombatUnit target = engine.add(UUID.randomUUID(), TeamSide.RED,
                 victim.stats(), 0.0D, 1.5D);
         double before = target.health();
+        engine.tick();
+        // Take the Bee away after its first sting, so only that one counts.
+        engine.remove(bee.id());
         for (int i = 0; i < 100; i++)
             engine.tick();
-        check(!bee.alive(), "the Bee stung and died");
         return before - target.health();
     }
 

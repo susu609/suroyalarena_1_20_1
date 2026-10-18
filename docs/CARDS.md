@@ -20,7 +20,7 @@ Move speed is in blocks per second.
 | Skeleton Archer | `minecraft:skeleton` (bow) | 1 | 20 | 4 | 1.0 | 5.5 | 1.0 | **2** |
 | Spider | `minecraft:spider` | 4 | 10 | 2 | 1.0 | 1.2 | 1.5 | **3** |
 | Skeletons | `minecraft:skeleton` (bare hands) | 3 | 11 | 1.5 | 0.9 | 1.2 | 1.33 | **2** |
-| Big Slime | `minecraft:slime` | 1 | 20 | 5 | 1.4 | 1.2 | 0.85 | **3** |
+| Big Slime | `minecraft:slime` | 1 | 36 | 5 | 1.4 | 1.2 | 0.75 | **4** |
 
 Zombie and Skeleton Archer keep vanilla health. Swarm units are thinner than
 vanilla on purpose: Spider x4 at vanilla 16 HP would cost 4.81 elixir, and
@@ -237,7 +237,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Polar Bear | `minecraft:polar_bear` | 1 | 76 | 7 | 1.2 | 1.2 | 1.0 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **4** |
 | Phantom | `minecraft:phantom` | 1 | 34 | 6 | 1.0 | 1.2 | 2.0 | flies 2 blocks up straight over the river and only goes for towers | **3** |
 | Silverfish | `minecraft:silverfish` | 5 | 4 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
-| Bee | `minecraft:bee` | 5 | 4 | 3 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once, poisons 1.5 a second for 3 s, and dies | **2** |
+| Bee | `minecraft:bee` | 5 | 4 | 1 | 1.0 | 1.2 | 2.0 | flies 1 block up; stings once a second, each sting poisons 1 a second for 3 s; turns angry (vanilla angry face) on its first sting | **2** |
 | Evoker | `minecraft:evoker` | 1 | 30 | 10 | 2.0 | 5.0 | 0.8 | fangs bite every enemy on a 1.2 wide line from it through its target | **4** |
 | Guardian | `minecraft:guardian` | 1 | 46 | 14 | 2.0 | 5.5 | 0.6 | laser: locks on 2 s before hitting a new target; may be played on the river and hits 1.5x from there; swims 0.6 up | **4** |
 | Zombie Villager | `minecraft:zombie_villager` | 5 | 9 | 2 | 1.2 | 1.2 | 0.8 | a big, weak swarm: each one is far weaker than a Zombie, five of them together are not (model 0.85) | **3** |
@@ -302,4 +302,10 @@ Bee sits at 40%, under the 42% line. Tried: HP 4 -> 4.4 (38%), poison
 more than the stats give). At 2 elixir the formula leaves no room (raw 2.37,
 the limit is 2.49), so it stays; if it should be stronger, make the sting
 hit towers too or let a Bee survive its sting.
+
+By hand, after that: the Bee survives its sting and stings once a second
+(sting 1, poison 1 a second, the user's design): 41% -> 57%. Big Slime gets
+36 health (it is a size-4 slime, the biggest vanilla one; children 18 and 9):
+at 3 elixir with 4 damage it won 71%, so it costs 4 now (raw 3.64), walks
+0.75 instead of 0.85 (formula-neutral below 1.33): 56%.
 

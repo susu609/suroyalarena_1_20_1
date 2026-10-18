@@ -24,7 +24,7 @@
         'skeleton_archer': 2,
         'spider': 3,
         'skeletons': 2,
-        'big_slime': 3,
+        'big_slime': 4,
         'stray': 2,
         'vindicator': 2,
         'iron_golem': 5,

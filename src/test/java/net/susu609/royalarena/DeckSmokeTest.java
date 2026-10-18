@@ -45,9 +45,10 @@ public final class DeckSmokeTest {
                 "unknown ids are rejected");
         check(DeckRules.parse(DeckRules.ids(starter)).equals(starter),
                 "ids round-trip");
-        check(Math.abs(DeckRules.averageElixir(starter) - 25 / 8.0D) < 1e-9,
+        // 26: Big Slime went from 3 to 4 elixir with its 36 health.
+        check(Math.abs(DeckRules.averageElixir(starter) - 26 / 8.0D) < 1e-9,
                 "average elixir of the starter deck");
-        check(Math.abs(DeckRules.averageElixir(hole) - 23 / 7.0D) < 1e-9,
+        check(Math.abs(DeckRules.averageElixir(hole) - 24 / 7.0D) < 1e-9,
                 "average skips empty slots");
         boolean threw = false;
         try {
@@ -64,7 +65,7 @@ public final class DeckSmokeTest {
         check(CardRole.of(BattleCard.BIG_SLIME).contains(CardRole.TANK),
                 "Big Slime counts its children: a tank");
         check(Math.abs(CardRole.bodyHealth(BattleCard.BIG_SLIME.stats()) -
-                60.0D) < 1e-9, "Big Slime body health 20 + 2x10 + 4x5");
+                108.0D) < 1e-9, "Big Slime body health 36 + 2x18 + 4x9 (36 since the slime is drawn 4x)");
         check(!CardRole.of(BattleCard.ZOMBIE).contains(CardRole.TANK),
                 "two Zombies are not a tank");
         check(CardRole.of(BattleCard.SKELETON_ARCHER).contains(CardRole.RANGED)
