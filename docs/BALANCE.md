@@ -64,14 +64,14 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 
 ### Starter troop costs
 
-| Card | Total HP | Total DPS | Modifiers | Raw | Elixir |
+| Card | Total HP (with armour) | Total DPS | Modifiers | Raw | Elixir |
 |---|---|---|---|---|---|
-| Zombie x2 | 40 | 6.0 | - | 2.87 | 3 |
+| Zombie x2 (armour 2) | 43.5 | 6.0 | - | 2.99 | 3 |
 | Skeleton Archer x1 | 20 | 4.0 | range 4.5 | 2.11 | 2 |
-| Spider x4 | 40 | 8.0 | count 4, speed | 3.39 | 3 |
-| Skeletons x3 | 33 | 5.0 | count 3, speed | 2.43 | 2 |
+| Spider x3 | 48 | 6.0 | count 3, speed | 3.21 | 3 |
+| Skeletons x2 | 40 | 3.33 | speed | 2.35 | 2 |
 | Big Slime x1 | 108 | 3.57 | - | 3.64 | 4 |
-| Iron Golem x1 | 160 | 7.5 | towers only | 5.45 | 5 |
+| Iron Golem x1 | 100 | 8.75 | towers only | 4.66 | 5 |
 
 ## Power band (`PowerCreepTest`)
 

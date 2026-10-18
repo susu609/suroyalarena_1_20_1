@@ -647,3 +647,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   cost, `server/battle/BattleField.java` (a Skeleton rides the horse, as on
   the Spider Jockey), protocol 18; Wither Skeleton speed 0.85
 - `MobsWave2SmokeTest.skeletonRiderIgnoresTroops`
+
+## Part 55 — Vanilla health and armour
+
+- `card/TroopStats.java` (`armor`, `armorFactor`, `effectiveHealth`),
+  `card/CostFormula.java` (effective health, `traitModifier`),
+  `combat/CombatEngine.java` (armour on hits and spell hits, not on poison
+  or fire), `card/CardRole.java` and `bot/BotBrain.java` (count armour),
+  `card/BattleCard.java` and every troop JSON (`"armor"`; vanilla health;
+  `armorItems`), `server/battle/BattleField.java` (worn armour),
+  `client/screen/DeckScreen.java` (tooltip), card art costs, protocol 19
+- `scripts/card-library/config.py`, `config-template.html`, `vanilla.json`:
+  the card config page; `docs/CARDS.md`, `docs/COMBAT.md`, `docs/BALANCE.md`
+- tests follow the new health and armour (numbers from the code)
+
