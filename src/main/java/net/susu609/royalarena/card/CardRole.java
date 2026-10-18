@@ -55,15 +55,18 @@ public enum CardRole {
         return roles;
     }
 
-    /** Health of one body plus every child it splits into. */
+    /**
+     * Health of one body plus every child it splits into, counting armour
+     * as the cost formula does (health / armour factor).
+     */
     public static double bodyHealth(TroopStats s) {
         SplitRule split = s.split();
         if (split == null)
-            return s.health();
+            return s.effectiveHealth();
         if (split.into() != null)
-            return s.health() + split.into().health();
+            return s.effectiveHealth() + split.into().effectiveHealth();
         double total = 0.0D;
-        double health = s.health();
+        double health = s.effectiveHealth();
         int bodies = 1;
         for (int g = 0; g <= split.generations(); g++) {
             total += health * bodies;

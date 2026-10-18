@@ -21,9 +21,14 @@ P      = sqrt(totalHP * totalDPS) * modifiers
 elixir = round(P / cost_divisor)          cost_divisor = 5.4
 ```
 
-- `totalHP` = unit HP x count. A Big Slime counts all three generations
-  (36 + 2x18 + 4x9 = 108). A Spider Jockey counts the spider and the
-  Skeleton Archer it leaves (41 + 20 = 61).
+- `totalHP` = effective unit HP x count, where effective HP = HP / (1 -
+  0.04 x armour points) (a Zombie's 2 points: 20 / 0.92 = 21.7). A Big Slime
+  counts all three generations (36 + 2x18 + 4x9 = 108). A Spider Jockey
+  counts the spider and the Skeleton Archer it leaves (16 + 20 = 36).
+- Unit HP is the mob's vanilla max health (Zombie 20, Piglin Brute 50, Iron
+  Golem 100); two cards keep their own (Big Slime 36, chosen for its 4x size;
+  Snow Golem 40, as 4 would not last a second). `scripts/card-library/vanilla.json`
+  lists every mob's vanilla health and armour.
 - `totalDPS` = damage / interval x count. Poison counts as damage, but only
   what one hit's poison deals before the next hit replaces it: poison per
   second x min(poison time, interval). A Cave Spider (1 a second for 3 s,

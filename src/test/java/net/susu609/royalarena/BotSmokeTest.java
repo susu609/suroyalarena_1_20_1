@@ -262,7 +262,11 @@ public final class BotSmokeTest {
     }
 
     private static void botSettingsChangeItsPace() {
-        int[] plays = new int[2];
+        // With the vanilla-health mobs the eager bot can win the match (King
+        // down) before 2400 ticks and then stops playing, so plays are
+        // counted only while both matches were still in battle.
+        List<List<Harness.Played>> runs = new ArrayList<>();
+        int window = 2400;
         int[] attackElixir = {10, 3};
         for (int run = 0; run < 2; run++) {
             Harness h = new Harness();
@@ -273,13 +277,25 @@ public final class BotSmokeTest {
             bot.setSettings(new net.susu609.royalarena.bot.BotSettings(
                     10, 40, attackElixir[run] * 10));
             h.bots.add(bot);
-            for (int i = 0; i < 2400; i++)
+            int battleTicks = 0;
+            while (battleTicks < 2400 &&
+                    h.match.state() == MatchState.BATTLE)
+            {
                 h.tick();
-            plays[run] = h.played.size();
+                battleTicks++;
+            }
+            window = Math.min(window, battleTicks);
+            runs.add(h.played);
+        }
+        int[] plays = new int[2];
+        for (int run = 0; run < 2; run++) {
+            for (Harness.Played p : runs.get(run))
+                plays[run] += p.tick() <= window ? 1 : 0;
         }
         check(plays[1] > plays[0],
                 "a lower attack threshold makes the bot play more: " +
-                        plays[0] + " vs " + plays[1]);
+                        plays[0] + " vs " + plays[1] + " in " + window +
+                        " ticks");
     }
 
     private static void check(boolean condition, String name) {

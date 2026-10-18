@@ -575,7 +575,7 @@ public final class CombatEngine {
             // a golem shrugs off does nothing at all.
             if (damage > 0.0D) {
                 if (!damageUnit(unit, damage, hit.spell().side,
-                        hit.spell().card))
+                        hit.spell().card, spell.poison()))
                     continue;
             } else if (spell.damagePerPulse() > 0.0D || !unit.alive()) {
                 continue;
@@ -633,11 +633,11 @@ public final class CombatEngine {
             double burn = unit.burnStep();
             if (burn > 0.0D)
                 damageUnit(unit, burn, unit.side().opponent(),
-                        unit.burnSource());
+                        unit.burnSource(), true);
             double poison = unit.poisonStep();
             if (poison > 0.0D)
                 damageUnit(unit, poison * bodyOf(unit).poisonFactor(),
-                        unit.side().opponent(), unit.poisonSource());
+                        unit.side().opponent(), unit.poisonSource(), true);
         }
     }
 
@@ -728,14 +728,23 @@ public final class CombatEngine {
         }
     }
 
-    /**
-     * Hurts a unit and credits {@code source} of side {@code by} (null: the
-     * towers of that side) with the health really taken off. A water-weak
-     * unit on the river takes extra.
-     */
     private boolean damageUnit(CombatUnit victim, double amount, TeamSide by,
             BattleCard source)
     {
+        return damageUnit(victim, amount, by, source, false);
+    }
+
+    /**
+     * Hurts a unit and credits {@code source} of side {@code by} (null: the
+     * towers of that side) with the health really taken off. Armour takes
+     * its share off unless {@code throughArmor} (poison, burning). A
+     * water-weak unit on the river takes extra.
+     */
+    private boolean damageUnit(CombatUnit victim, double amount, TeamSide by,
+            BattleCard source, boolean throughArmor)
+    {
+        if (!throughArmor)
+            amount *= victim.stats().armorFactor();
         if (victim.stats().traits().waterWeak() &&
                 arena.isRiver((int) Math.floor(victim.z())))
             amount *= TroopTraits.WATER_WEAKNESS;

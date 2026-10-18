@@ -7,9 +7,10 @@
   "elixir": 3,
   "entity": "minecraft:husk",
   "model_scale": 1.0,
-  "count": 3,
+  "count": 2,
   "unit": {
-    "health": 13,
+    "health": 20,
+    "armor": 2,
     "damage": 2.5,
     "attack_interval_ticks": 20,
     "range": 1.2,

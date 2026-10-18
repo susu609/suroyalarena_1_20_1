@@ -1,0 +1,300 @@
+<title>Cấu hình thẻ Royal Arena</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: a tuning bench. Rule box, then one section per mob family; each
+   card is a tile with its vanilla reference, editable stats and the cost the
+   formula gives live. A sticky bar saves the edits for Claude to apply. */
+:root {
+  --bg: #e9ecef; --panel: #f8f9fb; --ink: #1c2229; --muted: #5e6873; --line: #cfd5dc;
+  --elixir: #9b3fd6; --elixir-ink: #ffffff; --blue: #1f4fd6; --red: #c81e1e;
+  --band: rgba(31, 79, 214, 0.12); --good: #23874f; --warn: #b0611a;
+  --edit-bg: #fff1c9; --edit-ink: #6a4b00; --saved: #23874f;
+  --font-display: 'Pixelify Sans', 'Courier New', monospace;
+  --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181d; --panel: #1d232a; --ink: #e6eaee; --muted: #9aa5b1; --line: #2e3740;
+    --elixir: #c07bff; --elixir-ink: #1a0b26; --blue: #6f97ff; --red: #ff6b6b;
+    --band: rgba(111, 151, 255, 0.16); --good: #57c486; --warn: #e39a4f;
+    --edit-bg: #4a3a0e; --edit-ink: #ffe08a; --saved: #57c486;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181d; --panel: #1d232a; --ink: #e6eaee; --muted: #9aa5b1; --line: #2e3740;
+  --elixir: #c07bff; --elixir-ink: #1a0b26; --blue: #6f97ff; --red: #ff6b6b;
+  --band: rgba(111, 151, 255, 0.16); --good: #57c486; --warn: #e39a4f;
+  --edit-bg: #4a3a0e; --edit-ink: #ffe08a; --saved: #57c486;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--font-body);
+  padding-block: 24px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font: 700 32px/1.1 var(--font-display); }
+h2 { font: 700 21px/1.2 var(--font-display); display: flex; gap: 8px; align-items: baseline; }
+h2 small { font: 400 13px var(--font-body); color: var(--muted); }
+.lead { display: flex; flex-direction: column; gap: 10px; }
+.lead p, .note { margin: 0; color: var(--muted); max-width: 70ch; }
+.note { font-size: 13px; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.rule { background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.rule b { font: 700 15px/1.2 var(--font-display); }
+.rule span { font-size: 13px; color: var(--muted); }
+.family { display: flex; flex-direction: column; gap: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.tile.edited { border-color: var(--warn); }
+.head { display: flex; gap: 10px; align-items: center; }
+.cost { flex: none; width: 30px; height: 30px; background: var(--elixir); color: var(--elixir-ink); font: 700 17px/30px var(--font-display); text-align: center; }
+.cost.moved { outline: 2px solid var(--warn); outline-offset: 2px; }
+.name { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.name b { font-weight: 600; }
+.name span, .ref, .calc { font: 12px/1.4 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.badge { font-size: 11px; font-weight: 600; padding: 1px 6px; white-space: nowrap; }
+.badge.edit { background: var(--edit-bg); color: var(--edit-ink); }
+.badge.saved { color: var(--saved); border: 1px solid currentColor; }
+.badge.keep { color: var(--warn); border: 1px solid currentColor; }
+.why { font-size: 12px; color: var(--muted); margin: 0; }
+.fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.fields label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--muted); min-width: 0; }
+.fields input { font: 13px var(--font-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); padding: 6px; min-height: 34px; width: 100%; min-width: 0; font-variant-numeric: tabular-nums; }
+.fields input.changed { border-color: var(--warn); background: var(--edit-bg); color: var(--edit-ink); }
+.fields input:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--elixir); outline-offset: 2px; }
+textarea { font: 13px/1.4 var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; width: 100%; min-height: 34px; resize: vertical; }
+.win { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.bar { position: relative; height: 8px; background: var(--bg); border: 1px solid var(--line); }
+.bar .band { position: absolute; top: 0; bottom: 0; left: 42%; width: 16%; background: var(--band); }
+.bar .dot { position: absolute; top: -3px; width: 4px; height: 12px; margin-left: -2px; background: var(--ink); }
+.bar .dot.off { background: var(--warn); }
+.pct { font: 600 12px var(--font-mono); min-width: 34px; text-align: right; }
+.actions { display: flex; gap: 8px; justify-content: flex-end; }
+button { font: 500 13px/1 var(--font-body); color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 8px 12px; min-height: 36px; cursor: pointer; }
+button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button:disabled { opacity: .45; cursor: default; }
+.spells { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; }
+.spell { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; }
+.savebar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line);
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.savebar .in { max-width: 1120px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.savebar .msg { flex: 1; font-size: 13px; color: var(--muted); min-width: 160px; }
+@media (max-width: 420px) { .fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
+
+<main>
+  <header class="lead">
+    <h1>Cấu hình thẻ</h1>
+    <p>Máu mọi mob theo máu vanilla (Zombie 20), cộng giáp theo vanilla, rồi elixir lấy từ công thức. Sửa số ở bất kỳ thẻ nào: elixir tính lại ngay. Bấm <b>Lưu đề xuất</b> để Claude đọc, áp vào code và chạy lại cân bằng bot. Tỉ lệ thắng: {{MATCHES}} trận bot, nhánh {{BRANCH_HASH}}.</p>
+  </header>
+
+  <section class="rules" aria-label="Quy tắc">
+    <div class="rule"><b>Máu = vanilla</b><span>Cùng tỉ lệ với Minecraft: Brute 50 = 2,5 Zombie, Iron Golem 100. Hai ngoại lệ có ghi lý do.</span></div>
+    <div class="rule"><b>Giáp 4% mỗi điểm</b><span>Như vanilla: Zombie 2 điểm (−8%), Brute mũ + giáp vàng 7 (−28%), Magma Cube 12. Tối đa 20 điểm (−80%).</span></div>
+    <div class="rule"><b>Không chặn độc, lửa</b><span>Giáp giảm đòn đánh và phép sát thương; độc, cháy, Poison Cloud đi xuyên giáp.</span></div>
+    <div class="rule"><b>Elixir theo công thức</b><span>√(máu hiệu dụng × DPS) × hệ số ÷ 5,4. Máu hiệu dụng = máu ÷ (1 − giáp).</span></div>
+  </section>
+
+  <div id="families"></div>
+
+  <section class="family" aria-label="Phép">
+    <h2>Phép <small>chỉ xem; muốn sửa phép thì ghi vào ô ghi chú của bất kỳ thẻ nào</small></h2>
+    <div class="spells" id="spells"></div>
+  </section>
+</main>
+
+<div class="savebar" role="region" aria-label="Lưu">
+  <div class="in">
+    <span class="msg" id="msg">Đang nối kho lưu…</span>
+    <button id="reset" type="button">Bỏ các sửa chưa lưu</button>
+    <button id="save" class="primary" type="button" disabled>Lưu đề xuất</button>
+  </div>
+</div>
+
+<script>
+const CARDS = {{DATA}};
+const SPELLS = {{SPELLS}};
+const FAMILIES = [
+  ['zombie', 'Họ Zombie'], ['skeleton', 'Họ Skeleton'], ['illager', 'Illager, phù thủy, Enderman'],
+  ['nether', 'Nether'], ['beast', 'Golem và thú'], ['small', 'Nhện và bầy nhỏ'], ['other', 'Khác']
+];
+const FIELDS = [
+  ['count', 'Số con', 1], ['hp', 'Máu', 1], ['armor', 'Giáp', 1], ['dmg', 'Sát thương', 0.5],
+  ['every', 'Giây/đòn', 0.05], ['range', 'Tầm', 0.5], ['speed', 'Tốc độ', 0.05]
+];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = v => (Math.round(v * 100) / 100).toString().replace('.', ',');
+
+// Same as CostFormula.raw(TroopStats).
+function rawCost(c, v) {
+  const eff = v.hp / (1 - 0.04 * Math.min(20, Math.max(0, v.armor)));
+  let total = eff * v.count * c.generations;
+  if (c.riderHp > 0) total = (eff + c.riderHp) * v.count;
+  const ticks = Math.max(1, Math.round(v.every * 20));
+  const pt = c.selfDestruct ? c.poisonTicks : Math.min(c.poisonTicks, ticks);
+  const perHit = v.dmg + c.poisonPerSecond * pt / 20;
+  const dps = perHit / (ticks / 20) * v.count;
+  let mod = c.traitMod;
+  if (v.range >= 4) mod *= 1.25 * (1 + 0.04 * (v.range - 4));
+  if (v.speed >= 1.33) mod *= 1.1;
+  mod *= v.count >= 5 ? 0.85 : v.count >= 3 ? 0.93 : 1;
+  return { raw: Math.sqrt(total * dps) * mod / 5.4, eff, dps };
+}
+
+const base = {};      // values in the code now
+const saved = {};     // saved proposals from the store
+const edits = {};     // unsaved edits in this view
+for (const c of CARDS) base[c.id] = { count: c.count, hp: c.hp, armor: c.armor, dmg: c.dmg, every: c.every, range: c.range, speed: c.speed, note: '' };
+const current = id => ({ ...base[id], ...(saved[id] || {}), ...(edits[id] || {}) });
+const isEdited = id => edits[id] && Object.keys(edits[id]).length > 0;
+
+function tile(c) {
+  const v = current(c.id);
+  const r = rawCost(c, v);
+  const elixir = Math.floor(r.raw + 0.5);
+  const off = c.win < 42 || c.win > 58;
+  const ref = c.keep ? `vanilla ${c.vanillaHp} máu` : `vanilla ${c.vanillaHp} máu${c.vanillaArmor ? ` · giáp ${c.vanillaArmor}` : ''}`;
+  const before = c.before ? `trước: ${c.before.count > 1 ? c.before.count + '× ' : ''}${c.before.hp} máu, ${c.before.dmg} st, ${c.before.cost} elixir` : '';
+  const badges = [
+    c.keep ? '<span class="badge keep">Ngoại lệ</span>' : '',
+    isEdited(c.id) ? '<span class="badge edit">Chưa lưu</span>' : saved[c.id] ? '<span class="badge saved">Đã lưu</span>' : ''
+  ].join('');
+  const fields = FIELDS.map(([k, label, step]) => {
+    const changed = v[k] !== base[c.id][k];
+    return `<label>${label}<input type="number" inputmode="decimal" step="${step}" min="0" data-id="${c.id}" data-k="${k}" value="${v[k]}" class="${changed ? 'changed' : ''}"></label>`;
+  }).join('');
+  return `<article class="tile${isEdited(c.id) || saved[c.id] ? ' edited' : ''}" id="t-${c.id}">
+    <div class="head">
+      <span class="cost${elixir !== c.cost ? ' moved' : ''}" title="Elixir theo công thức">${elixir}</span>
+      <div class="name"><b>${esc(c.name)}</b><span>${esc(ref)}${before ? ' · ' + esc(before) : ''}</span></div>
+      ${badges}
+    </div>
+    ${c.why ? `<p class="why">${esc(c.why)}</p>` : ''}
+    <div class="fields">${fields}</div>
+    <div class="calc">máu hiệu dụng ${num(r.eff * v.count)} · DPS ${num(r.dps)} · raw ${num(r.raw)}${elixir !== c.cost ? ` · trong code ${c.cost} elixir` : ''}</div>
+    <div class="win" title="Tỉ lệ thắng bot với số liệu trong code"><div class="bar"><span class="band"></span><span class="dot${off ? ' off' : ''}" style="left:${Math.max(0, Math.min(100, c.win))}%"></span></div><span class="pct">${c.win}%</span></div>
+    <textarea data-id="${c.id}" data-k="note" rows="1" placeholder="Ghi chú cho Claude (không bắt buộc)" aria-label="Ghi chú ${esc(c.name)}">${esc(v.note || '')}</textarea>
+    <div class="actions">${saved[c.id] ? `<button type="button" data-drop="${c.id}">Xoá đề xuất đã lưu</button>` : ''}</div>
+  </article>`;
+}
+
+function render() {
+  document.getElementById('families').innerHTML = FAMILIES.map(([f, label]) => {
+    const cs = CARDS.filter(c => c.family === f);
+    return `<section class="family"><h2>${esc(label)} <small>${cs.length} thẻ</small></h2><div class="grid">${cs.map(tile).join('')}</div></section>`;
+  }).join('');
+  updateBar();
+}
+
+function rerenderTile(id) {
+  const el = document.getElementById('t-' + id);
+  const c = CARDS.find(x => x.id === id);
+  const focus = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = tile(c);
+  el.replaceWith(tmp.firstElementChild);
+  if (focus) {
+    const back = document.querySelector(`#t-${id} [data-k="${focus}"]`);
+    if (back) { back.focus(); if (back.tagName === 'TEXTAREA') back.setSelectionRange(back.value.length, back.value.length); }
+  }
+  updateBar();
+}
+
+let db = null, writable = true, busy = false;
+function updateBar(text) {
+  const n = Object.keys(edits).filter(isEdited).length;
+  const s = Object.keys(saved).length;
+  const btn = document.getElementById('save');
+  btn.disabled = !db || !writable || busy || n === 0;
+  document.getElementById('reset').disabled = n === 0;
+  const msg = document.getElementById('msg');
+  if (text) msg.textContent = text;
+  else if (!db) msg.textContent = n ? `${n} thẻ đã sửa. Kho lưu chưa sẵn sàng ở chế độ xem này, nên chưa lưu được.` : 'Xem được, nhưng kho lưu chưa sẵn sàng ở chế độ xem này.';
+  else if (!writable) msg.textContent = 'Bạn chỉ có quyền xem trang này.';
+  else msg.textContent = n ? `${n} thẻ đã sửa, chưa lưu.` + (s ? ` ${s} đề xuất đã lưu.` : '') : s ? `${s} đề xuất đã lưu. Nhắn Claude "áp cấu hình thẻ" để đưa vào code.` : 'Chưa có sửa nào.';
+}
+
+document.addEventListener('input', e => {
+  const t = e.target, id = t.dataset && t.dataset.id, k = t.dataset && t.dataset.k;
+  if (!id || !k) return;
+  const was = { ...base[id], ...(saved[id] || {}) };
+  if (k !== 'note' && t.value.trim() === '') return;
+  const value = k === 'note' ? t.value : Number(t.value);
+  if (k !== 'note' && !(value >= 0)) return;
+  edits[id] = edits[id] || {};
+  if (value === was[k]) delete edits[id][k]; else edits[id][k] = value;
+  if (k === 'note') {
+    // No re-render while typing a note: just the badges and the bar.
+    updateBar();
+    return;
+  }
+  rerenderTile(id);
+});
+
+document.addEventListener('click', async e => {
+  const drop = e.target.closest('[data-drop]');
+  if (drop && db) {
+    const id = drop.dataset.drop;
+    try { await db.collection('proposals').doc(id).delete(); }
+    catch (err) { updateBar(err && err.code === 'permission_denied' ? 'Bạn không có quyền xoá.' : 'Xoá chưa được, thử lại sau.'); }
+  }
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  for (const k of Object.keys(edits)) delete edits[k];
+  render();
+});
+
+document.getElementById('save').addEventListener('click', async () => {
+  if (!db) return;
+  busy = true; updateBar('Đang lưu…');
+  const ids = Object.keys(edits).filter(isEdited);
+  try {
+    for (const id of ids) {
+      const v = current(id);
+      const c = CARDS.find(x => x.id === id);
+      const r = rawCost(c, v);
+      await db.collection('proposals').doc(id).set({
+        card: id, count: v.count, hp: v.hp, armor: v.armor, dmg: v.dmg, every: v.every,
+        range: v.range, speed: v.speed, note: v.note || '', elixir: Math.floor(r.raw + 0.5),
+        raw: Math.round(r.raw * 100) / 100, savedAt: new Date().toISOString()
+      });
+      delete edits[id];
+    }
+    busy = false; render(); updateBar(`Đã lưu ${ids.length} thẻ. Nhắn Claude "áp cấu hình thẻ" để đưa vào code.`);
+  } catch (err) {
+    busy = false;
+    if (err && (err.code === 'permission_denied' || err.code === 'not_granted')) writable = false;
+    render(); updateBar(writable ? 'Lưu chưa xong, các sửa còn lại vẫn ở đây. Thử lại.' : 'Bạn chỉ có quyền xem, không lưu được.');
+  }
+});
+
+document.getElementById('spells').innerHTML = SPELLS.map(s => `<div class="spell"><span class="cost">${s.cost}</span><div class="name"><b>${esc(s.name)}</b><span>${esc(s.facts.join(' · '))} · raw ${num(s.raw)} · ${s.win}%</span></div></div>`).join('');
+render();
+
+(async () => {
+  const api = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
+  db = api ? await api.use('db') : null;
+  if (!db) { updateBar(); return; }
+  db.collection('proposals').onSnapshot(snap => {
+    for (const k of Object.keys(saved)) delete saved[k];
+    for (const d of snap.docs) {
+      const x = d.data();
+      if (!x || !base[d.id]) continue;
+      saved[d.id] = { count: x.count, hp: x.hp, armor: x.armor, dmg: x.dmg, every: x.every, range: x.range, speed: x.speed, note: x.note || '' };
+    }
+    render();
+  }, err => { db = null; updateBar(); });
+})();
+</script>

@@ -7,9 +7,9 @@
   "elixir": 2,
   "entity": "minecraft:fox",
   "model_scale": 1.0,
-  "count": 3,
+  "count": 2,
   "unit": {
-    "health": 6,
+    "health": 10,
     "damage": 2,
     "attack_interval_ticks": 14,
     "range": 1.2,

@@ -7,10 +7,10 @@
   "elixir": 2,
   "entity": "minecraft:vex",
   "model_scale": 0.8,
-  "count": 3,
+  "count": 2,
   "unit": {
-    "health": 4,
-    "damage": 16,
+    "health": 14,
+    "damage": 10,
     "attack_interval_ticks": 20,
     "range": 1.2,
     "move_speed": 2.0,

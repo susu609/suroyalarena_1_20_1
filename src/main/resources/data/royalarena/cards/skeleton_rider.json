@@ -9,12 +9,13 @@
   "model_scale": 1.0,
   "count": 1,
   "unit": {
-    "health": 26,
-    "damage": 8,
+    "health": 15,
+    "damage": 6,
     "attack_interval_ticks": 20,
-    "range": 5.5,
+    "range": 6.0,
     "move_speed": 1.4,
     "flying": false,
     "targets": "buildings"
-  }
+  },
+  "splits_into": "skeleton_archer"
 }

@@ -7,9 +7,9 @@
   "elixir": 3,
   "entity": "minecraft:cave_spider",
   "model_scale": 0.6,
-  "count": 4,
+  "count": 3,
   "unit": {
-    "health": 6,
+    "health": 12,
     "damage": 2.0,
     "attack_interval_ticks": 20,
     "range": 1.2,

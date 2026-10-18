@@ -44,9 +44,10 @@ public final class CostFormula {
     /** Unrounded cost; {@link #elixir} rounds it half up. */
     public static double raw(TroopStats s) {
         int generations = 1 + (s.split() == null ? 0 : s.split().generations());
-        double totalHealth = s.health() * s.count() * generations;
+        double totalHealth = s.effectiveHealth() * s.count() * generations;
         if (s.split() != null && s.split().into() != null)
-            totalHealth = (s.health() + s.split().into().health()) * s.count();
+            totalHealth = (s.effectiveHealth() +
+                    s.split().into().effectiveHealth()) * s.count();
         // Poison lands with every hit, so it counts as part of the damage;
         // the next hit replaces it, so only what runs until then counts (all
         // of it for a unit that dies on its hit, like a Creeper).
@@ -55,7 +56,7 @@ public final class CostFormula {
         double perHit = s.damage() +
                 s.traits().poisonPerSecond() * poisonTicks / 20.0D;
         double dps = perHit / (s.attackTicks() / 20.0D) * s.count();
-        double modifier = 1.0D;
+        double modifier = traitModifier(s);
         if (s.range() >= 4.0D)
             modifier *= RANGED * (1.0D + RANGE_STEP * (s.range() - 4.0D));
         if (s.speed() >= 1.33D)
@@ -64,6 +65,15 @@ public final class CostFormula {
             modifier *= 0.85D;
         else if (s.count() >= 3)
             modifier *= 0.93D;
+        return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
+    }
+
+    /**
+     * The modifiers that come from the troop's traits, not from its range,
+     * speed or count (the card config page recomputes those).
+     */
+    public static double traitModifier(TroopStats s) {
+        double modifier = 1.0D;
         if (s.traits().splash())
             modifier *= AREA_DAMAGE;
         if (s.traits().selfDestruct())
@@ -92,7 +102,7 @@ public final class CostFormula {
             modifier *= CHARGE;
         if (s.traits().riverStrong())
             modifier *= RIVER_STRONG;
-        return Math.sqrt(totalHealth * dps) * modifier / COST_DIVISOR;
+        return modifier;
     }
 
     public static int elixir(TroopStats s) {

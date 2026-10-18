@@ -11,14 +11,14 @@ import java.util.Set;
  */
 public enum BattleCard {
     ZOMBIE("Zombie", 3, "minecraft:zombie", null, 0,
-            new TroopStats(2, 20, 3, 20, 1.2D, 0.83D, 0.3D)),
+            new TroopStats(2, 20, 3, 20, 1.2D, 0.83D, 0.3D).withArmor(2)),
     SKELETON_ARCHER("Skeleton Archer", 2, "minecraft:skeleton",
             "minecraft:bow", 0,
             new TroopStats(1, 20, 4, 20, 4.5D, 1.0D, 0.3D)),
     SPIDER("Spider", 3, "minecraft:spider", null, 0,
-            new TroopStats(4, 10, 2, 20, 1.2D, 1.5D, 0.45D)),
+            new TroopStats(3, 16, 2, 20, 1.2D, 1.5D, 0.45D)),
     SKELETONS("Skeletons", 2, "minecraft:skeleton", null, 0,
-            new TroopStats(3, 11, 1.5D, 18, 1.2D, 1.33D, 0.27D)),
+            new TroopStats(2, 20, 1.5D, 18, 1.2D, 1.33D, 0.27D)),
     BIG_SLIME("Big Slime", 4, "minecraft:slime", null, 4,
             new TroopStats(1, 36, 5, 28, 1.2D, 0.75D, 1.0D,
                     new SplitRule(2, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
@@ -29,10 +29,10 @@ public enum BattleCard {
             "minecraft:iron_axe", 0,
             new TroopStats(1, 24, 12, 48, 1.2D, 1.1D, 0.3D)),
     IRON_GOLEM("Iron Golem", 5, "minecraft:iron_golem", null, 0,
-            new TroopStats(1, 160, 12, 32, 1.5D, 0.9D, 0.7D,
+            new TroopStats(1, 100, 14, 32, 1.5D, 0.9D, 0.7D,
                     TroopTraits.BUILDINGS)),
     CREEPER("Creeper", 3, "minecraft:creeper", null, 0,
-            new TroopStats(1, 23, 30, 20, 0.5D, 1.8D, 0.3D,
+            new TroopStats(1, 20, 30, 20, 0.5D, 1.8D, 0.3D,
                     new TroopTraits(3.0D, true, 0.0D))),
     WITCH("Witch", 4, "minecraft:witch", null, 0,
             new TroopStats(1, 26, 8, 30, 5.0D, 0.8D, 0.3D,
@@ -43,73 +43,74 @@ public enum BattleCard {
             new TroopStats(1, 100, 8, 32, 1.5D, 1.0D, 0.9D,
                     new TroopTraits(0.0D, false, 1.0D))),
     HOGLIN("Hoglin", 3, "minecraft:hoglin", null, 0,
-            new TroopStats(1, 50, 10, 28, 1.2D, 1.6D, 0.65D,
+            new TroopStats(1, 40, 10, 28, 1.2D, 1.6D, 0.65D,
                     TroopTraits.BUILDINGS)),
     PILLAGER("Pillager", 3, "minecraft:pillager", "minecraft:crossbow", 0,
-            new TroopStats(1, 30, 8, 40, 6.0D, 1.0D, 0.3D)),
-    MAGMA_CUBE("Magma Cube", 4, "minecraft:magma_cube", null, 4,
-            new TroopStats(1, 36, 7, 28, 1.2D, 0.83D, 1.0D,
-                    new SplitRule(1, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6))),
-    ENDERMAN("Enderman", 4, "minecraft:enderman", null, 0,
-            new TroopStats(1, 68, 6, 24, 1.2D, 1.0D, 0.4D,
+            new TroopStats(1, 24, 11, 40, 6.0D, 1.0D, 0.3D)),
+    MAGMA_CUBE("Magma Cube", 3, "minecraft:magma_cube", null, 4,
+            new TroopStats(1, 16, 7, 28, 1.2D, 0.83D, 1.0D,
+                    new SplitRule(1, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6)).withArmor(12)),
+    ENDERMAN("Enderman", 3, "minecraft:enderman", null, 0,
+            new TroopStats(1, 40, 7, 24, 1.2D, 1.0D, 0.4D,
                     TroopTraits.teleporting(100))),
     CAVE_SPIDER("Cave Spider", 3, "minecraft:cave_spider", null, 0,
-            new TroopStats(4, 6, 2.0D, 20, 1.2D, 1.6D, 0.3D,
+            new TroopStats(3, 12, 2.0D, 20, 1.2D, 1.6D, 0.3D,
                     TroopTraits.poisoning(60, 1.0D))),
     VEX("Vex", 2, "minecraft:vex", "minecraft:iron_sword", 0,
-            new TroopStats(3, 4, 16, 20, 1.2D, 2.0D, 0.3D,
+            new TroopStats(2, 14, 10, 20, 1.2D, 2.0D, 0.3D,
                     new TroopTraits(0.0D, true, 0.0D))),
-    GHAST("Ghast", 5, "minecraft:ghast", null, 0,
-            new TroopStats(1, 33, 19, 60, 5.0D, 0.35D, 1.0D,
+    GHAST("Ghast", 3, "minecraft:ghast", null, 0,
+            new TroopStats(1, 10, 22, 60, 5.0D, 0.35D, 1.0D,
                     new TroopTraits(1.5D, false, 0.0D))),
     DROWNED("Drowned", 2, "minecraft:drowned", "minecraft:trident", 0,
-            new TroopStats(1, 22, 4, 40, 5.0D, 1.0D, 0.3D,
-                    TroopTraits.riverDeploy())),
+            new TroopStats(1, 20, 4, 40, 5.0D, 1.0D, 0.3D,
+                    TroopTraits.riverDeploy()).withArmor(2)),
     ZOMBIFIED_PIGLIN("Zombified Piglin", 3, "minecraft:zombified_piglin",
             "minecraft:golden_sword", 0,
-            new TroopStats(2, 26, 4, 24, 1.2D, 0.9D, 0.3D)),
-    BLAZE("Blaze", 3, "minecraft:blaze", null, 0,
-            new TroopStats(1, 30, 8, 40, 6.0D, 1.0D, 0.4D,
+            new TroopStats(2, 20, 4, 24, 1.2D, 0.9D, 0.3D).withArmor(2)),
+    BLAZE("Blaze", 2, "minecraft:blaze", null, 0,
+            new TroopStats(1, 20, 8, 40, 6.0D, 1.0D, 0.4D,
                     TroopTraits.hovering(1.5D, true, true, true))),
     HUSK("Husk", 3, "minecraft:husk", null, 0,
-            new TroopStats(3, 13, 2.5D, 20, 1.2D, 1.0D, 0.3D,
-                    TroopTraits.slowing(40))),
-    WITHER_SKELETON("Wither Skeleton", 3, "minecraft:wither_skeleton",
+            new TroopStats(2, 20, 2.5D, 20, 1.2D, 1.0D, 0.3D,
+                    TroopTraits.slowing(40)).withArmor(2)),
+    WITHER_SKELETON("Wither Skeleton", 2, "minecraft:wither_skeleton",
             "minecraft:stone_sword", 0,
-            new TroopStats(1, 38, 10, 32, 1.5D, 0.85D, 0.35D,
+            new TroopStats(1, 20, 10, 32, 1.5D, 0.85D, 0.35D,
                     TroopTraits.poisoning(60, 1.5D))),
     PIGLIN_BRUTE("Piglin Brute", 4, "minecraft:piglin_brute",
             "minecraft:golden_axe", 0,
-            new TroopStats(1, 60, 14, 36, 1.2D, 1.0D, 0.3D)),
-    POLAR_BEAR("Polar Bear", 4, "minecraft:polar_bear", null, 0,
-            new TroopStats(1, 76, 7, 24, 1.2D, 1.0D, 0.7D,
+            new TroopStats(1, 50, 14, 36, 1.2D, 1.0D, 0.3D).withArmor(7)),
+    POLAR_BEAR("Polar Bear", 3, "minecraft:polar_bear", null, 0,
+            new TroopStats(1, 30, 7, 24, 1.2D, 1.0D, 0.7D,
                     TroopTraits.frostProof())),
-    PHANTOM("Phantom", 3, "minecraft:phantom", null, 0,
-            new TroopStats(1, 34, 6, 20, 1.2D, 2.0D, 0.45D,
+    PHANTOM("Phantom", 2, "minecraft:phantom", null, 0,
+            new TroopStats(1, 20, 7, 20, 1.2D, 3.0D, 0.45D,
                     TroopTraits.swooping(2.0D))),
     SILVERFISH("Silverfish", 2, "minecraft:silverfish", null, 0,
-            new TroopStats(5, 4, 1, 16, 1.2D, 1.6D, 0.25D)),
-    BEE("Bee", 2, "minecraft:bee", null, 0,
-            new TroopStats(5, 4, 1, 20, 1.2D, 2.0D, 0.25D,
+            new TroopStats(4, 8, 1, 16, 1.2D, 1.6D, 0.25D)),
+    BEE("Bee", 3, "minecraft:bee", null, 0,
+            new TroopStats(3, 10, 1, 20, 1.2D, 2.0D, 0.25D,
                     TroopTraits.stinging(60, 1.0D, 1.0D))),
-    EVOKER("Evoker", 4, "minecraft:evoker", null, 0,
-            new TroopStats(1, 30, 10, 40, 4.5D, 0.8D, 0.3D,
+    EVOKER("Evoker", 3, "minecraft:evoker", null, 0,
+            new TroopStats(1, 24, 10, 40, 4.5D, 0.8D, 0.3D,
                     TroopTraits.line(1.2D))),
-    GUARDIAN("Guardian", 4, "minecraft:guardian", null, 0,
-            new TroopStats(1, 46, 14, 40, 5.5D, 0.6D, 0.45D,
+    GUARDIAN("Guardian", 3, "minecraft:guardian", null, 0,
+            new TroopStats(1, 30, 14, 40, 5.5D, 0.6D, 0.45D,
                     TroopTraits.laser(40, 0.6D))),
     ZOMBIE_VILLAGER("Zombie Villager", 3, "minecraft:zombie_villager", null, 0,
-            new TroopStats(5, 9, 2, 24, 1.2D, 0.8D, 0.3D)),
+            new TroopStats(5, 20, 1, 24, 1.2D, 0.8D, 0.3D).withArmor(2)),
     SNOW_GOLEM("Snow Golem", 2, "minecraft:snow_golem", null, 0,
             new TroopStats(1, 40, 1, 20, 5.0D, 1.0D, 0.35D,
                     TroopTraits.slowing(30))),
-    SPIDER_JOCKEY("Spider Jockey", 4, "minecraft:spider", null, 0,
-            new TroopStats(1, 41, 3, 20, 4.5D, 1.4D, 0.55D,
+    SPIDER_JOCKEY("Spider Jockey", 3, "minecraft:spider", null, 0,
+            new TroopStats(1, 16, 3, 20, 4.5D, 1.4D, 0.55D,
                     SplitRule.into(SKELETON_ARCHER.stats()))),
     FOX("Fox", 2, "minecraft:fox", null, 0,
-            new TroopStats(3, 6, 2, 14, 1.2D, 1.9D, 0.3D)),
+            new TroopStats(2, 10, 2, 14, 1.2D, 1.9D, 0.3D)),
     SKELETON_RIDER("Skeleton Rider", 3, "minecraft:skeleton_horse", null, 0,
-            new TroopStats(1, 26, 8, 20, 5.5D, 1.4D, 0.45D,
+            new TroopStats(1, 15, 6, 20, 6.0D, 1.4D, 0.45D,
+                    SplitRule.into(SKELETON_ARCHER.stats()),
                     TroopTraits.BUILDINGS)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
@@ -221,6 +222,19 @@ public enum BattleCard {
     public String heldItemId() {
         return heldItemId;
     }
+    /**
+     * Armour pieces the mob wears, head first, as vanilla item ids; their
+     * vanilla armour points are part of {@link TroopStats#armor()} (a
+     * Zombie's 2 points are its skin and show nothing).
+     */
+    public java.util.List<String> armorItems() {
+        return switch (this) {
+            // golden helmet 2 + golden chestplate 5
+            case PIGLIN_BRUTE -> java.util.List.of("minecraft:golden_helmet",
+                    "minecraft:golden_chestplate");
+            default -> java.util.List.of();
+        };
+    }
     /** Vanilla slime or magma cube size (4 = big), or 0 for other mobs. */
     public int mobSize() {
         return mobSize;
@@ -229,8 +243,8 @@ public enum BattleCard {
         return cost;
     }
     /**
-     * How big the mob is drawn, relative to vanilla: the three Skeletons (90%) and
-     * the four Spiders (75%) are a small swarm. Mirrors {@code model_scale} in the
+     * How big the mob is drawn, relative to vanilla: the Skeletons (90%) and
+     * the Spiders (75%) are a small swarm. Mirrors {@code model_scale} in the
      * card's JSON.
      */
     public float modelScale() {

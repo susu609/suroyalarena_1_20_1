@@ -114,6 +114,14 @@ longer adds the generic player hit; arrows and blows on towers keep theirs.
 
 ## Mobs with their own rules
 
+- **Armour.** Each vanilla armour point takes 4% off every hit and every
+  direct spell hit (up to 20 points, 80%), as in vanilla; poison, burning,
+  withering and Poison Cloud go straight through it. Zombie-family mobs
+  (Zombie, Husk, Drowned, Zombie Villager, Zombified Piglin) have their
+  vanilla 2 points (-8%), the Magma Cube its vanilla 12 (3 x size 4), and the
+  Piglin Brute wears a golden helmet and chestplate (2 + 5 = 7, -28%) that
+  the model shows (`BattleCard.armorItems`). `"armor"` in the card JSON.
+
 - **Teleport (Enderman).** A ranged shot still in flight that would land on
   an Enderman, or a spell whose circle reaches it, makes it step 4.5 blocks
   straight away from the shooter (or the spell's centre) instead. It then

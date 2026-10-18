@@ -75,7 +75,8 @@ public final class NewMobsSmokeTest {
                 ender.z());
         TickResult second = engine.tick();
         check(second.teleports().isEmpty(), "no second dodge during the cooldown");
-        near(ender.health(), 43.0D, "the Fireball hits it: 68 - 25");
+        near(ender.health(), BattleCard.ENDERMAN.stats().health() - 25.0D,
+                "the Fireball hits it: 40 - 25");
 
         // Once the cooldown is over it dodges again (the burn ticks on meanwhile).
         for (int i = 0; i < 160; i++)
@@ -163,16 +164,20 @@ public final class NewMobsSmokeTest {
         landEngine.castSpell(TeamSide.RED, BattleCard.ARROW_STORM, 0.5D, 6.0D);
         for (int i = 0; i < 100; i++)
             landEngine.tick();
-        near(blazeLand.health(), 30.0D - 16.0D, "on land: 16 damage");
+        double blaze = BattleCard.BLAZE.stats().health();
+        near(blazeLand.health(), blaze - 16.0D, "on land: 16 damage");
 
         MatchInstance river = battle();
         CombatEngine riverEngine = new CombatEngine(river);
         CombatUnit blazeRiver = unit(riverEngine, BattleCard.BLAZE,
                 TeamSide.BLUE, 0.5D, 0.5D);
         riverEngine.castSpell(TeamSide.RED, BattleCard.ARROW_STORM, 0.5D, 0.5D);
-        for (int i = 0; i < 100; i++)
+        // Only the first 8 of the 16 pulses (ticks 1..36): the full 1.5 x 16
+        // = 24 would now kill the 20-health Blaze.
+        for (int i = 0; i < 40; i++)
             riverEngine.tick();
-        near(blazeRiver.health(), 30.0D - 24.0D, "in the river: 1.5 x 16");
+        near(blazeRiver.health(), blaze - 1.5D * 8.0D,
+                "in the river: 1.5 x 8 for the first 8 pulses of 1");
 
         MatchInstance cold = battle();
         CombatEngine coldEngine = new CombatEngine(cold);
@@ -182,7 +187,7 @@ public final class NewMobsSmokeTest {
                 TeamSide.BLUE, -6.0D, 6.0D);
         coldEngine.castSpell(TeamSide.RED, BattleCard.FREEZE, 0.5D, 6.0D);
         coldEngine.tick();
-        near(blazeCold.health(), 30.0D - 16.0D, "Freeze does double to a Blaze");
+        near(blazeCold.health(), blaze - 16.0D, "Freeze does double to a Blaze");
         check(blazeCold.frozenTicks() == 160,
                 "and freezes it twice as long: " + blazeCold.frozenTicks());
         check(zombieCold.frozenTicks() == 0, "nothing else is touched");
@@ -213,7 +218,9 @@ public final class NewMobsSmokeTest {
                 a -> vex.id().equals(a.attackerUnit())),
                 "the Vex strikes");
         check(!vex.alive(), "and dies with it");
-        near(zombie.health(), 20.0D - 16.0D, "the blow is 16");
+        near(zombie.health(), 20.0D - BattleCard.VEX.stats().damage() *
+                        BattleCard.ZOMBIE.stats().armorFactor(),
+                "the blow is the Vex's damage (10), less the zombie's armour");
         check(result.deaths().stream().anyMatch(d -> d.unit().equals(vex.id())),
                 "the death is reported");
         check(engine.stats().card(TeamSide.BLUE, BattleCard.VEX).kills() == 0,

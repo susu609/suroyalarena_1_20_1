@@ -511,7 +511,9 @@ public final class BotBrain {
                             perTarget));
             }
             else
-                values.add(Math.min(unit.health(), perTarget) +
+                // Armour takes its share off the hit.
+                values.add(Math.min(unit.health(),
+                        perTarget * unit.stats().armorFactor()) +
                         (engaged(match, engine, unit) ? seconds * dps : 0.0D) +
                         (slowSeconds > 0.0D && engaged(match, engine, unit) ?
                                 slowSeconds * dps * WEB_ATTACK : 0.0D));

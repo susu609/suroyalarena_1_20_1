@@ -45,10 +45,16 @@ public final class DeckSmokeTest {
                 "unknown ids are rejected");
         check(DeckRules.parse(DeckRules.ids(starter)).equals(starter),
                 "ids round-trip");
-        // 26: Big Slime went from 3 to 4 elixir with its 36 health.
-        check(Math.abs(DeckRules.averageElixir(starter) - 26 / 8.0D) < 1e-9,
-                "average elixir of the starter deck");
-        check(Math.abs(DeckRules.averageElixir(hole) - 24 / 7.0D) < 1e-9,
+        // The starter deck's costs follow the cards (25 with the vanilla
+        // health costs; it was 26), so the total is summed from them.
+        int total = 0;
+        for (BattleCard card : starter)
+            total += card.cost();
+        check(Math.abs(DeckRules.averageElixir(starter) - total / 8.0D) < 1e-9,
+                "average elixir of the starter deck: " +
+                        DeckRules.averageElixir(starter) + " vs " + total + "/8");
+        check(Math.abs(DeckRules.averageElixir(hole) -
+                        (total - starter.get(3).cost()) / 7.0D) < 1e-9,
                 "average skips empty slots");
         boolean threw = false;
         try {
@@ -71,8 +77,10 @@ public final class DeckSmokeTest {
         check(CardRole.of(BattleCard.SKELETON_ARCHER).contains(CardRole.RANGED)
                 && CardRole.of(BattleCard.STRAY).contains(CardRole.RANGED),
                 "archers are ranged");
-        check(CardRole.of(BattleCard.SKELETONS).contains(CardRole.SWARM),
-                "three Skeletons are a swarm");
+        // Skeletons are now two (vanilla health 20 each), so three Cave
+        // Spiders stand in as the three-body swarm.
+        check(CardRole.of(BattleCard.CAVE_SPIDER).contains(CardRole.SWARM),
+                "three Cave Spiders are a swarm");
         check(CardRole.of(BattleCard.FIREBALL).equals(
                 EnumSet.of(CardRole.SPELL)), "a spell is only a spell");
     }

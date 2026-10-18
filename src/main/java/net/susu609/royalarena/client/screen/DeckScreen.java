@@ -559,6 +559,10 @@ public final class DeckScreen extends Screen {
                             "Splits in %d when it dies" :
                             "Splits in %d when it dies, %d times",
                     s.split().children(), s.split().generations()));
+        if (s.armor() > 0)
+            lines.add(line("Armour %.0f: takes %.0f%% less from hits and spells " +
+                            "(not poison or fire)",
+                    s.armor(), (1.0D - s.armorFactor()) * 100.0D));
         if (s.traits().splash())
             lines.add(line("Hits everything within %.1f blocks of its target",
                     s.traits().splashRadius()));

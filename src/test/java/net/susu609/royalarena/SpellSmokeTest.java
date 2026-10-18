@@ -128,7 +128,9 @@ public final class SpellSmokeTest {
         check(firstTick == 1 && lastTick - firstTick == 75,
                 "a pulse every 5 ticks for 4 s: " + firstTick + ".." +
                         lastTick);
-        near(zombie.health(), 4.0D, "a Zombie inside takes 16 and survives");
+        near(zombie.health(),
+                20.0D - 16.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "a Zombie inside takes 16, less its armour, and survives");
         check(!spider.alive() && engine.unit(spider.id()) == null,
                 "a Spider inside dies");
         near(own.health(), 20.0D, "own troops are not hit");
@@ -151,7 +153,8 @@ public final class SpellSmokeTest {
         check(first.deaths().stream().anyMatch(
                 d -> d.unit().equals(zombie.id())),
                 "Fireball kills a Zombie outright");
-        near(golem.health(), 135.0D, "25 damage on the Iron Golem");
+        double afterBlast = BattleCard.IRON_GOLEM.stats().health() - 25.0D;
+        near(golem.health(), afterBlast, "25 damage on the Iron Golem");
         check(first.pushes().size() == 1 &&
                 first.pushes().get(0).unit().equals(golem.id()),
                 "the survivor is knocked back");
@@ -159,7 +162,7 @@ public final class SpellSmokeTest {
         check(golem.burnTicks() > 0, "the Iron Golem is burning");
         for (int i = 0; i < 80; i++)
             engine.tick();
-        near(golem.health(), 135.0D - 4.5D,
+        near(golem.health(), afterBlast - 4.5D,
                 "the burn deals 1.5 per second for 3 s (was 1: a free buff)");
         check(golem.burnTicks() == 0, "the burn ends");
     }
@@ -198,9 +201,13 @@ public final class SpellSmokeTest {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         cycleToSpells(match, TeamSide.RED);
+        // Three Cave Spiders (12 health each): Skeletons now have 20 health,
+        // so a Fireball would remove more than the 16 an Arrow Storm can and
+        // win on value; Cave Spiders are the small group of three that
+        // Skeletons (11) used to be, where both spells kill all of them.
         for (int i = 0; i < 3; i++)
-            unit(engine, BattleCard.SKELETONS, TeamSide.BLUE, 0.5D + i * 0.8D,
-                    -6.0D);
+            unit(engine, BattleCard.CAVE_SPIDER, TeamSide.BLUE,
+                    0.5D + i * 0.8D, -6.0D);
         BotBrain bot = new BotBrain(TeamSide.RED, 5L);
         BotBrain.Play play = null;
         for (int i = 0; i < BotBrain.THINK_EVERY_TICKS && play == null; i++)
@@ -208,7 +215,7 @@ public final class SpellSmokeTest {
         check(play != null, "the bot answers a group of three");
         BattleCard card = match.red().deck().cardAt(play.slot());
         check(card == BattleCard.ARROW_STORM,
-                "Arrow Storm is worth it on three Skeletons: " + card);
+                "Arrow Storm is worth it on three Cave Spiders: " + card);
         check(Math.abs(play.x() - 1) <= 2 && Math.abs(play.z() + 6) <= 2,
                 "aimed at the group: " + play);
         check(match.tryDeploy(TeamSide.RED, play.slot(), play.x(), play.z())
@@ -234,7 +241,9 @@ public final class SpellSmokeTest {
                 0.5D, 0.0D);
         CombatUnit ravager = unit(engine, BattleCard.RAVAGER, TeamSide.RED,
                 2.5D, 1.0D);
-        CombatUnit hoglin = unit(engine, BattleCard.HOGLIN, TeamSide.RED,
+        // A Piglin Brute as the third-strongest: the Hoglin (now 40 health)
+        // would die to the 40-damage strike instead of showing it.
+        CombatUnit brute = unit(engine, BattleCard.PIGLIN_BRUTE, TeamSide.RED,
                 -1.5D, -1.0D);
         CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
                 -1.0D, 1.5D);
@@ -246,11 +255,17 @@ public final class SpellSmokeTest {
                 first.spellPulses().get(0).hits() == 3 &&
                 first.spellPulses().get(0).strikes().size() == 3,
                 "Lightning strikes three targets");
-        near(golem.health(), 120.0D, "the Golem is struck");
-        near(ravager.health(), 60.0D, "the Ravager is struck");
-        near(hoglin.health(), 10.0D, "the Hoglin is struck (50 health - 40)");
-        near(zombie.health(), 20.0D, "the Zombie is spared");
-        near(spider.health(), 10.0D, "the Spider is spared");
+        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 40.0D,
+                "the Golem is struck");
+        near(ravager.health(), BattleCard.RAVAGER.stats().health() - 40.0D,
+                "the Ravager is struck");
+        near(brute.health(), BattleCard.PIGLIN_BRUTE.stats().health() -
+                        40.0D * BattleCard.PIGLIN_BRUTE.stats().armorFactor(),
+                "the Piglin Brute is struck (40, less its armour)");
+        near(zombie.health(), BattleCard.ZOMBIE.stats().health(),
+                "the Zombie is spared");
+        near(spider.health(), BattleCard.SPIDER.stats().health(),
+                "the Spider is spared");
         check(golem.frozen() && !zombie.frozen(), "struck units are stunned");
         for (int i = 0; i < 9; i++) {
             TickResult r = engine.tick();
@@ -290,8 +305,11 @@ public final class SpellSmokeTest {
         engine.castSpell(TeamSide.RED, BattleCard.FREEZE, 4.0D, 1.0D);
         for (int i = 0; i < 100; i++)
             engine.tick();
-        near(low.health(), 4.0D, "Arrow Storm left 4");
-        near(scratched.health(), 12.0D, "Freeze left 12");
+        double armor = BattleCard.ZOMBIE.stats().armorFactor();
+        near(low.health(), 20.0D - 16.0D * armor,
+                "Arrow Storm left 4, plus what the zombie's armour stopped");
+        near(scratched.health(), 20.0D - 8.0D * armor,
+                "Freeze left 12, plus what the zombie's armour stopped");
         low.setPosition(-1.0D, 1.0D);
         scratched.setPosition(1.0D, 1.0D);
         engine.castSpell(TeamSide.BLUE, BattleCard.HEALING_POTION, 0.0D,
@@ -305,7 +323,8 @@ public final class SpellSmokeTest {
             }
         }
         check(pulses == 8, "8 healing pulses: " + pulses);
-        near(low.health(), 20.0D, "4 + 8 x 2 = 20");
+        near(low.health(), 20.0D,
+                "5.28 + 8 x 2 reaches full health (one pulse fewer would not)");
         near(scratched.health(), 20.0D, "healing stops at full health");
         near(enemy.health(), 20.0D, "enemies are not touched");
     }
@@ -345,7 +364,9 @@ public final class SpellSmokeTest {
                 0.5D, 0.0D);
         otherEngine.castSpell(TeamSide.BLUE, BattleCard.FREEZE, 0.5D, 0.0D);
         otherEngine.tick();
-        near(enemy.health(), 12.0D, "Freeze deals 8 damage");
+        near(enemy.health(),
+                20.0D - 8.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "Freeze deals 8 damage, less the zombie's armour");
         check(enemy.frozenTicks() == 80, "and freezes the troop");
         for (int i = 0; i < 79; i++)
             check(otherEngine.tick().moves().isEmpty(),
@@ -365,7 +386,8 @@ public final class SpellSmokeTest {
         TickResult first = engine.tick();
         check(first.deaths().stream().anyMatch(
                 d -> d.unit().equals(zombie.id())), "TNT kills a Zombie");
-        near(golem.health(), 130.0D, "30 damage on the Golem");
+        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 30.0D,
+                "30 damage on the Golem");
         near(golem.x(), 3.5D, "and a 2 block push");
 
         MatchInstance siege = battle();
@@ -467,8 +489,9 @@ public final class SpellSmokeTest {
         engine.castSpell(TeamSide.BLUE, BattleCard.SNOWBALL_VOLLEY, 0.0D,
                 -6.0D);
         TickResult first = engine.tick();
-        near(zombie.health(), BattleCard.ZOMBIE.stats().health() - 6.0D,
-                "6 damage");
+        near(zombie.health(), BattleCard.ZOMBIE.stats().health() -
+                        6.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "6 damage, less the zombie's armour");
         check(zombie.slowed(), "slowed");
         check(first.pushes().stream().anyMatch(
                 push -> push.unit().equals(zombie.id())), "and pushed back");

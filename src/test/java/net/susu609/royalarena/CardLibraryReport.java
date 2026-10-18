@@ -103,6 +103,17 @@ public final class CardLibraryReport {
         c.put("every", round2(s.attackTicks() / 20.0D));
         c.put("range", Math.round(s.range() * 10.0D) / 10.0D);
         c.put("speed", round2(s.speed()));
+        c.put("armor", s.armor());
+        c.put("ticks", s.attackTicks());
+        // What the card config page needs to recompute the cost.
+        c.put("traitMod", CostFormula.traitModifier(s));
+        c.put("generations", s.split() == null || s.split().into() != null ?
+                1 : 1 + s.split().generations());
+        c.put("riderHp", s.split() != null && s.split().into() != null ?
+                s.split().into().effectiveHealth() : 0.0D);
+        c.put("poisonPerSecond", s.traits().poisonPerSecond());
+        c.put("poisonTicks", s.traits().poisonTicks());
+        c.put("selfDestruct", s.traits().selfDestruct());
         c.put("body", card.body().name().toLowerCase(Locale.ROOT));
         c.put("fire", card.fireImmune());
         List<Object> roles = new ArrayList<>();

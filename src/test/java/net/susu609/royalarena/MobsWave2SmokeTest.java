@@ -95,8 +95,8 @@ public final class MobsWave2SmokeTest {
 
     private static void foxesAreAFastCheapPack() {
         TroopStats fox = BattleCard.FOX.stats();
-        check(fox.count() == 3 && BattleCard.FOX.cost() == 2,
-                "Fox: a pack of three for 2 elixir");
+        check(fox.count() == 2 && BattleCard.FOX.cost() == 2,
+                "Fox: a pack of two (10 health each, was three of 6) for 2 elixir");
         for (BattleCard card : BattleCard.values()) {
             if (!card.isSpell() && card != BattleCard.FOX &&
                     !card.stats().traits().selfDestruct() &&
@@ -320,8 +320,10 @@ public final class MobsWave2SmokeTest {
         // A Spider is flesh (x1.5), a Zombie undead (x1), a Golem a construct.
         near(lostToBee(BattleCard.SPIDER), sting + 1.5D * poison,
                 "living flesh takes 1.5x the poison");
-        near(lostToBee(BattleCard.ZOMBIE), sting + poison,
-                "the undead take it as it is");
+        near(lostToBee(BattleCard.ZOMBIE),
+                sting * BattleCard.ZOMBIE.stats().armorFactor() + poison,
+                "the undead take it as it is (the sting less the zombie's " +
+                        "armour; poison goes through it)");
         near(lostToBee(BattleCard.IRON_GOLEM), sting,
                 "a golem takes the sting and no poison");
         CombatEngine engine = new CombatEngine(battle());
@@ -334,18 +336,21 @@ public final class MobsWave2SmokeTest {
 
     private static void netherMobsDoNotBurn() {
         CombatEngine engine = new CombatEngine(battle());
-        CombatUnit ghast = unit(engine, BattleCard.GHAST, TeamSide.BLUE,
+        // A Hoglin (fire immune, 40 health): the Ghast now has 10 health
+        // and a Fireball would kill it before it could show it does not burn.
+        CombatUnit hoglin = unit(engine, BattleCard.HOGLIN, TeamSide.BLUE,
                 -4.0D, 3.0D);
         CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
                 4.0D, 3.0D);
         engine.castSpell(TeamSide.RED, BattleCard.FIREBALL, -4.0D, 3.0D);
         engine.castSpell(TeamSide.RED, BattleCard.FIREBALL, 4.0D, 3.0D);
         engine.tick();
-        near(ghast.health(), BattleCard.GHAST.stats().health() - 25.0D,
-                "the Fireball still hurts a Ghast");
-        near(zombie.health(), 0.0D + Math.max(0.0D, 20.0D - 25.0D),
-                "and the Zombie");
-        check(ghast.burnTicks() == 0, "but the Ghast does not burn");
+        near(hoglin.health(), BattleCard.HOGLIN.stats().health() - 25.0D,
+                "the Fireball still hurts a Hoglin");
+        near(zombie.health(), 0.0D + Math.max(0.0D, 20.0D -
+                        25.0D * BattleCard.ZOMBIE.stats().armorFactor()),
+                "and the Zombie (less its armour, still a kill)");
+        check(hoglin.burnTicks() == 0, "but the Hoglin does not burn");
         for (BattleCard card : BattleCard.values()) {
             if (card.fireImmune())
                 check(!card.isSpell(), card.id() + " is a troop");

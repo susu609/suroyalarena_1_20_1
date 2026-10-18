@@ -170,6 +170,7 @@ public final class CombatSmokeTest {
                     card.id() + " model scale");
             near(number(json, "health"), s.health(), card.id() + " health");
             near(number(json, "damage"), s.damage(), card.id() + " damage");
+            near(numberOr(json, "armor", 0.0D), s.armor(), card.id() + " armor");
             near(number(json, "attack_interval_ticks"), s.attackTicks(),
                     card.id() + " interval");
             near(number(json, "range"), s.range(), card.id() + " range");
@@ -376,17 +377,19 @@ public final class CombatSmokeTest {
         check(first.attacks().size() == 2 && first.attacks().stream()
                 .allMatch(a -> a.attackerUnit() != null),
                 "both zombies swing at once and no tower is involved");
-        near(blue.health(), 17.0D, "blue hit once");
-        near(red.health(), 17.0D, "red hit once");
+        // A zombie's 2 armour points take 8% off each 3 damage hit.
+        double hit = 3.0D * BattleCard.ZOMBIE.stats().armorFactor();
+        near(blue.health(), 20.0D - hit, "blue hit once, through its armour");
+        near(red.health(), 20.0D - hit, "red hit once");
         check(blue.target().equals(red.id()), "blue chases the red zombie");
 
         for (int tick = 2; tick <= 20; tick++) {
             check(hold(engine).attacks().isEmpty(),
                     "no swing before the interval, tick " + tick);
         }
-        near(blue.health(), 17.0D, "no damage between swings");
+        near(blue.health(), 20.0D - hit, "no damage between swings");
         check(hold(engine).attacks().size() == 2, "swing again on tick 21");
-        near(blue.health(), 14.0D, "second hit lands after 20 ticks");
+        near(blue.health(), 20.0D - 2.0D * hit, "second hit lands after 20 ticks");
     }
 
     private static void meleeIgnoresEnemiesAcrossTheRiver() {
@@ -421,7 +424,8 @@ public final class CombatSmokeTest {
         TickResult hit = hold(engine);
         check(hit.landed().size() == 1 && hit.landed().get(0).ranged(),
                 "the arrow lands after its flight");
-        near(red.health(), 16.0D, "archer arrow does 4 damage");
+        near(red.health(), 20.0D - 4.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "archer arrow does 4 damage, less the zombie's armour");
     }
 
     private static void unitsPreferEnemyTroopsOverTowers() {
@@ -588,7 +592,9 @@ public final class CombatSmokeTest {
                 a -> TowerId.BLUE_LEFT.equals(a.attackerTower())),
                 "Princess tower fires at an enemy in range");
         int flight = first.attacks().get(0).flightTicks();
-        double shot1 = 20.0D - TowerKind.PRINCESS.damage();
+        // Tower arrows are hits, so the Zombie's armour takes its share.
+        double zombieArmor = BattleCard.ZOMBIE.stats().armorFactor();
+        double shot1 = 20.0D - TowerKind.PRINCESS.damage() * zombieArmor;
         near(red.health(), 20.0D, "the arrow is still in the air");
         // Shot on tick 1 lands on tick 1 + flight; the next shot on tick 17.
         int tick = 1;
@@ -596,15 +602,16 @@ public final class CombatSmokeTest {
             hold(engine);
             tick++;
         }
-        near(red.health(), shot1, "a tower shot does its damage on landing");
+        near(red.health(), shot1,
+                "a tower shot does its damage on landing, less the zombie's armour");
         while (tick < 16 + flight) {
             hold(engine);
             tick++;
         }
         near(red.health(), shot1, "no second shot before 16 ticks");
         hold(engine);
-        near(red.health(), shot1 - TowerKind.PRINCESS.damage(),
-                "second shot fired on tick 17 lands");
+        near(red.health(), shot1 - TowerKind.PRINCESS.damage() * zombieArmor,
+                "second shot fired on tick 17 lands, less the zombie's armour");
 
         CombatUnit out = spawn(engine, BattleCard.ZOMBIE, TeamSide.RED,
                 -6.0D, 0.5D);

@@ -9,8 +9,8 @@
   "model_scale": 1.0,
   "count": 1,
   "unit": {
-    "health": 160,
-    "damage": 12,
+    "health": 100,
+    "damage": 14,
     "attack_interval_ticks": 32,
     "range": 1.5,
     "move_speed": 0.9,

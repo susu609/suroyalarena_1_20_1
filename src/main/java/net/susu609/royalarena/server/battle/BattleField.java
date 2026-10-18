@@ -38,6 +38,7 @@ import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.hoglin.Hoglin;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -276,6 +277,15 @@ public final class BattleField {
     }
 
     private static void equip(Mob mob, BattleCard card) {
+        // The armour the card counts is worn where the model shows it.
+        for (String id : card.armorItems()) {
+            Item piece = ForgeRegistries.ITEMS.getValue(RL.require(id));
+            if (piece instanceof ArmorItem armor) {
+                EquipmentSlot slot = armor.getEquipmentSlot();
+                mob.setItemSlot(slot, new ItemStack(piece));
+                mob.setDropChance(slot, 0.0F);
+            }
+        }
         if (card.heldItemId() == null)
             return;
         Item item = ForgeRegistries.ITEMS.getValue(

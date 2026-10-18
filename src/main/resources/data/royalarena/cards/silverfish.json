@@ -7,9 +7,9 @@
   "elixir": 2,
   "entity": "minecraft:silverfish",
   "model_scale": 1.0,
-  "count": 5,
+  "count": 4,
   "unit": {
-    "health": 4,
+    "health": 8,
     "damage": 1,
     "attack_interval_ticks": 16,
     "range": 1.2,

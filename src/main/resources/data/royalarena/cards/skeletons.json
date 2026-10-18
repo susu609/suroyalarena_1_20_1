@@ -7,9 +7,9 @@
   "elixir": 2,
   "entity": "minecraft:skeleton",
   "model_scale": 0.9,
-  "count": 3,
+  "count": 2,
   "unit": {
-    "health": 11,
+    "health": 20,
     "damage": 1.5,
     "attack_interval_ticks": 18,
     "range": 1.2,

@@ -139,8 +139,10 @@ public final class TraitSmokeTest {
                 .findFirst().orElseThrow().flightTicks();
         for (int i = 0; i < flight; i++)
             engine.tick();
-        near(target.health(), 12.0D, "the potion hits its target for 8");
-        near(beside.health(), 12.0D, "and a zombie beside it");
+        double hit = 20.0D - 8.0D * BattleCard.ZOMBIE.stats().armorFactor();
+        near(target.health(), hit,
+                "the potion hits its target for 8, less the zombie's armour");
+        near(beside.health(), hit, "and a zombie beside it");
         near(away.health(), 20.0D, "but not one 4.5 blocks away");
     }
 
@@ -155,7 +157,9 @@ public final class TraitSmokeTest {
         check(result.pushes().stream().anyMatch(
                 p -> p.unit().equals(zombie.id())),
                 "the Ravager's hit pushes the zombie");
-        near(zombie.health(), 12.0D, "the hit deals 8");
+        near(zombie.health(),
+                20.0D - 8.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "the hit deals 8, less the zombie's armour");
         // 1 block away lands in the river band, so it is put on RED's bank.
         near(zombie.z(), -1.5D, "pushed straight away, kept on land");
         near(zombie.x(), 0.5D, "straight away from the Ravager");
