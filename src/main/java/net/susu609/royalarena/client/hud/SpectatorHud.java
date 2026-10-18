@@ -19,8 +19,8 @@ import java.util.List;
 final class SpectatorHud {
     /** Share of the screen width each panel takes (the camera keeps it free). */
     static final float PANEL_SHARE = 0.17F;
-    private static final int BLUE = 0xFF2F6FD6;
-    private static final int RED = 0xFFC8352E;
+    private static final int BLUE = 0xFF1F4FD6;
+    private static final int RED = 0xFFC81E1E;
     private static final int PANEL = 0xB0141418;
     private static final int CARD_EDGE = 0xFF1E2433;
     private static final int CARD_DISABLED = 0x99606060;

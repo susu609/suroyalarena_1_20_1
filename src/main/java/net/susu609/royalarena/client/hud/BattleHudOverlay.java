@@ -44,8 +44,8 @@ public final class BattleHudOverlay implements IGuiOverlay {
     private static final int ELIXIR_DARK = 0xFF3A2140;
     private static final int ELIXIR_EDGE = 0xFF1A0E1F;
     private static final int ELIXIR_FULL = 0xFFF4C8FF;
-    private static final int BLUE = 0xFF2F6FD6;
-    private static final int RED = 0xFFC8352E;
+    private static final int BLUE = 0xFF1F4FD6;
+    private static final int RED = 0xFFC81E1E;
 
     /** Animated lift of each hand slot, in reference units. */
     private static final float[] LIFTS = new float[4];

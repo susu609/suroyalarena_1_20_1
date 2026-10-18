@@ -1,6 +1,7 @@
 package net.susu609.royalarena.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
@@ -24,8 +25,9 @@ import org.joml.Matrix4f;
  * do not overlap, so there is no z-fighting.
  */
 public final class WorldHealthBar {
-    public static final int BLUE_RGB = 0x3A7BFF;
-    public static final int RED_RGB = 0xE0403A;
+    /** Deep team colours: bars, rings and previews. */
+    public static final int BLUE_RGB = 0x1F4FD6;
+    public static final int RED_RGB = 0xC81E1E;
     private static final int SEGMENTS = 10;
     private static final int TOWER_SEGMENTS = 16;
     private static final float TROOP_SCALE = 0.032F;
@@ -40,7 +42,7 @@ public final class WorldHealthBar {
     private WorldHealthBar() {
     }
 
-    /** Troops: only once damaged, coloured by their team-coloured name. */
+    /** Troops: only once damaged, in their team's deep colour. */
     public static void renderTroop(LivingEntity entity, PoseStack pose,
             MultiBufferSource buffer, float scale)
     {
@@ -50,12 +52,16 @@ public final class WorldHealthBar {
         float health = entity.getHealth();
         if (health <= 0.0F || health >= max)
             return;
+        // The server names a troop in vanilla's pale chat blue or red (tags
+        // do not reach the client); the bar uses the deep team colours.
         Component name = entity.getCustomName();
         TextColor color = name == null ? null : name.getStyle().getColor();
         if (color == null)
             return;
+        int rgb = color.getValue() == ChatFormatting.BLUE.getColor() ?
+                BLUE_RGB : RED_RGB;
         render(pose, buffer, entity.getBbHeight() * scale + 0.5D, health / max,
-                color.getValue(), null, SEGMENTS, TROOP_SCALE, TROOP_BORDER);
+                rgb, null, SEGMENTS, TROOP_SCALE, TROOP_BORDER);
     }
 
     /** Ticks a tower (and its King) is tinted red after losing health. */
