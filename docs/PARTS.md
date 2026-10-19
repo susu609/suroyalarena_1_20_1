@@ -738,3 +738,10 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   (tooltip), `server/battle/BattleField.java` (arrows from the King)
 - `SpellSmokeTest.arrowStormFiresThreeVolleys`, flight checks in
   `SpellSmokeTest`, `"flight_speed"` in `CombatSmokeTest`
+
+## Part 63 — Zap
+
+- `card/BattleCard.java` and `zap.json` (2 elixir, radius 2.5, 6 damage,
+  0.5 s shock that restarts the attack, no target limit), `BattleField`
+  (sparks, flash, thunder), card art plugin list, protocol 25
+- `SpellSmokeTest.zapShocksEveryoneInTheCircle`

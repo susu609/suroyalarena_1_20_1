@@ -70,6 +70,7 @@
         'cobweb': 2,
         'swiftness_potion': 2,
         'snowball_volley': 2,
+        'zap': 2,
     };
     const CARD_IDS = Object.keys(CARDS);
 

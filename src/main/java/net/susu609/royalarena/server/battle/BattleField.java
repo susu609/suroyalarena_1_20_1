@@ -587,6 +587,10 @@ public final class BattleField {
                             SoundEvents.TNT_PRIMED, SoundSource.HOSTILE, 1.0F,
                             1.0F);
                 }
+                case ZAP -> level.sendParticles(
+                        ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 20,
+                        deploy.card().spell().radius() * 0.5D, 0.1D,
+                        deploy.card().spell().radius() * 0.5D, 0.05D);
                 case LIGHTNING -> level.sendParticles(
                         ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 30,
                         deploy.card().spell().radius() * 0.5D, 0.1D,
@@ -709,6 +713,21 @@ public final class BattleField {
                     level.sendParticles(ParticleTypes.CLOUD, strike.x(),
                             floor + 0.3D, strike.z(), 4, 0.2D, 0.05D, 0.2D,
                             0.02D);
+            }
+            case ZAP -> {
+                // A crackle on every troop and tower shocked, and a flash.
+                flash(x, z, radius, S2CAoeFlashPacket.YELLOW);
+                shake(x, z, 0.2F);
+                level.sendParticles(ParticleTypes.ELECTRIC_SPARK, x,
+                        floor + 0.5D, z, 40, radius * 0.5D, 0.4D,
+                        radius * 0.5D, 0.3D);
+                for (TickResult.Strike strike : pulse.strikes())
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
+                            strike.x(), floor + 1.0D, strike.z(), 12, 0.3D,
+                            0.5D, 0.3D, 0.4D);
+                level.playSound(null, x, floor, z,
+                        SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.HOSTILE,
+                        0.4F, 2.0F);
             }
             case SNOWBALL_VOLLEY -> {
                 flash(x, z, radius, S2CAoeFlashPacket.ICE);

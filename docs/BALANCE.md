@@ -138,6 +138,7 @@ tower share and burn are not counted, so they are free levers.
 | Potion of Healing | 16 healing | 3.0 | 3.31 | 3 |
 | Freeze | 8 + 4 s freeze (16) | 3.0 | 3.31 | 3 |
 | TNT | 30 | 3.0 | 5.33 | 5 |
+| Zap | 6 + 0.5 s stun (7) | 2.5 | 2.08 | 2 |
 | Poison Cloud | 12 poison | 3.8 | 3.19 | 3 |
 | Cobweb | 5.75 s slow | 3.5 | 1.97 | 2 |
 | Swiftness Potion | 6 s haste | 3.5 | 2.01 | 2 |

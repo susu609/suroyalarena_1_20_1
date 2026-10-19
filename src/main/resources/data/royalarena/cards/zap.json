@@ -1,0 +1,11 @@
+{
+  "id": "zap",
+  "type": "spell",
+  "display_name": "Zap",
+  "roles": ["defense", "support"],
+  "elixir": 2,
+  "radius": 2.5,
+  "travel_ticks": 5,
+  "damage": 6,
+  "stun_ticks": 10
+}

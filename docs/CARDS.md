@@ -78,6 +78,7 @@ circle, and enemy towers whose footprint touches it for **30%** of the damage
 | Cobweb | **2** | The King throws a web (0.4 s); for 5 s every enemy troop in a 3.5 block circle walks 60% slower and attacks at half speed, and keeps it 1.75 s after leaving. No damage. Frost-proof troops (Polar Bear) ignore it. |
 | Swiftness Potion | **2** | The King throws a splash potion of swiftness (0.25 s); every **own** troop in a 3.5 block circle walks 50% and attacks 75% faster for 6 s. |
 | Snowball Volley | **2** | A burst of snowballs (0.4 s) on a 2.5 block circle: **6** damage, knocks back 1.5 blocks, and webs the troops for 1.5 s (60% slower walk, half-speed attack). 30% to towers. |
+| Zap | **2** | Falls after 0.25 s: every enemy troop and tower in a 2.5 block circle takes **6** damage (30% to a tower) and is **shocked for 0.5 s**: it stops walking, and its attack timer restarts, so a swing about to land starts over. No target limit (Lightning hits 3). |
 
 Burning troops are shown on fire; the burn damage comes from the engine (the
 mobs themselves are invulnerable).

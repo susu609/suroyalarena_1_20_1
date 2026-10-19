@@ -154,7 +154,10 @@ public enum BattleCard {
     SNOWBALL_VOLLEY("Snowball Volley", 2, "minecraft:snowball",
             new SpellStats(2.5D, 8, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
                     1.5D, 0.0D, 0, 0, 0, 0, false, false, 30, false, 0)
-                    .thrownAt(20.0D));
+                    .thrownAt(20.0D)),
+    ZAP("Zap", 2, "minecraft:copper_ingot",
+            new SpellStats(2.5D, 5, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0, 0, 10, 0, false));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;
@@ -314,7 +317,7 @@ public enum BattleCard {
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
-                    SNOW_GOLEM, ARROW_STORM, COBWEB ->
+                    SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->

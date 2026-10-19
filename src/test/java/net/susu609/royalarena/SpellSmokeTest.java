@@ -41,6 +41,7 @@ public final class SpellSmokeTest {
         cobwebSlowsWithoutDamage();
         swiftnessHastensOwnTroops();
         snowballVolleyHitsPushesAndSlows();
+        zapShocksEveryoneInTheCircle();
         System.out.println("RoyalArena spell smoke tests: PASS");
     }
 
@@ -502,6 +503,31 @@ public final class SpellSmokeTest {
         check(zombie.slowed(), "slowed");
         check(first.pushes().stream().anyMatch(
                 push -> push.unit().equals(zombie.id())), "and pushed back");
+    }
+
+    private static void zapShocksEveryoneInTheCircle() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit a = unit(engine, BattleCard.IRON_GOLEM, TeamSide.RED,
+                -1.0D, -6.0D);
+        CombatUnit b = unit(engine, BattleCard.RAVAGER, TeamSide.RED, 1.0D,
+                -6.0D);
+        CombatUnit c = unit(engine, BattleCard.SPIDER, TeamSide.RED, 0.0D,
+                -7.5D);
+        CombatUnit far = unit(engine, BattleCard.ZOMBIE, TeamSide.RED, 0.0D,
+                -12.0D);
+        engine.castSpell(TeamSide.BLUE, BattleCard.ZAP, 0.0D, -6.0D);
+        TickResult first = engine.tick();
+        check(first.spellPulses().get(0).hits() == 3,
+                "Zap shocks every enemy in the circle, not just three");
+        check(a.frozen() && b.frozen() && c.frozen() && !far.frozen(),
+                "shocked units stop, others do not");
+        near(a.health(), BattleCard.IRON_GOLEM.stats().health() - 6.0D *
+                BattleCard.IRON_GOLEM.stats().armorFactor(), "6 damage");
+        for (int i = 0; i < 9; i++)
+            engine.tick();
+        engine.tick();
+        check(!a.frozen(), "the shock lasts half a second");
     }
 
     private static void near(double actual, double expected, String name) {
