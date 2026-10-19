@@ -745,3 +745,15 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   0.5 s shock that restarts the attack, no target limit), `BattleField`
   (sparks, flash, thunder), card art plugin list, protocol 25
 - `SpellSmokeTest.zapShocksEveryoneInTheCircle`
+
+## Part 64 — Iron Golem rework, white spell targets, "!" markers
+
+- `card/BattleCard.java` and `iron_golem.json`: fights every target,
+  armour 4, 15 damage every 2.75 s (was 14 every 1.6 s, towers only);
+  tests that used it as the tower-only troop now use the Hoglin or count its
+  armour
+- `client/render/SpellTargetHighlighter.java` (white pulse instead of the
+  glowing outline), `mixin/LivingEntityRendererMixin.java` (client mixin on
+  `getOverlayCoords`), `WorldHealthBar.towerOverlay`
+- `client/render/AggroMarkers.java` ("!" over enemies the ghosts would
+  draw), `DeployPreviewRenderer.spots`, `ClientForgeEvents`

@@ -115,9 +115,17 @@ carries both players' ids for this.
   show translucent ghosts of every unit the card brings (two Zombies, four
   Spiders...), in the formation and at the size they will appear. Clicking a red tile sends nothing and
   keeps the card selected (the server still validates every deploy).
+  Every enemy troop the ghosts would draw gets a bouncing yellow **"!"**
+  over its head (`AggroMarkers`): its sight reaches a ghost, by the engine's
+  rule (tower-only troops never turn; a melee troop does not see across the
+  river unless one of them is on a bridge). A troop already fighting
+  something close keeps it, so "!" means it may turn.
 - A selected **spell** shows its circle of effect instead of a tile and a
-  ghost, and every enemy troop and tower it would hit glows (vanilla glowing
-  outline, on your screen only). Spells can be aimed anywhere on the arena, so the circle is green
+  ghost, and every enemy troop and tower it would hit lights up **white**,
+  the whole model, pulsing (vanilla's Creeper-flash overlay, on your screen
+  only; `SpellTargetHighlighter`, `LivingEntityRendererMixin`, towers through
+  `WorldHealthBar.towerOverlay`). Lightning lights only the 3 it would strike,
+  Healing and Swiftness your own troops. Spells can be aimed anywhere on the arena, so the circle is green
   everywhere on it when the elixir is there. A spell in flight shows a
   team-coloured circle that fills up until it lands.
 - An accepted click spends elixir and cycles the hand at once, then the troop

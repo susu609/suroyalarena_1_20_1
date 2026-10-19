@@ -31,7 +31,9 @@ import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
 import org.joml.Matrix4f;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -198,15 +200,9 @@ public final class DeployPreviewRenderer {
                 c -> createGhost(mc.level, c));
         if (entity == null)
             return;
-        TroopStats stats = card.stats();
-        double spacing = Math.max(0.8D, stats.radius() * 2.0D + 0.3D);
-        ArenaLayout arena = ClientMatchState.arena();
-        int sign = ArenaLayout.sideSign(side);
         float scale = card.modelScale();
         float yaw = side == TeamSide.BLUE ? 180.0F : 0.0F;
-        for (double[] offset : Formation.offsets(stats.count(), spacing)) {
-            ArenaWaypoint spot = arena.clampSpawn(cx + offset[0],
-                    cz + offset[1], sign);
+        for (ArenaWaypoint spot : spots(card, cx, cz, side)) {
             double ux = spot.x();
             double uz = spot.z();
             entity.setPos(ux, y, uz);
@@ -226,6 +222,23 @@ public final class DeployPreviewRenderer {
                     yaw, partial, pose, buffers, LightTexture.FULL_BRIGHT);
             pose.popPose();
         }
+    }
+
+    /**
+     * Where the server will put a troop card's units deployed around
+     * (cx, cz): the same formation and spacing as BattleField.deploy.
+     */
+    public static List<ArenaWaypoint> spots(BattleCard card, double cx,
+            double cz, TeamSide side)
+    {
+        TroopStats stats = card.stats();
+        double spacing = Math.max(0.8D, stats.radius() * 2.0D + 0.3D);
+        ArenaLayout arena = ClientMatchState.arena();
+        int sign = ArenaLayout.sideSign(side);
+        List<ArenaWaypoint> out = new ArrayList<>();
+        for (double[] offset : Formation.offsets(stats.count(), spacing))
+            out.add(arena.clampSpawn(cx + offset[0], cz + offset[1], sign));
+        return out;
     }
 
     private static Entity createGhost(ClientLevel level, BattleCard card) {

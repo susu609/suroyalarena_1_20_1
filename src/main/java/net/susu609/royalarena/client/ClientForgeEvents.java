@@ -20,6 +20,7 @@ import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.render.AoeFlashRenderer;
 import net.susu609.royalarena.client.render.BotDragRenderer;
 import net.susu609.royalarena.client.render.BurnEffects;
+import net.susu609.royalarena.client.render.AggroMarkers;
 import net.susu609.royalarena.client.render.DamageNumbers;
 import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
@@ -58,6 +59,7 @@ public final class ClientForgeEvents {
         BattleSounds.tick();
         ProjectileRenderer.tick();
         SpellTargetHighlighter.tick();
+        AggroMarkers.tick();
         AoeFlashRenderer.tick();
         BurnEffects.tick();
         BotDragRenderer.tick();
@@ -93,6 +95,7 @@ public final class ClientForgeEvents {
         ProjectileRenderer.clear();
         KingFigure.clear();
         SpellTargetHighlighter.clear();
+        AggroMarkers.clear();
         AoeFlashRenderer.clear();
         BurnEffects.clear();
         BotDragRenderer.clear();
@@ -119,6 +122,7 @@ public final class ClientForgeEvents {
         BotDragRenderer.render(event);
         TroopEffects.render(event);
         DamageNumbers.render(event);
+        AggroMarkers.render(event);
     }
 
     /** Camera shake on heavy hits (S2CShakePacket). */

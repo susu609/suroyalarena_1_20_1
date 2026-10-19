@@ -78,7 +78,9 @@ public final class WorldHealthBar {
                 entity.getX(), entity.getZ());
         boolean hurt = id != null &&
                 ClientMatchState.ticksSinceTowerHurt(id) < TOWER_HURT_TICKS;
-        return OverlayTexture.pack(OverlayTexture.u(0.0F),
+        // A selected spell that would hit this tower lights it up white.
+        return OverlayTexture.pack(OverlayTexture.u(
+                        SpellTargetHighlighter.whiteness(entity)),
                 OverlayTexture.v(hurt));
     }
 

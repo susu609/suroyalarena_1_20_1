@@ -1,5 +1,6 @@
 package net.susu609.royalarena.client.render;
 
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -21,14 +22,21 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * While a spell card is selected, outlines (vanilla glowing outline, on this
- * client only) every enemy troop and tower the spell would hit where the
- * cursor points: troops whose body touches the circle, towers whose
+ * While a spell card is selected, lights up white (the whole model, pulsing,
+ * on this client only) every enemy troop and tower the spell would hit where
+ * the cursor points: troops whose body touches the circle, towers whose
  * footprint does, like {@code CombatEngine}; only the strongest few for
- * Lightning, and the own troops a healing potion would heal.
+ * Lightning, and the own troops a healing potion would heal. Troops are lit
+ * through {@code LivingEntityRendererMixin}, towers through
+ * {@link WorldHealthBar#towerOverlay}.
  */
 public final class SpellTargetHighlighter {
-    private static final Set<Entity> GLOWING = new HashSet<>();
+    /** Whiteness the pulse swings between (vanilla overlay: 0 none, 1 full). */
+    private static final float MIN_WHITE = 0.25F;
+    private static final float MAX_WHITE = 0.7F;
+    private static final long PULSE_MILLIS = 800L;
+
+    private static final Set<Entity> LIT = new HashSet<>();
 
     private SpellTargetHighlighter() {
     }
@@ -49,20 +57,25 @@ public final class SpellTargetHighlighter {
                 collect(mc, card.spell(), target.getX() + 0.5D,
                         target.getZ() + 0.5D, next);
         }
-        for (Entity entity : GLOWING) {
-            if (!next.contains(entity))
-                entity.setGlowingTag(false);
-        }
-        for (Entity entity : next)
-            entity.setGlowingTag(true);
-        GLOWING.clear();
-        GLOWING.addAll(next);
+        LIT.clear();
+        LIT.addAll(next);
     }
 
     public static void clear() {
-        for (Entity entity : GLOWING)
-            entity.setGlowingTag(false);
-        GLOWING.clear();
+        LIT.clear();
+    }
+
+    /**
+     * How white to draw the entity now (0 when the selected spell would not
+     * hit it), pulsing between {@link #MIN_WHITE} and {@link #MAX_WHITE}.
+     */
+    public static float whiteness(Entity entity) {
+        if (LIT.isEmpty() || !LIT.contains(entity))
+            return 0.0F;
+        double phase = (Util.getMillis() % PULSE_MILLIS) /
+                (double) PULSE_MILLIS * Math.PI * 2.0D;
+        return MIN_WHITE + (MAX_WHITE - MIN_WHITE) *
+                (float) (0.5D + 0.5D * Math.sin(phase));
     }
 
     private static void collect(Minecraft mc, SpellStats spell, double x,

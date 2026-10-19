@@ -8,7 +8,9 @@
     "MobDespawnMixin",
     "MobSunBurnMixin"
   ],
-  "client": [],
+  "client": [
+    "LivingEntityRendererMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1
