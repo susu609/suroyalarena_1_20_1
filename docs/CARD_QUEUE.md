@@ -12,6 +12,13 @@ Rule for every Nether card: **fire immune** (`BattleCard.fireImmune()` and
 but it never burns. Already on Blaze, Ghast, Magma Cube, Zombified Piglin,
 Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
 
+Rule for every card: **no fish-bodied mobs** (Cod, Salmon, Pufferfish,
+Tropical Fish, Squid, Glow Squid, Dolphin, Elder Guardian): they cannot
+move on land, and the arena is land with one river. Mobs that walk or hop on
+land are fine even if they swim too (Drowned, Axolotl, Turtle, Frog, Polar
+Bear). The Guardian is the one exception, kept as it was built (it swims
+0.6 blocks up, `TroopTraits.laser`); say if it should go.
+
 ## From the user
 
 - [x] Zombie Villager (`minecraft:zombie_villager`): weaker than a Zombie, but
