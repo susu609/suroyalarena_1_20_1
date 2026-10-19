@@ -400,3 +400,11 @@ tribe; new burst trait: 2 shots, then the reload). Piglin Brute speed 0.9
 "the Fox is the fastest walker", reverted. Still waiting on the user:
 Pillager 62-63%; Cobweb and Swiftness Potion 39% are limited by the bot.
 
+Autopilot cycle 10 (4000 bot matches, no card left in the queue but the
+"(by hand)" ones): tried a lower bar for the bot's no-damage spells
+(1.5x -> 1.2x value) and Snowball Volley knockback 1.5 -> 2.0; Cobweb,
+Swiftness Potion and Snowball Volley stayed at 39%, both reverted. The
+three cheap support spells seem to lose to a troop in the same slot in bot
+matches; they need a person's call (redesign, or a support role the bot
+plays differently). Pillager 62% still waits for the user.
+
