@@ -54,7 +54,7 @@ Hoglin, Wither Skeleton and Piglin Brute; add it to every new Nether mob.
   Ravager, low health, slow swing. Reuses knockback.
 - [x] Llama (`minecraft:llama`): spits from 4-5 blocks, slows a little. Reuses
   ranged and slowing.
-- [ ] Piglin (`minecraft:piglin`, Nether, fire immune): crossbow, range 5, two
+- [x] Piglin (`minecraft:piglin`, Nether, fire immune): crossbow, range 5, two
   quick shots then a long reload. Reuses ranged.
 - [ ] Allay (`minecraft:allay`) **(by hand)**: flies beside the nearest own
   troop and heals those within 2 blocks a little each second; does not fight.

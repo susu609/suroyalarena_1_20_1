@@ -3,6 +3,7 @@ package net.susu609.royalarena.combat;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.TribeBonus;
 import net.susu609.royalarena.card.TroopStats;
+import net.susu609.royalarena.card.TroopTraits;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.tower.TowerId;
 
@@ -47,6 +48,7 @@ public final class CombatUnit {
     private boolean landedFirstHit;
     private boolean saved;
     private int shots;
+    private int burstShot;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -348,6 +350,19 @@ public final class CombatUnit {
 
     boolean ready() {
         return cooldown <= 0;
+    }
+    /**
+     * After a shot: a burst (Piglin) fires its next shot after {@link
+     * TroopTraits#BURST_GAP_TICKS}, and only the last one waits the full
+     * interval.
+     */
+    void startShotCooldown() {
+        int shots = stats.traits().shots();
+        if (shots > 1 && ++burstShot % shots != 0) {
+            cooldown = TroopTraits.BURST_GAP_TICKS;
+            return;
+        }
+        startCooldown();
     }
     void startCooldown() {
         cooldown = (int) Math.round(stats.attackTicks() / tribe.attackSpeed());

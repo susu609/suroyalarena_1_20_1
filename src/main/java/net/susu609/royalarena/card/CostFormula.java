@@ -57,7 +57,9 @@ public final class CostFormula {
                 Math.min(s.traits().poisonTicks(), s.attackTicks());
         double perHit = s.damage() +
                 s.traits().poisonPerSecond() * poisonTicks / 20.0D;
-        double dps = perHit / (s.attackTicks() / 20.0D) * s.count();
+        // A burst (Piglin) fires its shots within one attack interval.
+        double dps = perHit * s.traits().shots() / (s.attackTicks() / 20.0D) *
+                s.count();
         double modifier = traitModifier(s);
         if (s.range() >= 4.0D)
             modifier *= RANGED * (1.0D + RANGE_STEP * (s.range() - 4.0D));

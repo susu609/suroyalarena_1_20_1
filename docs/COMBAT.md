@@ -159,6 +159,8 @@ longer adds the generic player hit; arrows and blows on towers keep theirs.
   (radius 0.7) that lasts 2 s; an enemy troop standing on one burns 1 a
   second for 1 s more (a longer burn, like a Fireball's, is not cut short).
   Fire-immune troops ignore it. Small flames show the patches.
+- **Burst (Piglin).** It fires its shots 0.4 s apart, then waits its full
+  attack interval (the crossbow's reload); a stun restarts the burst.
 - **Lock-on (Guardian).** A new target (troop or tower) restarts a 2 s charge
   before the first laser (`CombatUnit.lockOn`); the laser hits at once. From
   the river rows it hits 1.5x as hard. It may be played on the river.

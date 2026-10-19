@@ -248,7 +248,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 |---|---|---|---|---|---|---|---|---|---|
 | Husk | `minecraft:husk` | 2 | 20 | 2.5 | 1.0 | 1.2 | 1.0 | its hit slows for 2 s (hunger) | **3** |
 | Wither Skeleton | `minecraft:wither_skeleton` | 1 | 20 | 10 | 1.6 | 1.5 | 0.85 | stone sword; withers: 1.5 a second for 3 s (black dust) | **2** |
-| Piglin Brute | `minecraft:piglin_brute` | 1 | 50 | 14 | 1.8 | 1.2 | 0.9 | golden axe: big, slow blows | **4** |
+| Piglin Brute | `minecraft:piglin_brute` | 1 | 50 | 14 | 1.8 | 1.2 | 0.8 | golden axe: big, slow blows | **4** |
 | Polar Bear | `minecraft:polar_bear` | 1 | 30 | 7 | 1.2 | 1.2 | 1.2 | frost-proof: Freeze only hurts it, Stray arrows do not slow it | **3** |
 | Phantom | `minecraft:phantom` | 1 | 20 | 7 | 1.0 | 1.2 | 3.0 | flies 2 blocks up straight over the river and only goes for towers | **2** |
 | Silverfish | `minecraft:silverfish` | 4 | 8 | 1 | 0.8 | 1.2 | 1.6 | a cheap swarm | **2** |
@@ -261,6 +261,7 @@ Creeper 43% the lowest. With the second wave (below) Pillager went back to
 | Strider | `minecraft:strider` | 1 | 20 | 3 | 1.0 | 1.2 | 1.7 | Nether, fire immune, but walks the bridges like everyone; leaves a burning trail (a patch every 0.5 s that lasts 2 s): an enemy standing on it burns 1 a second, and a moment after (model 1.0) | **2** |
 | Goat | `minecraft:goat` | 1 | 10 | 5 | 2.0 | 1.2 | 1.3 | a ram: its slow head-butt knocks the target back 3 blocks, three times the Ravager's push; vanilla health, so fragile; 1 elixir (model 1.0) | **1** |
 | Llama | `minecraft:llama` | 1 | 22 | 3 | 1.5 | 4.5 | 0.9 | spits from 4.5 blocks; the spit slows for 0.75 s, less than a Stray's arrow; vanilla health 15-30, the middle (model 1.0) | **2** |
+| Piglin | `minecraft:piglin` (crossbow) | 1 | 16 | 5 | 3.0 | 5.0 | 1.0 | Nether, fire immune; fires 2 quick bolts 0.4 s apart, then reloads for the rest of its 3 s (the cost counts both bolts) (model 1.0) | **2** |
 | Fox | `minecraft:fox` | 2 | 10 | 2 | 0.7 | 1.2 | 1.9 | a fast small pack with quick bites, the fastest walker; nothing special (no armour piercing) | **2** |
 | Snow Golem | `minecraft:snow_golem` | 1 | 40 | 1 | 1.0 | 5.0 | 1.0 | snowballs that barely hurt but slow for 1.5 s; frost: double damage to a Blaze; leaves its vanilla snow trail (cleared with the arena) | **2** |
 
@@ -392,4 +393,10 @@ Autopilot cycle 8 (4000 bot matches): Llama added at 44-45% (Beast tribe,
 1.2 (41% -> 42%). Pillager speed 1.0 -> 0.85 did nothing (61% -> 62%),
 reverted. Pillager has now resisted range and speed: it needs a person's
 call (an HP-damage swap away from its vanilla 24 health, or 4 elixir).
+
+Autopilot cycle 9 (4000 bot matches): Piglin added at 49-50% (Nether
+tribe; new burst trait: 2 shots, then the reload). Piglin Brute speed 0.9
+-> 0.8 (60% -> 57%). Strider speed 1.7 -> 2.0 did nothing (41%) and broke
+"the Fox is the fastest walker", reverted. Still waiting on the user:
+Pillager 62-63%; Cobweb and Swiftness Potion 39% are limited by the bot.
 

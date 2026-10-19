@@ -45,6 +45,7 @@ public final class MobsWave2SmokeTest {
         skeletonRiderIgnoresTroops();
         striderLeavesAFireTrail();
         llamaSpitsAndSlowsALittle();
+        piglinFiresTwoThenReloads();
         System.out.println("RoyalArena wave 2 mobs smoke tests: PASS");
     }
 
@@ -68,6 +69,29 @@ public final class MobsWave2SmokeTest {
     {
         return engine.add(UUID.randomUUID(), side,
                 new TroopStats(1, 200, 0.0D, 100000, 1.2D, 0.0D, 0.3D), x, z);
+    }
+
+    private static void piglinFiresTwoThenReloads() {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        CombatUnit piglin = unit(engine, BattleCard.PIGLIN, TeamSide.BLUE,
+                0.0D, 3.0D);
+        dummy(engine, TeamSide.RED, 0.0D, -1.5D);
+        java.util.List<Integer> shots = new java.util.ArrayList<>();
+        for (int tick = 1; tick <= 140; tick++) {
+            for (TickResult.Attack a : engine.tick().attacks()) {
+                if (piglin.id().equals(a.attackerUnit()))
+                    shots.add(tick);
+            }
+        }
+        int gap = net.susu609.royalarena.card.TroopTraits.BURST_GAP_TICKS;
+        int reload = BattleCard.PIGLIN.stats().attackTicks();
+        check(shots.size() >= 4, "two bursts in 7 s: " + shots);
+        check(shots.get(1) - shots.get(0) == gap,
+                "the second bolt follows quickly: " + shots);
+        check(shots.get(2) - shots.get(1) == reload,
+                "then the crossbow reloads: " + shots);
+        check(BattleCard.PIGLIN.fireImmune(), "a Nether mob");
     }
 
     private static void llamaSpitsAndSlowsALittle() {

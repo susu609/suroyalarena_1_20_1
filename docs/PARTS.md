@@ -715,3 +715,14 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   cost, protocol 22; Evoker speed 0.5, Polar Bear speed 1.2
 - `MobsWave2SmokeTest.llamaSpitsAndSlowsALittle`
 
+## Part 61 — Piglin (autopilot cycle 9)
+
+- `card/TroopTraits.java` (`burst`), `card/CostFormula.java` (shots per
+  interval), `combat/CombatUnit.java` (`startShotCooldown`),
+  `card/BattleCard.java` and `piglin.json` (16 HP, 2 bolts of 5 every 3 s,
+  range 5, fire immune, Nether tribe, 2 elixir), card art cost,
+  `client/screen/DeckScreen.java` (tooltip), protocol 23; Piglin Brute
+  speed 0.8
+- `MobsWave2SmokeTest.piglinFiresTwoThenReloads`, `"burst"` in
+  `CombatSmokeTest`
+

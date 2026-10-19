@@ -80,7 +80,7 @@ public enum BattleCard {
                     TroopTraits.poisoning(60, 1.5D))),
     PIGLIN_BRUTE("Piglin Brute", 4, "minecraft:piglin_brute",
             "minecraft:golden_axe", 0,
-            new TroopStats(1, 50, 14, 36, 1.2D, 0.9D, 0.3D).withArmor(7)),
+            new TroopStats(1, 50, 14, 36, 1.2D, 0.8D, 0.3D).withArmor(7)),
     POLAR_BEAR("Polar Bear", 3, "minecraft:polar_bear", null, 0,
             new TroopStats(1, 30, 7, 24, 1.2D, 1.2D, 0.7D,
                     TroopTraits.frostProof())),
@@ -121,6 +121,9 @@ public enum BattleCard {
     LLAMA("Llama", 2, "minecraft:llama", null, 0,
             new TroopStats(1, 22, 3, 30, 4.5D, 0.9D, 0.45D,
                     TroopTraits.slowing(15))),
+    PIGLIN("Piglin", 2, "minecraft:piglin", "minecraft:crossbow", 0,
+            new TroopStats(1, 16, 5, 60, 5.0D, 1.0D, 0.3D,
+                    TroopTraits.burst(2))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(3.0D, 6, 16, 5, 1.0D, 0.5D, 0.0D, 0.0D, 0)),
     FIREBALL("Fireball", 4, "minecraft:fire_charge",
@@ -259,7 +262,7 @@ public enum BattleCard {
             case VINDICATOR, PILLAGER, EVOKER, VEX -> EnumSet.of(Tribe.ILLAGER);
             case WITCH -> EnumSet.of(Tribe.ILLAGER, Tribe.NIGHT);
             case RAVAGER -> EnumSet.of(Tribe.ILLAGER, Tribe.BEAST);
-            case PIGLIN_BRUTE, BLAZE, GHAST -> EnumSet.of(Tribe.NETHER);
+            case PIGLIN_BRUTE, BLAZE, GHAST, PIGLIN -> EnumSet.of(Tribe.NETHER);
             case HOGLIN, STRIDER -> EnumSet.of(Tribe.NETHER, Tribe.BEAST);
             case MAGMA_CUBE -> EnumSet.of(Tribe.NETHER, Tribe.SLIME);
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
@@ -308,7 +311,7 @@ public enum BattleCard {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT ->
                     EnumSet.of(CardTactic.DEFENSE);
-            case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA,
+            case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
                     SNOW_GOLEM, ARROW_STORM, COBWEB ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
@@ -348,7 +351,7 @@ public enum BattleCard {
     public boolean fireImmune() {
         return switch (this) {
             case BLAZE, GHAST, MAGMA_CUBE, ZOMBIFIED_PIGLIN, HOGLIN,
-                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER -> true;
+                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER, PIGLIN -> true;
             default -> false;
         };
     }

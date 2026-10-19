@@ -1,0 +1,23 @@
+{
+  "id": "piglin",
+  "type": "troop",
+  "display_name": "Piglin",
+  "roles": ["defense", "support"],
+  "body": "living",
+  "elixir": 2,
+  "fire_immune": true,
+  "entity": "minecraft:piglin",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 16,
+    "damage": 5,
+    "attack_interval_ticks": 60,
+    "range": 5.0,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground",
+    "burst": 2
+  },
+  "held_item": "minecraft:crossbow"
+}

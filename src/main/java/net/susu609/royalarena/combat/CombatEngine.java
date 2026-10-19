@@ -345,7 +345,7 @@ public final class CombatEngine {
             return;
         if (!unit.ready())
             return;
-        unit.startCooldown();
+        unit.startShotCooldown();
         boolean ranged = !stats.melee();
         // Laser beams and fangs hit at once; arrows and fireballs fly.
         int flight = ranged && !traits.charges() && !traits.lines() ?

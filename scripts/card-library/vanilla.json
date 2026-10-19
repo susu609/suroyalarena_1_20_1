@@ -19,6 +19,7 @@
   "piglin_brute":     {"family": "nether",   "hp": 50,  "armor": 0, "worn": 7, "why": "Mũ vàng (2) + giáp ngực vàng (5), hiện trên mô hình."},
   "blaze":            {"family": "nether",   "hp": 20,  "armor": 0},
   "strider":          {"family": "nether",   "hp": 20,  "armor": 0},
+  "piglin":           {"family": "nether",   "hp": 16,  "armor": 0},
   "ghast":            {"family": "nether",   "hp": 10,  "armor": 0},
   "hoglin":           {"family": "nether",   "hp": 40,  "armor": 0},
   "magma_cube":       {"family": "nether",   "hp": 16,  "armor": 12, "why": "Vanilla: giáp = 3 × kích cỡ (4)."},

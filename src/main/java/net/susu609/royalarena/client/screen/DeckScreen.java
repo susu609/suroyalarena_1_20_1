@@ -617,6 +617,8 @@ public final class DeckScreen extends Screen {
                     s.traits().chargeTicks() / 20.0D));
         if (s.traits().riverStrong())
             lines.add(line("Hits 1.5 times as hard from the river"));
+        if (s.traits().shots() > 1)
+            lines.add(line("Fires %d quick shots, then reloads", s.traits().shots()));
         if (s.traits().leavesFireTrail())
             lines.add(line("Leaves a burning trail for %.0f s: enemies on it burn",
                     s.traits().fireTrailTicks() / 20.0D));

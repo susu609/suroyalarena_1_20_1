@@ -37,6 +37,9 @@ package net.susu609.royalarena.card;
  * @param fireTrailTicks      while it walks it leaves burning patches that
  *                            last this long and set enemies standing on them
  *                            burning (Strider); 0 = none
+ * @param burst               shots fired {@link #BURST_GAP_TICKS} apart before
+ *                            the full attack interval (a reload) (Piglin's
+ *                            crossbow); 0 or 1 = one shot per interval
  */
 public record TroopTraits(double splashRadius, boolean selfDestruct,
                           double knockback, boolean buildingsOnly,
@@ -46,8 +49,37 @@ public record TroopTraits(double splashRadius, boolean selfDestruct,
                           boolean deployOnRiver, boolean frostWeak,
                           boolean waterWeak, boolean frostImmune,
                           double lineWidth, int chargeTicks,
-                          boolean riverStrong, int fireTrailTicks)
+                          boolean riverStrong, int fireTrailTicks,
+                          int burst)
 {
+    /** Ticks between the shots of a burst. */
+    public static final int BURST_GAP_TICKS = 8;
+
+    public TroopTraits(double splashRadius, boolean selfDestruct,
+            double knockback, boolean buildingsOnly, int slowTicks,
+            int poisonTicks, double poisonPerSecond, int teleportCooldownTicks,
+            double hover, boolean crossesRiver, boolean deployOnRiver,
+            boolean frostWeak, boolean waterWeak, boolean frostImmune,
+            double lineWidth, int chargeTicks, boolean riverStrong,
+            int fireTrailTicks)
+    {
+        this(splashRadius, selfDestruct, knockback, buildingsOnly, slowTicks,
+                poisonTicks, poisonPerSecond, teleportCooldownTicks, hover,
+                crossesRiver, deployOnRiver, frostWeak, waterWeak, frostImmune,
+                lineWidth, chargeTicks, riverStrong, fireTrailTicks, 0);
+    }
+
+    /** Fires {@code shots} quick shots, then reloads (Piglin). */
+    public static TroopTraits burst(int shots) {
+        return new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0, 0.0D,
+                false, false, false, false, false, 0.0D, 0, false, 0, shots);
+    }
+
+    /** Shots per attack interval (1 for most troops). */
+    public int shots() {
+        return Math.max(1, burst);
+    }
+
     /** A fire trail patch: its radius, how often one is dropped, its burn. */
     public static final double TRAIL_RADIUS = 0.7D;
     public static final int TRAIL_EVERY_TICKS = 10;
