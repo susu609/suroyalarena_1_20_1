@@ -23,6 +23,9 @@ import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.bot.BotBrain;
 import net.susu609.royalarena.card.BattleCard;
+import net.susu609.royalarena.card.Tribe;
+import net.susu609.royalarena.combat.CombatUnit;
+import net.susu609.royalarena.network.c2s.C2SSandboxPacket;
 import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.entity.building.TowerHitboxEntity;
@@ -65,6 +68,8 @@ public final class ServerMatchSession {
     /** The player watching a bot-versus-bot match, or null. */
     private final UUID spectator;
     private int speed = 1;
+    /** Half match ticks owed by a slowed sandbox (0.5x runs every other tick). */
+    private int halfTicks;
 
     /** A bot and the card its "hand" is carrying to the arena. */
     private static final class Bot {
@@ -112,6 +117,9 @@ public final class ServerMatchSession {
         this.arenaLevel = arenaLevel;
         this.reservation = reservation;
         this.battle = new BattleField(arenaLevel, match, this::towerDestroyed);
+        // A sandbox picks its tribe steps by hand, so they are always on.
+        if (match.sandbox() != null)
+            battle.engine().setTribes(true);
     }
     public void closeNow(MinecraftServer server) {
         if (complete)
@@ -150,7 +158,8 @@ public final class ServerMatchSession {
      * the match never got to the battle.
      */
     private void logMatch() {
-        if (logged || !ArenaCommonConfig.RECORD_MATCHES.get() ||
+        if (logged || match.sandbox() != null ||
+                !ArenaCommonConfig.RECORD_MATCHES.get() ||
                 match.record().battleTicks() == 0)
             return;
         logged = true;
@@ -187,6 +196,85 @@ public final class ServerMatchSession {
     /** Playback speed of a watched match: 1, or 2 (two ticks per tick). */
     public int speed() {
         return speed;
+    }
+
+    /**
+     * Match ticks to run this server tick: the watch speed, or a sandbox's
+     * (paused, 0.5x, 1x, 2x). A finished match always runs, so it can end.
+     */
+    public int ticksThisServerTick() {
+        SandboxSettings box = match.sandbox();
+        if (box == null || match.state() == MatchState.FINISHED)
+            return speed;
+        halfTicks += box.speed();
+        int ticks = halfTicks / 2;
+        halfTicks %= 2;
+        return ticks;
+    }
+
+    // ------------------------------------------------------------- sandbox
+
+    /** A sandbox panel request (docs/SANDBOX.md); only from the BLUE player. */
+    public void handleSandbox(ServerPlayer sender, C2SSandboxPacket packet) {
+        SandboxSettings box = match.sandbox();
+        MinecraftServer server = sender.getServer();
+        if (box == null || complete || server == null ||
+                !sender.getUUID().equals(match.blue().playerId()))
+            return;
+        switch (packet.action()) {
+            case DEPLOY -> {
+                BattleCard card = BattleCard.byId(packet.card());
+                if (card == null || !match.sandboxDeploy(packet.side(), card,
+                        packet.pos().getX(), packet.pos().getZ()).accepted())
+                    return;
+            }
+            case CLEAR -> {
+                battle.clear();
+                battle.engine().clearSpellsAndShots();
+                match.clearPending();
+            }
+            case RESTORE_TOWERS -> restoreTowers();
+            case TOWERS_UNBREAKABLE -> box.setTowersInvulnerable(
+                    packet.value() != 0);
+            case INFINITE_ELIXIR -> box.setInfiniteElixir(packet.value() != 0);
+            case SPEED -> box.setSpeed(packet.value());
+            case TRIBE -> {
+                Tribe[] tribes = Tribe.values();
+                if (packet.tribe() >= 0 && packet.tribe() < tribes.length)
+                    box.setTribeLevel(packet.side(), tribes[packet.tribe()],
+                            packet.value());
+            }
+            case EXIT -> {
+                closeNow(server);
+                return;
+            }
+            default -> {
+                return;
+            }
+        }
+        sync(server);
+    }
+
+    /**
+     * Every tower back to full health: the floor is laid again (the rubble
+     * goes) and the fallen towers' models come back.
+     */
+    private void restoreTowers() {
+        match.resetTowers();
+        ArenaBuilder.build(arenaLevel, match.arena());
+        spawnTowerHitboxes();
+        battle.forgetTowers();
+    }
+
+    /** What every troop aims at, for the sandbox stats overlay. */
+    private List<MatchSnapshot.Aim> aims() {
+        List<MatchSnapshot.Aim> out = new ArrayList<>();
+        for (CombatUnit unit : battle.engine().units()) {
+            TowerId tower = unit.target() == null ? unit.lockedTower() : null;
+            out.add(new MatchSnapshot.Aim(unit.id(), unit.target(),
+                    tower == null ? -1 : tower.ordinal()));
+        }
+        return out;
     }
 
     /** The spectator switches between normal and double speed. */
@@ -282,7 +370,8 @@ public final class ServerMatchSession {
         spawnTowerHitboxes();
         preparePlayer(server, TeamSide.BLUE);
         preparePlayer(server, TeamSide.RED);
-        match.startCountdown(COUNTDOWN_TICKS);
+        // A sandbox starts at once.
+        match.startCountdown(match.sandbox() != null ? 0 : COUNTDOWN_TICKS);
         sync(server);
     }
 
@@ -314,8 +403,11 @@ public final class ServerMatchSession {
                     35.0F);
         }
     }
+    /** Tower models for every tower that has none (all of them at the start). */
     private void spawnTowerHitboxes() {
         for (TowerId id : TowerId.values()) {
+            if (towerHitboxes.containsKey(id))
+                continue;
             TowerHitboxEntity hitbox =
                     ArenaEntityTypes.createTower(id.kind(), arenaLevel);
             if (hitbox == null) {
@@ -346,10 +438,12 @@ public final class ServerMatchSession {
             ServerPlayer player = server.getPlayerList()
                     .getPlayer(match.player(side).playerId());
             if (player != null) {
+                MatchSnapshot.Sandbox box = match.sandbox() == null ? null :
+                        MatchSnapshot.sandbox(match, aims());
                 ModNetwork.sendToPlayer(
                         player, new S2CMatchSnapshotPacket(
                                 MatchSnapshot.from(match, side,
-                                        watchFor(side))));
+                                        watchFor(side), box)));
             }
         }
     }

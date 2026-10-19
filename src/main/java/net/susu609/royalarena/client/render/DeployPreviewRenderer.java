@@ -105,13 +105,12 @@ public final class DeployPreviewRenderer {
                     deploy.z(), deploy.side(), partial);
         }
 
-        int slot = ClientMatchState.selectedSlot();
-        BlockPos target = slot >= 0 ?
+        BattleCard card = ClientMatchState.selectedCard();
+        BlockPos target = card != null ?
                 ArenaCameraController.projectCursorToArena() : null;
         if (target != null) {
-            boolean ok = ClientMatchState.canDeployAt(
-                    slot, target.getX(), target.getZ());
-            BattleCard card = ClientMatchState.hand().get(slot);
+            boolean ok = ClientMatchState.canDeploySelected(
+                    target.getX(), target.getZ());
             int rgb = ok ? VALID_RGB : INVALID_RGB;
             if (card.isSpell()) {
                 circle(pose, buffers, target.getX(), floor, target.getZ(),
@@ -121,7 +120,8 @@ public final class DeployPreviewRenderer {
                         0.35F, 1.0F);
                 if (ok) {
                     ghost(mc, pose, buffers, card, target.getX(), floor,
-                            target.getZ(), ClientMatchState.side(), partial);
+                            target.getZ(), ClientMatchState.deploySide(),
+                            partial);
                 }
             }
         }

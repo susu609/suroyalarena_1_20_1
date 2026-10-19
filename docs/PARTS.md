@@ -757,3 +757,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `getOverlayCoords`), `WorldHealthBar.towerOverlay`
 - `client/render/AggroMarkers.java` ("!" over enemies the ghosts would
   draw), `DeployPreviewRenderer.spots`, `ClientForgeEvents`
+
+## Part 65 — Sandbox
+
+- docs/SANDBOX.md: `/royalarena sandbox` and a matching-screen button; a
+  panel to play any card for either side (Tab switches, C picks), clear
+  troops, restore towers, unbreakable towers, endless elixir, pause /
+  0.5x / 1x / 2x, tribe steps per side, and a range / sight / target overlay
+- `match/SandboxSettings.java`, `MatchInstance` (sandbox deploys, no clock,
+  no end, tower reset), `CombatEngine` (tribe steps, `kingAwake`),
+  `MatchManager`, `ServerMatchSession`, `C2SSandboxPacket`,
+  `MatchSnapshot.Sandbox`, protocol 26
+- client: `ClientSandbox`, `SandboxHud`, `SandboxCardScreen`,
+  `SandboxTribeScreen`, `SandboxStatsRenderer`, `WorldShapes.line`, keys
+- `SandboxSmokeTest`

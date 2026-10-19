@@ -50,6 +50,7 @@ public final class DomainSmokeTest {
         SoundCuesSmokeTest.run();
         BotPersonalitySmokeTest.run();
         TribeSmokeTest.run();
+        SandboxSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

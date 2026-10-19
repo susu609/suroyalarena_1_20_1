@@ -40,8 +40,10 @@ public final class ClientMatchState {
         }
         snapshot = next;
         appliedAtTick = clientTicks;
-        if (!next.active())
+        if (!next.active()) {
             selectedSlot = -1;
+            ClientSandbox.reset();
+        }
         if (selectedSlot >= next.hand().size())
             selectedSlot = -1;
     }
@@ -170,8 +172,47 @@ public final class ClientMatchState {
         return selectedSlot;
     }
 
+    /** The sandbox part of the snapshot, or null outside a sandbox. */
+    public static MatchSnapshot.Sandbox sandbox() {
+        return snapshot.sandbox();
+    }
+
+    /**
+     * The card about to be played: the sandbox panel's pick, or the selected
+     * hand card; null when none.
+     */
+    public static BattleCard selectedCard() {
+        if (sandbox() != null)
+            return ClientSandbox.card();
+        return selectedSlot >= 0 && selectedSlot < hand().size() ?
+                hand().get(selectedSlot) : null;
+    }
+
+    /** The side the selected card will be played for. */
+    public static TeamSide deploySide() {
+        return sandbox() != null ? ClientSandbox.side() : side();
+    }
+
+    /**
+     * Whether the selected card can be played at the tile: in a sandbox for
+     * the chosen side, with that side's elixir unless it is endless.
+     */
+    public static boolean canDeploySelected(int worldX, int worldZ) {
+        MatchSnapshot.Sandbox box = sandbox();
+        if (box == null)
+            return canDeployAt(selectedSlot, worldX, worldZ);
+        BattleCard card = ClientSandbox.card();
+        if (card == null || !active() || state() != MatchState.BATTLE)
+            return false;
+        TeamSide side = ClientSandbox.side();
+        if (!box.infiniteElixir() && card.cost() * 10 > box.elixir(side))
+            return false;
+        return arena().canPlay(side, card, worldX, worldZ);
+    }
+
     public static void selectSlot(int slot) {
-        if (!active() || spectating() || state() != MatchState.BATTLE ||
+        if (!active() || spectating() || sandbox() != null ||
+                state() != MatchState.BATTLE ||
                 slot < 0 ||
                 slot >= hand().size())
             return;
@@ -215,5 +256,6 @@ public final class ClientMatchState {
 
     public static void clearSelection() {
         selectedSlot = -1;
+        ClientSandbox.clearCard();
     }
 }

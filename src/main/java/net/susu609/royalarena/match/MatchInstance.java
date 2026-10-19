@@ -9,8 +9,10 @@ import net.susu609.royalarena.tower.TowerState;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public final class MatchInstance {
@@ -41,6 +43,10 @@ public final class MatchInstance {
     private boolean overtime;
     private TeamSide winner;
     private final MatchRecord record = new MatchRecord();
+    /** Set for a sandbox match (docs/SANDBOX.md); null for a real one. */
+    private SandboxSettings sandbox;
+    /** King towers hit while unbreakable: they wake up all the same. */
+    private final Set<TowerId> hitWhileUnbreakable = EnumSet.noneOf(TowerId.class);
 
     private MatchInstance(UUID matchId, UUID blueId, UUID redId,
             ArenaLayout arena, BattleDeck blueDeck, BattleDeck redDeck)
@@ -115,11 +121,16 @@ public final class MatchInstance {
     public void damageTower(TowerId id, double damage) {
         if (state != MatchState.BATTLE || damage <= 0)
             return;
+        if (sandbox != null && sandbox.towersInvulnerable()) {
+            hitWhileUnbreakable.add(id);
+            return;
+        }
         TowerState target = tower(id);
         boolean standing = !target.isDestroyed();
         target.damage(damage);
         // The King ends the match; in overtime, so does the first tower.
-        if (standing && target.isDestroyed()) {
+        // A sandbox never ends: a fallen tower waits for "restore towers".
+        if (standing && target.isDestroyed() && sandbox == null) {
             if (id.kind() == TowerKind.KING)
                 finish(id.side().opponent(), MatchRecord.EndReason.KING);
             else if (overtime)
@@ -185,6 +196,8 @@ public final class MatchInstance {
 
     /** 1 for normal elixir, 2 in the last minute, 3 late in overtime. */
     public int elixirRate() {
+        if (sandbox != null)
+            return 1;
         return battleTicks >= TRIPLE_ELIXIR_AT ? 3 :
                 battleTicks >= DOUBLE_ELIXIR_AT ? 2 : 1;
     }
@@ -213,10 +226,15 @@ public final class MatchInstance {
         int perElixir = TICKS_PER_ELIXIR[elixirRate() - 1];
         blue.elixir().tick(perElixir);
         red.elixir().tick(perElixir);
+        if (sandbox != null && sandbox.infiniteElixir()) {
+            blue.elixir().fill();
+            red.elixir().fill();
+        }
         battleTicks++;
         record.tick(battleTicks, blue.elixirTenths(), red.elixirTenths());
         advancePending();
-        if (--ticksRemaining <= 0)
+        // A sandbox has no clock.
+        if (sandbox == null && --ticksRemaining <= 0)
             timeUp();
     }
     public int ticksRemaining() {
@@ -240,6 +258,62 @@ public final class MatchInstance {
         pending.add(new PendingDeploy(card, side, worldX, worldZ,
                 arena.deployTicks(card, side, worldX + 0.5D, worldZ + 0.5D)));
         return DeployResult.accepted(card);
+    }
+
+    // ------------------------------------------------------------- sandbox
+
+    /** Makes this a sandbox match: no clock, no end, any card for any side. */
+    public void enableSandbox() {
+        if (sandbox == null)
+            sandbox = new SandboxSettings();
+    }
+
+    /** The sandbox switches, or null for a real match. */
+    public SandboxSettings sandbox() {
+        return sandbox;
+    }
+
+    /**
+     * Plays {@code card} for {@code side} at the tile (x, z) outside the
+     * hand: the usual deploy zones and flight times, elixir only when it is
+     * not endless.
+     */
+    public DeployResult sandboxDeploy(TeamSide side, BattleCard card,
+            int worldX, int worldZ)
+    {
+        if (sandbox == null)
+            return DeployResult.rejected("not_sandbox");
+        if (state != MatchState.BATTLE)
+            return DeployResult.rejected("match_not_in_battle");
+        if (card == null)
+            return DeployResult.rejected("unknown_card");
+        if (!arena.canPlay(side, card, worldX, worldZ))
+            return DeployResult.rejected("outside_deploy_area");
+        if (!sandbox.infiniteElixir() &&
+                !player(side).elixir().spend(card.cost()))
+            return DeployResult.rejected("not_enough_elixir");
+        record.play(side, card, battleTicks);
+        pending.add(new PendingDeploy(card, side, worldX, worldZ,
+                arena.deployTicks(card, side, worldX + 0.5D, worldZ + 0.5D)));
+        return DeployResult.accepted(card);
+    }
+
+    /** Every tower back to full health (asleep again, for the Kings). */
+    public void resetTowers() {
+        for (TowerId id : TowerId.values())
+            towers.put(id, new TowerState(id, id.kind().maxHealth()));
+        hitWhileUnbreakable.clear();
+    }
+
+    /** Whether an unbreakable tower was hit (it wakes a King all the same). */
+    public boolean hitWhileUnbreakable(TowerId id) {
+        return hitWhileUnbreakable.contains(id);
+    }
+
+    /** Drops the cards still in flight or waiting to appear. */
+    public void clearPending() {
+        pending.clear();
+        ready.clear();
     }
 
     /** Cards still waiting out their deploy time, oldest first. */

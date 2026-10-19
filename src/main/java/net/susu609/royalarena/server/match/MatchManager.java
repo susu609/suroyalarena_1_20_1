@@ -51,6 +51,29 @@ public final class MatchManager {
             session.handleDeploy(player, slot, target);
     }
 
+    /**
+     * A sandbox (docs/SANDBOX.md): the player is BLUE and plays any card for
+     * either side; nobody plays RED, and there is no clock.
+     */
+    public boolean startSandbox(ServerPlayer player) {
+        if (isInMatch(player.getUUID()))
+            return false;
+        MatchQueue.INSTANCE.leave(player, "Sandbox");
+        return launch(player.getServer(), player.getUUID(), UUID.randomUUID(),
+                false, false, null, true);
+    }
+
+    /** A sandbox panel request from the player in that sandbox. */
+    public void handleSandbox(ServerPlayer player,
+            net.susu609.royalarena.network.c2s.C2SSandboxPacket packet)
+    {
+        UUID matchId = playerToMatch.get(player.getUUID());
+        ServerMatchSession session =
+                matchId == null ? null : matches.get(matchId);
+        if (session != null)
+            session.handleSandbox(player, packet);
+    }
+
     public boolean startMatch(ServerPlayer blue, ServerPlayer red) {
         if (blue == red || isInMatch(blue.getUUID()) ||
                 isInMatch(red.getUUID()))
@@ -112,6 +135,14 @@ public final class MatchManager {
     private boolean launch(MinecraftServer server, UUID blueId, UUID redId,
             boolean botForRed, boolean botForBlue, WatchSetup setup)
     {
+        return launch(server, blueId, redId, botForRed, botForBlue, setup,
+                false);
+    }
+
+    private boolean launch(MinecraftServer server, UUID blueId, UUID redId,
+            boolean botForRed, boolean botForBlue, WatchSetup setup,
+            boolean sandbox)
+    {
         if (server == null)
             return false;
         ServerLevel level = ArenaDimension.level(server);
@@ -132,6 +163,8 @@ public final class MatchManager {
         MatchInstance match =
                 MatchInstance.create(matchId, blueId, redId,
                         reservation.layout(), blueDeck, redDeck);
+        if (sandbox)
+            match.enableSandbox();
         BotBrain bot = botForRed ?
                 new BotBrain(TeamSide.RED, matchId.getLeastSignificantBits()) :
                 null;
@@ -185,7 +218,8 @@ public final class MatchManager {
             Map.Entry<UUID, ServerMatchSession> entry = it.next();
             ServerMatchSession session = entry.getValue();
             // A watched match at x2 runs two match ticks per server tick.
-            for (int i = 0; i < session.speed() && !session.complete(); i++)
+            int ticks = session.ticksThisServerTick();
+            for (int i = 0; i < ticks && !session.complete(); i++)
                 session.tick(server);
             if (session.complete()) {
                 playerToMatch.remove(session.match().blue().playerId());

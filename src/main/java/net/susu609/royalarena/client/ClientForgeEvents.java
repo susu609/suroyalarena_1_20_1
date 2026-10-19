@@ -21,6 +21,11 @@ import net.susu609.royalarena.client.render.AoeFlashRenderer;
 import net.susu609.royalarena.client.render.BotDragRenderer;
 import net.susu609.royalarena.client.render.BurnEffects;
 import net.susu609.royalarena.client.render.AggroMarkers;
+import net.susu609.royalarena.client.render.SandboxStatsRenderer;
+import net.susu609.royalarena.client.hud.SandboxHud;
+import net.susu609.royalarena.client.state.ClientSandbox;
+import net.susu609.royalarena.network.c2s.C2SSandboxPacket;
+import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.render.DamageNumbers;
 import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
@@ -79,6 +84,14 @@ public final class ClientForgeEvents {
             if (ClientMatchState.spectating())
                 ModNetwork.sendToServer(new C2SWatchSpeedPacket());
         }
+        while (RoyalArenaKeyMappings.SANDBOX_SIDE.consumeClick()) {
+            if (ClientSandbox.active() && mc.screen == null)
+                ClientSandbox.toggleSide();
+        }
+        while (RoyalArenaKeyMappings.SANDBOX_CARDS.consumeClick()) {
+            if (ClientSandbox.active() && mc.screen == null)
+                SandboxHud.openCards();
+        }
 
         ArenaCameraController.tick();
     }
@@ -123,6 +136,7 @@ public final class ClientForgeEvents {
         TroopEffects.render(event);
         DamageNumbers.render(event);
         AggroMarkers.render(event);
+        SandboxStatsRenderer.render(event);
     }
 
     /** Camera shake on heavy hits (S2CShakePacket). */
@@ -151,6 +165,25 @@ public final class ClientForgeEvents {
                 event.getMultiBufferSource(), scale);
     }
 
+    /** A left click in a sandbox: the panel first, then the arena. */
+    private static void sandboxClick() {
+        if (SandboxHud.click(ArenaCameraController.cursorGuiX(),
+                ArenaCameraController.cursorGuiY()))
+            return;
+        BattleCard card = ClientSandbox.card();
+        if (card == null)
+            return;
+        BlockPos target = ArenaCameraController.projectCursorToArena();
+        if (target != null && ClientMatchState.canDeploySelected(
+                target.getX(), target.getZ())) {
+            ModNetwork.sendToServer(C2SSandboxPacket.deploy(card.id(),
+                    ClientSandbox.side(), target));
+            ClientMatchState.clearSelection();
+        } else {
+            ClientSounds.ui(ArenaSounds.CARD_REFUSED, 0.8F, 1.0F);
+        }
+    }
+
     @SubscribeEvent
     public static void onMouse(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
@@ -169,6 +202,11 @@ public final class ClientForgeEvents {
         if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_LEFT)
             return;
 
+        if (ClientSandbox.active()) {
+            sandboxClick();
+            event.setCanceled(true);
+            return;
+        }
         int clickedSlot = BattleHudOverlay.cardSlotAt(
                 ArenaCameraController.cursorGuiX(),
                 ArenaCameraController.cursorGuiY(),

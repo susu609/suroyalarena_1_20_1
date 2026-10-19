@@ -90,6 +90,12 @@ public final class BattleHudOverlay implements IGuiOverlay {
             drawBanner(graphics, mc.font, layout);
             return;
         }
+        if (ClientMatchState.sandbox() != null) {
+            // No hand and no clock: the sandbox panel instead.
+            SandboxHud.draw(graphics, mc.font);
+            drawCrowns(graphics, mc.font, layout);
+            return;
+        }
         drawPanel(graphics, layout);
         drawHand(graphics, mc.font, layout);
         drawNext(graphics, mc.font, layout);

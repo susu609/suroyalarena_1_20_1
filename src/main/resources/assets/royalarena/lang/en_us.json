@@ -10,6 +10,8 @@
   "key.royalarena.card_3": "Select Card 3",
   "key.royalarena.card_4": "Select Card 4",
   "key.royalarena.watch_speed": "Watch Speed x1 / x2",
+  "key.royalarena.sandbox_side": "Sandbox: Switch Side",
+  "key.royalarena.sandbox_cards": "Sandbox: Pick Card",
   "entity.royalarena.crown_tower": "Crown Tower",
   "entity.royalarena.king_tower": "King Tower"
 }

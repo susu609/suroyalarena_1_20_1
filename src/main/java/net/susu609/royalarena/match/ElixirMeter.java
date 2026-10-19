@@ -24,6 +24,12 @@ public final class ElixirMeter {
         return true;
     }
 
+    /** Tops the meter up (a sandbox with endless elixir). */
+    public void fill() {
+        tenths = MAX_TENTHS;
+        regen = 0;
+    }
+
     /** One tick at the normal rate. */
     public void tick() {
         tick(TICKS_PER_ELIXIR);

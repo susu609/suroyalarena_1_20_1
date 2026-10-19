@@ -47,12 +47,10 @@ public final class SpellTargetHighlighter {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && ClientMatchState.active() &&
                 ClientMatchState.state() == MatchState.BATTLE) {
-            int slot = ClientMatchState.selectedSlot();
-            BattleCard card = slot >= 0 && slot < ClientMatchState.hand().size()
-                    ? ClientMatchState.hand().get(slot) : null;
+            BattleCard card = ClientMatchState.selectedCard();
             BlockPos target = card != null && card.isSpell() ?
                     ArenaCameraController.projectCursorToArena() : null;
-            if (target != null && ClientMatchState.canDeployAt(slot,
+            if (target != null && ClientMatchState.canDeploySelected(
                     target.getX(), target.getZ()))
                 collect(mc, card.spell(), target.getX() + 0.5D,
                         target.getZ() + 0.5D, next);
@@ -83,8 +81,8 @@ public final class SpellTargetHighlighter {
     {
         ArenaLayout arena = ClientMatchState.arena();
         // Healing and Swiftness light up the own troops they would reach.
-        TeamSide target = spell.friendly() ? ClientMatchState.side() :
-                ClientMatchState.side().opponent();
+        TeamSide caster = ClientMatchState.deploySide();
+        TeamSide target = spell.friendly() ? caster : caster.opponent();
         List<Entity> hits = new ArrayList<>();
         List<Double> health = new ArrayList<>();
         for (Entity entity : mc.level.entitiesForRendering()) {

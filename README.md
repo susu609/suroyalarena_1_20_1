@@ -67,6 +67,12 @@ pick each bot's deck and personality and watch them play from a side-on
 camera, with each bot's hand and elixir in a panel at the screen edge; `X`
 switches to double speed. See `docs/BOT.md` and `docs/UI.md`.
 
+Sandbox: press `M` and choose **Sandbox** (or `/royalarena sandbox`) to play
+any card for either side with no clock: `Tab` switches side, `C` picks a
+card, and the panel clears troops, restores towers, makes towers
+unbreakable, gives endless elixir, pauses or slows time, sets tribe steps
+and shows each troop's range, sight and target. See `docs/SANDBOX.md`.
+
 Outside a match the top left corner reminds you that `M` opens the mod's
 screen.
 

@@ -48,16 +48,14 @@ public final class AggroMarkers {
         if (mc.level == null || !ClientMatchState.active() ||
                 ClientMatchState.state() != MatchState.BATTLE)
             return;
-        int slot = ClientMatchState.selectedSlot();
-        BattleCard card = slot >= 0 && slot < ClientMatchState.hand().size()
-                ? ClientMatchState.hand().get(slot) : null;
+        BattleCard card = ClientMatchState.selectedCard();
         if (card == null || card.isSpell())
             return;
         BlockPos target = ArenaCameraController.projectCursorToArena();
-        if (target == null || !ClientMatchState.canDeployAt(slot,
+        if (target == null || !ClientMatchState.canDeploySelected(
                 target.getX(), target.getZ()))
             return;
-        TeamSide side = ClientMatchState.side();
+        TeamSide side = ClientMatchState.deploySide();
         List<ArenaWaypoint> spots = DeployPreviewRenderer.spots(card,
                 target.getX() + 0.5D, target.getZ() + 0.5D, side);
         ArenaLayout arena = ClientMatchState.arena();

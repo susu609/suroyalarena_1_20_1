@@ -164,6 +164,9 @@ public final class CombatEngine {
     public Map<Tribe, Integer> tribeLevels(TeamSide side) {
         if (!tribes)
             return Map.of();
+        // A sandbox picks each side's steps by hand, not from a deck.
+        if (match.sandbox() != null)
+            return match.sandbox().tribeLevels(side);
         return tribeLevels.computeIfAbsent(side,
                 s -> Tribe.levels(match.player(s).deck().cards()));
     }
@@ -230,6 +233,12 @@ public final class CombatEngine {
         units.removeIf(u -> u.id().equals(entityId));
     }
 
+    /** Drops every landed spell and shot in the air (sandbox "clear"). */
+    public void clearSpellsAndShots() {
+        spells.clear();
+        flying.clear();
+    }
+
     /** Scales every troop's walking speed (config: troops.speedMultiplier). */
     public void setSpeedMultiplier(double speedMultiplier) {
         this.speedMultiplier = Math.max(0.0D, speedMultiplier);
@@ -291,6 +300,7 @@ public final class CombatEngine {
     public boolean kingAwake(TeamSide side) {
         TowerState king = match.tower(TowerId.king(side));
         return king.health() < king.maxHealth() ||
+                match.hitWhileUnbreakable(TowerId.king(side)) ||
                 match.tower(TowerId.left(side)).isDestroyed() ||
                 match.tower(TowerId.right(side)).isDestroyed();
     }

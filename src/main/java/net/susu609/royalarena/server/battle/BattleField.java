@@ -341,6 +341,13 @@ public final class BattleField {
             onTowerDestroyed.accept(id);
     }
 
+    /** Forgets tower health and cracks (towers were restored to full). */
+    public void forgetTowers() {
+        towerHealth.clear();
+        towerSoundAt.clear();
+        cracked.clear();
+    }
+
     /** Discards every troop mob. */
     public void clear() {
         for (CombatUnit unit : new ArrayList<>(engine.units())) {

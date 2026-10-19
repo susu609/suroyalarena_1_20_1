@@ -68,6 +68,25 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
             buffer.writeUtf(w.redStyle(), 32);
             buffer.writeVarInt(w.speed());
         }
+        MatchSnapshot.Sandbox box = s.sandbox();
+        buffer.writeBoolean(box != null);
+        if (box != null) {
+            buffer.writeBoolean(box.towersInvulnerable());
+            buffer.writeBoolean(box.infiniteElixir());
+            buffer.writeVarInt(box.speed());
+            buffer.writeVarInt(box.blueElixir());
+            buffer.writeVarInt(box.redElixir());
+            buffer.writeVarIntArray(box.blueTribes());
+            buffer.writeVarIntArray(box.redTribes());
+            buffer.writeVarInt(box.aims().size());
+            for (MatchSnapshot.Aim aim : box.aims()) {
+                buffer.writeUUID(aim.unit());
+                buffer.writeBoolean(aim.target() != null);
+                if (aim.target() != null)
+                    buffer.writeUUID(aim.target());
+                buffer.writeVarInt(aim.tower() + 1);
+            }
+        }
     }
 
     public static S2CMatchSnapshotPacket decode(FriendlyByteBuf buffer) {
@@ -114,12 +133,33 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
                     buffer.readUtf(32),
                     Math.max(1, Math.min(2, buffer.readVarInt())));
         }
+        MatchSnapshot.Sandbox sandbox = null;
+        if (buffer.readBoolean()) {
+            boolean towers = buffer.readBoolean();
+            boolean elixirs = buffer.readBoolean();
+            int speed = buffer.readVarInt();
+            int blueElixir = buffer.readVarInt();
+            int redElixir = buffer.readVarInt();
+            int[] blueTribes = buffer.readVarIntArray(32);
+            int[] redTribes = buffer.readVarIntArray(32);
+            int aimCount = buffer.readVarInt();
+            List<MatchSnapshot.Aim> aims = new ArrayList<>(aimCount);
+            for (int i = 0; i < aimCount; i++) {
+                UUID unit = buffer.readUUID();
+                UUID target = buffer.readBoolean() ? buffer.readUUID() : null;
+                aims.add(new MatchSnapshot.Aim(unit, target,
+                        buffer.readVarInt() - 1));
+            }
+            sandbox = new MatchSnapshot.Sandbox(towers, elixirs, speed,
+                    blueElixir, redElixir, blueTribes, redTribes,
+                    List.copyOf(aims));
+        }
         return new S2CMatchSnapshotPacket(
                 new MatchSnapshot(
                         true, matchId, state, side, center, ticks, elixir,
                         List.copyOf(hand), next, towerHp, winner,
                         List.copyOf(pending), bluePlayer, redPlayer, overtime,
-                        elixirRate, watch));
+                        elixirRate, watch, sandbox));
     }
 
     public static void handle(S2CMatchSnapshotPacket packet,

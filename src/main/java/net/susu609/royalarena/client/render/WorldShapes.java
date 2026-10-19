@@ -62,4 +62,31 @@ public final class WorldShapes {
                     .normal(pose.last().normal(), nx, 0.0F, nz).endVertex();
         }
     }
+
+    /** A straight line between two world points. The pose must be in world space. */
+    public static void line(PoseStack pose, MultiBufferSource buffers,
+            double x0, double y0, double z0, double x1, double y1, double z1,
+            int rgb, float alpha)
+    {
+        float r = ((rgb >> 16) & 0xFF) / 255.0F;
+        float g = ((rgb >> 8) & 0xFF) / 255.0F;
+        float b = (rgb & 0xFF) / 255.0F;
+        float nx = (float) (x1 - x0);
+        float ny = (float) (y1 - y0);
+        float nz = (float) (z1 - z0);
+        float length = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (length < 1.0E-4F)
+            return;
+        nx /= length;
+        ny /= length;
+        nz /= length;
+        Matrix4f m = pose.last().pose();
+        VertexConsumer lines = buffers.getBuffer(RenderType.lines());
+        lines.vertex(m, (float) x0, (float) y0, (float) z0)
+                .color(r, g, b, alpha)
+                .normal(pose.last().normal(), nx, ny, nz).endVertex();
+        lines.vertex(m, (float) x1, (float) y1, (float) z1)
+                .color(r, g, b, alpha)
+                .normal(pose.last().normal(), nx, ny, nz).endVertex();
+    }
 }

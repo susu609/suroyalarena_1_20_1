@@ -21,6 +21,13 @@ public final class RoyalArenaKeyMappings {
     public static final KeyMapping WATCH_SPEED =
             key("key.royalarena.watch_speed", GLFW.GLFW_KEY_X);
 
+    /** Sandbox: play the picked card for the other side. */
+    public static final KeyMapping SANDBOX_SIDE =
+            key("key.royalarena.sandbox_side", GLFW.GLFW_KEY_TAB);
+    /** Sandbox: open the card picker. */
+    public static final KeyMapping SANDBOX_CARDS =
+            key("key.royalarena.sandbox_cards", GLFW.GLFW_KEY_C);
+
     private RoyalArenaKeyMappings() {
     }
 
