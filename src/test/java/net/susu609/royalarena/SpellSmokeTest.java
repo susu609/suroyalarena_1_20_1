@@ -160,7 +160,8 @@ public final class SpellSmokeTest {
         check(first.deaths().stream().anyMatch(
                 d -> d.unit().equals(zombie.id())),
                 "Fireball kills a Zombie outright");
-        double afterBlast = BattleCard.IRON_GOLEM.stats().health() - 25.0D;
+        double afterBlast = BattleCard.IRON_GOLEM.stats().health() -
+                25.0D * BattleCard.IRON_GOLEM.stats().armorFactor();
         near(golem.health(), afterBlast, "25 damage on the Iron Golem");
         check(first.pushes().size() == 1 &&
                 first.pushes().get(0).unit().equals(golem.id()),
@@ -263,7 +264,8 @@ public final class SpellSmokeTest {
                 first.spellPulses().get(0).hits() == 3 &&
                 first.spellPulses().get(0).strikes().size() == 3,
                 "Lightning strikes three targets");
-        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 40.0D,
+        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() -
+                40.0D * BattleCard.IRON_GOLEM.stats().armorFactor(),
                 "the Golem is struck");
         near(ravager.health(), BattleCard.RAVAGER.stats().health() - 40.0D,
                 "the Ravager is struck");
@@ -394,7 +396,8 @@ public final class SpellSmokeTest {
         TickResult first = engine.tick();
         check(first.deaths().stream().anyMatch(
                 d -> d.unit().equals(zombie.id())), "TNT kills a Zombie");
-        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 30.0D,
+        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() -
+                30.0D * BattleCard.IRON_GOLEM.stats().armorFactor(),
                 "30 damage on the Golem");
         near(golem.x(), 3.5D, "and a 2 block push");
 

@@ -118,9 +118,12 @@ the same formula:
 Stray arrows chill: a troop hit walks at 60% speed for 1 s (snowflakes on
 it), cost x1.15.
 | Vindicator | `minecraft:vindicator` (axe) | 1 | 24 | 12 | 2.4 | 1.2 | 1.1 | **2** |
-| Iron Golem | `minecraft:iron_golem` | 1 | 100 | 14 | 1.6 | 1.5 | 0.9 | **5** |
+| Iron Golem | `minecraft:iron_golem` | 1 | 100 (armour 4) | 15 | 2.75 | 1.5 | 0.9 | **5** |
 
-The Iron Golem only targets towers (see "Tower-only troops" below).
+The Iron Golem is a slow-hitting tank that fights whatever is in front of
+it: 4 armour (16% off every hit; poison and fire go through), one heavy blow
+every 2.75 s. Until Part 64 it only targeted towers and two of its pushes
+took a tower whatever was in the way.
 
 ## Library cards: Creeper, Witch, Wolves, Ravager
 
@@ -152,7 +155,7 @@ be piglin-safe.
 
 ## Tower-only troops
 
-Iron Golem and Hoglin (`TroopTraits.buildingsOnly`, role "Targets towers")
+The Hoglin (`TroopTraits.buildingsOnly`, role "Targets towers")
 ignore every enemy troop and walk straight to their lane tower, like a Clash
 Royale Giant or Hog Rider. Enemy troops and towers still hit them. They cannot
 defend, so the cost formula gives them x0.85 and the bot never plays them to
@@ -362,6 +365,7 @@ Each cost was taken again from the formula; the tuning to stay in 40-60%
 | Card | Change | Why | Win rate |
 |---|---|---|---|
 | Iron Golem | damage 12 -> 14 (vanilla 7-21), 5 elixir | At 100 HP and 4 elixir it took a whole tower alone (27.5 tower damage per elixir, band 12-25). | 22 per elixir, 43% |
+| Iron Golem | fights every target; armour 4; 15 damage every 2.75 s (was 14 every 1.6 s, towers only); 5 elixir | Defenders could not stop it: two pushes took a tower. 18 every 2.5 s (the first try) came out at +1.46 push score, over the 1.1 cap. | push score +0.98, 55% |
 | Phantom | speed 2.0 -> 3.0 (free above 1.33), damage 7 | At 20 HP it fell before the tower: 9 tower damage per elixir. | 14 per elixir, 52% |
 | Skeleton Rider | horse 15 HP that leaves its Skeleton Archer (as the Spider Jockey), damage 6, range 6.0 | 15 HP alone gave 8 tower damage per elixir. | 13 per elixir, 56% |
 | Evoker | range 4.5 -> 4.0, speed 0.8 -> 0.7 (3 elixir) | 63% at 3 elixir. | 63% -> 57% |

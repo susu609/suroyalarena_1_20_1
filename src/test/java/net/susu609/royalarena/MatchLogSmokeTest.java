@@ -36,8 +36,8 @@ public final class MatchLogSmokeTest {
     private static void damageIsCreditedToTheCard() {
         MatchInstance match = Sim.battle();
         CombatEngine engine = new CombatEngine(match);
-        CombatUnit golem = engine.add(UUID.randomUUID(), TeamSide.RED,
-                BattleCard.IRON_GOLEM.stats(), 0.5D, 0.0D);
+        CombatUnit ravager = engine.add(UUID.randomUUID(), TeamSide.RED,
+                BattleCard.RAVAGER.stats(), 0.5D, 0.0D);
         engine.add(UUID.randomUUID(), TeamSide.RED, BattleCard.ZOMBIE.stats(),
                 -1.0D, -1.5D);
         engine.castSpell(TeamSide.BLUE, BattleCard.FIREBALL, 0.0D, 0.0D);
@@ -45,14 +45,14 @@ public final class MatchLogSmokeTest {
         CombatStats.CardStats fireball =
                 engine.stats().card(TeamSide.BLUE, BattleCard.FIREBALL);
         near(fireball.damage(), 20.0D + 25.0D,
-                "Fireball: the Zombie's 20 (all it had) and 25 on the Golem");
+                "Fireball: the Zombie's 20 (all it had) and 25 on the Ravager");
         check(fireball.kills() == 1, "and the Zombie counts as a kill");
         for (int i = 0; i < 80; i++)
             engine.tick();
         near(fireball.damage(), 45.0D + 4.5D,
                 "the burn (1.5 a second for 3 s) is the Fireball's too");
-        near(golem.health(), BattleCard.IRON_GOLEM.stats().health() - 29.5D,
-                "the Golem lost exactly that");
+        near(ravager.health(), BattleCard.RAVAGER.stats().health() - 29.5D,
+                "the Ravager lost exactly that");
     }
 
     private static void aBotMatchIsOneConsistentLine() {

@@ -10,11 +10,12 @@
   "count": 1,
   "unit": {
     "health": 100,
-    "damage": 14,
-    "attack_interval_ticks": 32,
+    "armor": 4,
+    "damage": 15,
+    "attack_interval_ticks": 55,
     "range": 1.5,
     "move_speed": 0.9,
     "flying": false,
-    "targets": "buildings"
+    "targets": "ground"
   }
 }

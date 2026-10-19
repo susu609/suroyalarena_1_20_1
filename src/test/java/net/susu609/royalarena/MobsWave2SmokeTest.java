@@ -397,8 +397,9 @@ public final class MobsWave2SmokeTest {
                 sting * BattleCard.ZOMBIE.stats().armorFactor() + poison,
                 "the undead take it as it is (the sting less the zombie's " +
                         "armour; poison goes through it)");
-        near(lostToBee(BattleCard.IRON_GOLEM), sting,
-                "a golem takes the sting and no poison");
+        near(lostToBee(BattleCard.IRON_GOLEM),
+                sting * BattleCard.IRON_GOLEM.stats().armorFactor(),
+                "a golem takes the sting (less its armour) and no poison");
         CombatEngine engine = new CombatEngine(battle());
         unit(engine, BattleCard.BEE, TeamSide.BLUE, 0.0D, 2.6D);
         CombatUnit golem = engine.add(UUID.randomUUID(), TeamSide.RED,

@@ -49,7 +49,7 @@ It thinks every 10 ticks and never plays twice within 40 ticks.
   wastes a spell on a single unit.
 - **Defend.** If an enemy unit stands on its bank of the river, it plays the
   sturdiest troop card it can afford (most total health; troops that only
-  target towers, Iron Golem and Hoglin, are never used to defend) three blocks behind that
+  target towers, such as the Hoglin, are never used to defend) three blocks behind that
   unit, in the same lane.
 - **Newer spells.** The same rule: each is cast where it is worth 8
   health per elixir over at least two targets. A freeze or stun is worth the

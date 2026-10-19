@@ -219,7 +219,7 @@ client-side only and has not been seen in the game yet.
 
 ## Not built yet
 
-Flying and tower-only troops (Phantom, Blaze, Ghast, Iron Golem, Hoglin),
+Flying and tower-only troops (Phantom, Blaze, Ghast, Hoglin),
 knockback (Ravager, spells), tower-count scoring and overtime are all built
 now. Still missing, for the "(by hand)" cards in `docs/CARD_QUEUE.md`:
 

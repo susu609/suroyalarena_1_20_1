@@ -60,10 +60,11 @@ public final class TraitSmokeTest {
                 "Creeper is area damage");
         check(CardRole.of(BattleCard.WOLVES).contains(CardRole.SWARM),
                 "Wolves are a swarm");
-        check(CardRole.of(BattleCard.IRON_GOLEM).contains(CardRole.BUILDINGS) &&
+        check(!CardRole.of(BattleCard.IRON_GOLEM).contains(CardRole.BUILDINGS) &&
+                CardRole.of(BattleCard.IRON_GOLEM).contains(CardRole.TANK) &&
                 CardRole.of(BattleCard.HOGLIN).contains(CardRole.BUILDINGS) &&
                 !CardRole.of(BattleCard.RAVAGER).contains(CardRole.BUILDINGS),
-                "Iron Golem and Hoglin target towers, the Ravager fights");
+                "the Hoglin targets towers; the Iron Golem and Ravager fight");
         check(CardRole.of(BattleCard.PILLAGER).contains(CardRole.RANGED),
                 "the Pillager is ranged");
         check(CardRole.of(BattleCard.MAGMA_CUBE).contains(CardRole.TANK) &&
@@ -187,8 +188,7 @@ public final class TraitSmokeTest {
     }
 
     private static void buildingTargetersIgnoreTroops() {
-        for (BattleCard card : new BattleCard[] {BattleCard.IRON_GOLEM,
-                BattleCard.HOGLIN})
+        for (BattleCard card : new BattleCard[] {BattleCard.HOGLIN})
         {
             MatchInstance match = battle();
             CombatEngine engine = new CombatEngine(match);

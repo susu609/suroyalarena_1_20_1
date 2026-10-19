@@ -72,7 +72,7 @@ elixir. Lowering it makes every troop more expensive. Decide after playtests.
 | Spider x3 | 48 | 6.0 | count 3, speed | 3.21 | 3 |
 | Skeletons x2 | 40 | 3.33 | speed | 2.35 | 2 |
 | Big Slime x1 | 108 | 3.57 | - | 3.64 | 4 |
-| Iron Golem x1 | 100 | 8.75 | towers only | 4.66 | 5 |
+| Iron Golem x1 (armour 4) | 119 | 5.45 | - | 4.72 | 5 |
 
 ## Tribes
 
