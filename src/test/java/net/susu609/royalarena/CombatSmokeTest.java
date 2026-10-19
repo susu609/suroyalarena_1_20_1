@@ -264,6 +264,8 @@ public final class CombatSmokeTest {
         near(json.contains("\"haste_ticks\"") ? number(json, "haste_ticks") :
                 0.0D, s.hasteTicks(), id + " haste");
         check(s.poison() == json.contains("\"poison\": true"), id + " poison");
+        check(s.cleanse() == json.contains("\"cleanse\": true"),
+                id + " cleanse");
         if (json.contains("\"burn\""))
             near(number(json, "damage_per_second"), s.burnPerSecond(),
                     id + " burn");

@@ -524,6 +524,8 @@ public final class DeckScreen extends Screen {
             }
             if (s.heal())
                 lines.add(line("Heals your own troops, never towers"));
+            if (s.cleanse())
+                lines.add(line("Clears every effect, good and bad, on both sides"));
             if (s.poison())
                 lines.add(line("Poison: 1.5x on the living, none on golems"));
             if (s.slowTicks() > 0)
@@ -626,6 +628,11 @@ public final class DeckScreen extends Screen {
         if (s.traits().leavesFireTrail())
             lines.add(line("Leaves a burning trail for %.0f s: enemies on it burn",
                     s.traits().fireTrailTicks() / 20.0D));
+        if (card == BattleCard.CAT)
+            lines.add(line("Creepers and Phantoms will not come within %.0f blocks",
+                    BattleCard.CAT_SCARE_RADIUS));
+        if (card.swallowsSmallSlimes())
+            lines.add(line("Swallows the smallest slimes and magma cubes whole"));
         return lines;
     }
 

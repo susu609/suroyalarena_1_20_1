@@ -35,8 +35,38 @@ public record SpellStats(double radius, int castTicks, int pulses,
                          double burnPerSecond, int burnTicks, int maxTargets,
                          int stunTicks, int freezeTicks, boolean heal,
                          boolean middleReach, int slowTicks, boolean poison,
-                         int hasteTicks, double flightSpeed)
+                         int hasteTicks, double flightSpeed, boolean cleanse)
 {
+    /**
+     * What clearing one unit's effects is worth, in damage: Milk Bucket
+     * takes good and bad effects off both sides, so it is worth little.
+     */
+    public static final double CLEANSE_VALUE = 0.8D;
+
+    public SpellStats(double radius, int castTicks, int pulses,
+            int pulseInterval, double damagePerPulse, double towerMultiplier,
+            double knockback, double burnPerSecond, int burnTicks, int maxTargets,
+            int stunTicks, int freezeTicks, boolean heal, boolean middleReach,
+            int slowTicks, boolean poison, int hasteTicks, double flightSpeed)
+    {
+        this(radius, castTicks, pulses, pulseInterval, damagePerPulse,
+                towerMultiplier, knockback, burnPerSecond, burnTicks,
+                maxTargets, stunTicks, freezeTicks, heal, middleReach,
+                slowTicks, poison, hasteTicks, flightSpeed, false);
+    }
+
+    /**
+     * The same spell taking every effect off every unit it touches, on
+     * both sides (Milk Bucket: poison, burning, slow, web, freeze, stun,
+     * haste), and off the towers in it.
+     */
+    public SpellStats cleansing() {
+        return new SpellStats(radius, castTicks, pulses, pulseInterval,
+                damagePerPulse, towerMultiplier, knockback, burnPerSecond,
+                burnTicks, maxTargets, stunTicks, freezeTicks, heal,
+                middleReach, slowTicks, poison, hasteTicks, flightSpeed, true);
+    }
+
     /** The fewest ticks a thrown spell flies, even cast at the King's feet. */
     public static final int MIN_FLIGHT_TICKS = 4;
 
@@ -62,7 +92,7 @@ public record SpellStats(double radius, int castTicks, int pulses,
         return new SpellStats(radius, castTicks, pulses, pulseInterval,
                 damagePerPulse, towerMultiplier, knockback, burnPerSecond,
                 burnTicks, maxTargets, stunTicks, freezeTicks, heal,
-                middleReach, slowTicks, poison, hasteTicks, speed);
+                middleReach, slowTicks, poison, hasteTicks, speed, cleanse);
     }
 
     public boolean thrown() {
@@ -136,7 +166,8 @@ public record SpellStats(double radius, int castTicks, int pulses,
                 (durationTicks() + slowTicks) / 20.0D;
         return (stunTicks + freezeTicks) / 20.0D * CONTROL_VALUE_PER_SECOND +
                 slowSeconds * SLOW_VALUE_PER_SECOND +
-                hasteTicks / 20.0D * HASTE_VALUE_PER_SECOND;
+                hasteTicks / 20.0D * HASTE_VALUE_PER_SECOND +
+                (cleanse ? CLEANSE_VALUE : 0.0D);
     }
 
     /** Lands on the caster's own troops (healing or haste), not the enemy. */

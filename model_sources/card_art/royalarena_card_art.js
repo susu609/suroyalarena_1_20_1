@@ -71,6 +71,10 @@
         'swiftness_potion': 2,
         'snowball_volley': 2,
         'zap': 2,
+        'cat': 1,
+        'frog': 1,
+        'piglets': 3,
+        'milk_bucket': 1,
     };
     const CARD_IDS = Object.keys(CARDS);
 

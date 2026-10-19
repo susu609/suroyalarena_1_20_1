@@ -1,0 +1,20 @@
+{
+  "id": "piglets",
+  "type": "troop",
+  "display_name": "Piglets",
+  "roles": ["attack"],
+  "body": "living",
+  "elixir": 3,
+  "entity": "minecraft:pig",
+  "model_scale": 0.6,
+  "count": 4,
+  "unit": {
+    "health": 10,
+    "damage": 4,
+    "attack_interval_ticks": 30,
+    "range": 0.8,
+    "move_speed": 1.8,
+    "flying": false,
+    "targets": "buildings"
+  }
+}

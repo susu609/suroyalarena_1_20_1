@@ -54,6 +54,8 @@ public final class MobSounds {
             case "slime" -> "entity.slime.attack";
             case "phantom" -> "entity.phantom.bite";
             case "polar_bear" -> "entity.polar_bear.warning";
+            case "cat" -> "entity.cat.hiss";
+            case "frog" -> "entity.frog.tongue";
             default -> null;
         };
     }

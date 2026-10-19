@@ -51,6 +51,7 @@ public final class DomainSmokeTest {
         BotPersonalitySmokeTest.run();
         TribeSmokeTest.run();
         SandboxSmokeTest.run();
+        MobsWave3SmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

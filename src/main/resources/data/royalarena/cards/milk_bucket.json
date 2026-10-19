@@ -1,0 +1,14 @@
+{
+  "id": "milk_bucket",
+  "type": "spell",
+  "display_name": "Milk Bucket",
+  "roles": ["support"],
+  "elixir": 1,
+  "radius": 3.0,
+  "travel_ticks": 5,
+  "flight_speed": 16,
+  "damage": 0,
+  "cleanse": true,
+  "targets": "every unit and tower, both sides",
+  "tower_multiplier": 0.0
+}

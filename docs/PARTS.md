@@ -771,3 +771,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - client: `ClientSandbox`, `SandboxHud`, `SandboxCardScreen`,
   `SandboxTribeScreen`, `SandboxStatsRenderer`, `WorldShapes.line`, keys
 - `SandboxSmokeTest`
+
+## Part 66 — Cat, Frog, Piglets, Milk Bucket
+
+- `card/BattleCard.java` and the JSONs: Cat (keeps enemy Creepers and
+  Phantoms 4 blocks away), Frog (swallows the smallest slimes), Piglets
+  (4 small tower-only pigs), Milk Bucket (clears every effect, both
+  sides); Beast and Aquatic tribes grow; protocol 27
+- `SpellStats.cleanse` / `cleansing()` (value 0.8 per unit),
+  `CombatUnit.clearEffects`, `CombatEngine` (`scaringCat`, `swallows`,
+  `cleanseTargets`), `BotBrain.cleanseValue` (aimed at its own troops)
+- `BattleField` (milk throw and splash), `DeckScreen` tooltips,
+  `SpellTargetHighlighter` (milk lights both sides), `MobSounds` (cat hiss,
+  frog tongue), card art list, `vanilla.json`
+- `MobsWave3SmokeTest`, `"cleanse"` in `CombatSmokeTest`

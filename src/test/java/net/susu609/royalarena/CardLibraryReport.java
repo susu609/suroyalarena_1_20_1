@@ -88,6 +88,8 @@ public final class CardLibraryReport {
             f.add("web");
         if (s.hasteTicks() > 0)
             f.add("haste " + s.hasteTicks() / 20 + " s");
+        if (s.cleanse())
+            f.add("clears all effects, both sides");
         if (s.knockback() > 0)
             f.add("push " + s.knockback());
         if (s.burnTicks() > 0)

@@ -557,6 +557,15 @@ public final class BattleField {
                             SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.8F,
                             1.0F);
                 }
+                case MILK_BUCKET -> {
+                    // The King throws a splash of milk.
+                    sendProjectile(S2CProjectilePacket.Kind.POTION, hand,
+                            new double[] {tx, floor + 0.3D, tz},
+                            deploy.ticksLeft(), 4.0F);
+                    level.playSound(null, hand[0], hand[1], hand[2],
+                            SoundEvents.SPLASH_POTION_THROW,
+                            SoundSource.HOSTILE, 0.8F, 1.2F);
+                }
                 case POISON_CLOUD, SWIFTNESS_POTION, COBWEB,
                         SNOWBALL_VOLLEY -> {
                     // The King throws a potion, a web or snowballs.
@@ -720,6 +729,23 @@ public final class BattleField {
                     level.sendParticles(ParticleTypes.CLOUD, strike.x(),
                             floor + 0.3D, strike.z(), 4, 0.2D, 0.05D, 0.2D,
                             0.02D);
+            }
+            case MILK_BUCKET -> {
+                // A white splash; every unit it washes gets a puff.
+                flash(x, z, radius, S2CAoeFlashPacket.WEB);
+                level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM,
+                                new ItemStack(Items.MILK_BUCKET)), x,
+                        floor + 0.4D, z, 30, radius * 0.5D, 0.2D,
+                        radius * 0.5D, 0.1D);
+                for (TickResult.Strike strike : pulse.strikes())
+                    level.sendParticles(ParticleTypes.CLOUD, strike.x(),
+                            floor + 0.6D, strike.z(), 5, 0.25D, 0.2D, 0.25D,
+                            0.02D);
+                level.playSound(null, x, floor, z, SoundEvents.GENERIC_DRINK,
+                        SoundSource.HOSTILE, 1.0F, 1.0F);
+                level.playSound(null, x, floor, z,
+                        SoundEvents.SPLASH_POTION_BREAK, SoundSource.HOSTILE,
+                        0.8F, 1.2F);
             }
             case ZAP -> {
                 // A crackle on every troop and tower shocked, and a flash.

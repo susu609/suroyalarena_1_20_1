@@ -76,3 +76,5 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
 
 - [x] Husk, Wither Skeleton, Piglin Brute, Polar Bear, Phantom, Silverfish,
   Bee, Evoker, Guardian, Snow Golem (see docs/CARDS.md).
+- [x] Batch 1 of vanilla-behaviour cards (by hand): Cat, Frog, Piglets, Milk
+  Bucket (docs/CARDS.md). Gold Ingot was dropped (not needed).

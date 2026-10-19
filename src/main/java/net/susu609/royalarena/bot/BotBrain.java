@@ -416,7 +416,8 @@ public final class BotBrain {
             // in a big fight: it waits for half as much again.
             if (card.spell().damagePerPulse() <= 0.0D)
                 needed *= 1.5D;
-            boolean heal = card.spell().friendly();
+            // Milk is aimed at its own troops too, to free them.
+            boolean heal = card.spell().friendly() || card.spell().cleanse();
             List<int[]> aims = new ArrayList<>();
             for (CombatUnit aim : engine.units()) {
                 // Healing and Swiftness go on own troops, the rest on enemies.
@@ -461,6 +462,37 @@ public final class BotBrain {
     }
 
     /**
+     * What Milk Bucket centred on (x, z) is worth: for each own troop that
+     * is fighting, the damage it gets to deal again (frozen or webbed time)
+     * and the burn it no longer takes; for each enemy, its haste lost, less
+     * the freeze, web and burn this side had put on it. 0 below 2 units.
+     */
+    private double cleanseValue(MatchInstance match, CombatEngine engine,
+            SpellStats spell, double x, double z)
+    {
+        double total = 0.0D;
+        int touched = 0;
+        for (CombatUnit unit : engine.units()) {
+            if (!unit.alive() || Math.hypot(unit.x() - x, unit.z() - z) >
+                    spell.radius() + unit.radius())
+                continue;
+            double dps = unit.stats().damage() * 20.0D /
+                    unit.stats().attackTicks();
+            double stopped = unit.frozenTicks() / 20.0D * dps +
+                    (unit.webbed() ? unit.slowTicks() / 20.0D * dps * 0.5D :
+                            0.0D) + unit.burnTicks() / 20.0D;
+            double hasted = unit.hasteTicks() / 20.0D * dps * HASTE_ATTACK;
+            if (unit.side() == side)
+                total += (fighting(match, engine, unit) ? stopped : 0.0D) -
+                        hasted;
+            else
+                total += hasted - stopped;
+            touched++;
+        }
+        return touched < 2 ? 0.0D : total;
+    }
+
+    /**
      * What a spell centred on (x, z) is worth: the enemy health it would
      * remove, plus for each unit it freezes or stuns while that unit fights
      * this side the damage the unit does not deal meanwhile (only the
@@ -476,6 +508,8 @@ public final class BotBrain {
             BattleCard card, double x, double z)
     {
         SpellStats spell = card.spell();
+        if (spell.cleanse())
+            return cleanseValue(match, engine, spell, x, z);
         double perTarget = spell.damagePerTarget();
         double seconds = Math.max(spell.freezeTicks(), spell.stunTicks()) /
                 20.0D;

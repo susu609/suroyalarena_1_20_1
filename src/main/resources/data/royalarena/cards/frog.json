@@ -1,0 +1,21 @@
+{
+  "id": "frog",
+  "type": "troop",
+  "display_name": "Frog",
+  "roles": ["defense"],
+  "body": "living",
+  "elixir": 1,
+  "entity": "minecraft:frog",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 10,
+    "damage": 3,
+    "attack_interval_ticks": 24,
+    "range": 2.0,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground",
+    "swallows": ["small slime", "small magma cube"]
+  }
+}

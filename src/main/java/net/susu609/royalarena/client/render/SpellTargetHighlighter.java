@@ -89,9 +89,11 @@ public final class SpellTargetHighlighter {
             if (entity instanceof CrownTowerEntity ||
                     entity instanceof KingTowerEntity) {
                 TowerId id = arena.towerAt(entity.getX(), entity.getZ());
-                if (!spell.friendly() && !spell.poison() &&
-                        spell.towerMultiplier() > 0.0D && id != null &&
-                        id.side() == target &&
+                // Milk washes every tower it touches, both sides.
+                boolean hitsTower = spell.cleanse() || !spell.friendly() &&
+                        !spell.poison() && spell.towerMultiplier() > 0.0D &&
+                        id != null && id.side() == target;
+                if (hitsTower && id != null &&
                         ClientMatchState.towerHealth(id) > 0 &&
                         arena.distanceToTower(x, z, id) <= spell.radius()) {
                     hits.add(entity);
@@ -99,8 +101,9 @@ public final class SpellTargetHighlighter {
                 }
                 continue;
             }
+            TeamSide of = TroopVisuals.sideOf(entity);
             if (!(entity instanceof LivingEntity living) || !entity.isAlive() ||
-                    TroopVisuals.sideOf(entity) != target)
+                    of == null || !spell.cleanse() && of != target)
                 continue;
             double reach = spell.radius() +
                     entity.getBbWidth() * TroopVisuals.scale(entity) / 2.0D;

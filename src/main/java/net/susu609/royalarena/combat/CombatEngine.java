@@ -314,6 +314,23 @@ public final class CombatEngine {
         // Frozen or stunned: no walking, no attacking, the same target.
         if (unit.frozen())
             return;
+        // A Creeper or Phantom near an enemy Cat backs away from it.
+        CombatUnit cat = scaringCat(unit);
+        if (cat != null) {
+            unit.setTarget(null);
+            double dx = unit.x() - cat.x();
+            double dz = unit.z() - cat.z();
+            double length = Math.hypot(dx, dz);
+            if (length < 1.0E-3D) {
+                dx = 0.0D;
+                dz = -ArenaLayout.sideSign(unit.side());
+                length = 1.0D;
+            }
+            moves.add(new Move(unit.id(), unit.x() + dx / length * 2.0D,
+                    unit.z() + dz / length * 2.0D,
+                    stats.speedPerTick() * speedMultiplier));
+            return;
+        }
         CombatUnit enemy = pickEnemy(unit);
         unit.setTarget(enemy == null ? null : enemy.id());
 
@@ -368,6 +385,8 @@ public final class CombatEngine {
             damage *= unit.tribe().riverDamage();
         if (unit.tribe().packDamage() > 0.0D)
             damage *= 1.0D + unit.tribe().packDamage() * packmates(unit);
+        if (enemy != null && swallows(unit, enemy))
+            damage = SWALLOW_DAMAGE;
         attacks.add(new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
                 damage, ranged, flight, unit.side(), targetX, targetZ,
@@ -378,6 +397,43 @@ public final class CombatEngine {
             volley(unit, enemy, damage, attacks);
         if (traits.selfDestruct())
             unit.expire();
+    }
+
+    /** Damage of a Frog's lick on a slime it swallows: always a kill. */
+    private static final double SWALLOW_DAMAGE = 1000.0D;
+
+    /** The nearest enemy Cat that keeps this Creeper or Phantom away. */
+    private CombatUnit scaringCat(CombatUnit unit) {
+        BattleCard card = cardOf.get(unit.id());
+        if (card == null || !card.fearsCats())
+            return null;
+        CombatUnit best = null;
+        double bestDistance = BattleCard.CAT_SCARE_RADIUS + EPSILON;
+        for (CombatUnit other : units) {
+            if (other.side() == unit.side() || !other.alive() ||
+                    cardOf.get(other.id()) != BattleCard.CAT)
+                continue;
+            double d = distance(unit, other);
+            if (d <= bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Whether a Frog's lick swallows this enemy: a slime or magma cube that
+     * can split no more (the smallest, as vanilla frogs eat).
+     */
+    private boolean swallows(CombatUnit frog, CombatUnit enemy) {
+        BattleCard card = cardOf.get(frog.id());
+        BattleCard prey = cardOf.get(enemy.id());
+        if (card == null || !card.swallowsSmallSlimes() ||
+                (prey != BattleCard.BIG_SLIME && prey != BattleCard.MAGMA_CUBE))
+            return false;
+        SplitRule rule = enemy.stats().split();
+        return rule == null || enemy.generation() >= rule.generations();
     }
 
     /**
@@ -536,7 +592,8 @@ public final class CombatEngine {
                 continue;
             }
             SpellStats spell = active.card.spell();
-            List<Hit> pulseHits = spell.friendly() ? healTargets(active) :
+            List<Hit> pulseHits = spell.cleanse() ? cleanseTargets(active) :
+                    spell.friendly() ? healTargets(active) :
                     spellTargets(active);
             List<TickResult.Strike> strikes = new ArrayList<>();
             for (Hit hit : pulseHits) {
@@ -625,11 +682,41 @@ public final class CombatEngine {
         return hits;
     }
 
+    /**
+     * Every unit of both sides whose body touches the circle, and every
+     * standing tower whose footprint does (Milk Bucket).
+     */
+    private List<Hit> cleanseTargets(ActiveSpell active) {
+        SpellStats spell = active.card.spell();
+        List<Hit> hits = new ArrayList<>();
+        for (CombatUnit unit : units) {
+            if (unit.alive() && Math.hypot(unit.x() - active.x,
+                    unit.z() - active.z) <= spell.radius() + unit.radius() +
+                    EPSILON)
+                hits.add(new Hit(unit, null, 0.0D, active));
+        }
+        for (TowerId id : TowerId.values()) {
+            if (!match.tower(id).isDestroyed() &&
+                    distanceToTower(active.x, active.z, id) <=
+                            spell.radius() + EPSILON)
+                hits.add(new Hit(null, id, 0.0D, active));
+        }
+        return hits;
+    }
+
     private void applySpellHits(List<Hit> hits, List<TowerId> destroyed,
             List<Push> pushes)
     {
         for (Hit hit : hits) {
             SpellStats spell = hit.spell().card.spell();
+            if (spell.cleanse()) {
+                // Milk: every effect off, good or bad, on both sides.
+                if (hit.tower() != null)
+                    towerFrozen.remove(hit.tower());
+                else
+                    hit.unit().clearEffects();
+                continue;
+            }
             if (hit.tower() != null) {
                 hitTower(hit.tower(), hit.damage(), destroyed,
                         hit.spell().side, hit.spell().card);

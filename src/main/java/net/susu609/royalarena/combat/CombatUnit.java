@@ -134,6 +134,23 @@ public final class CombatUnit {
     public double z() {
         return z;
     }
+    /**
+     * Takes every effect off: poison, burning, slow, web, freeze, stun and
+     * haste (Milk Bucket).
+     */
+    public void clearEffects() {
+        burnTicks = 0;
+        burnPerTick = 0.0D;
+        burnSource = null;
+        poisonTicks = 0;
+        poisonPerTick = 0.0D;
+        poisonSource = null;
+        frozenTicks = 0;
+        slowTicks = 0;
+        webTicks = 0;
+        hasteTicks = 0;
+    }
+
     public boolean alive() {
         return health > 0.0D;
     }

@@ -79,6 +79,7 @@ circle, and enemy towers whose footprint touches it for **30%** of the damage
 | Swiftness Potion | **2** | The King throws a splash potion of swiftness (0.25 s); every **own** troop in a 3.5 block circle walks 50% and attacks 75% faster for 6 s. |
 | Snowball Volley | **2** | A burst of snowballs (0.4 s) on a 2.5 block circle: **6** damage, knocks back 1.5 blocks, and webs the troops for 1.5 s (60% slower walk, half-speed attack). 30% to towers. |
 | Zap | **2** | Falls after 0.25 s: every enemy troop and tower in a 2.5 block circle takes **6** damage (30% to a tower) and is **shocked for 0.5 s**: it stops walking, and its attack timer restarts, so a swing about to land starts over. No target limit (Lightning hits 3). |
+| Milk Bucket | **1** | The King throws a splash of milk (16 blocks/s): every unit in a 3 block circle, **both sides**, loses every effect, good and bad (poison, burning, slow, web, freeze, stun, haste), and the towers in it thaw. No damage. |
 
 Burning troops are shown on fire; the burn damage comes from the engine (the
 mobs themselves are invulnerable).
@@ -418,3 +419,17 @@ three cheap support spells seem to lose to a troop in the same slot in bot
 matches; they need a person's call (redesign, or a support role the bot
 plays differently). Pillager 62% still waits for the user.
 
+## Batch 1 of vanilla-behaviour cards: Cat, Frog, Piglets, Milk Bucket
+
+Each does what its mob does in vanilla rather than copying a Clash Royale
+role (`MobsWave3SmokeTest`):
+
+| Card | Elixir | Stats | Rule |
+|---|---|---|---|
+| Cat | 1 | 10 HP, 3 damage a second, range 1.0, speed 1.3, Beast | **Creepers and Phantoms will not come within 4 blocks** of an enemy Cat (vanilla: they flee cats): inside, they drop their target and back away instead of attacking (`CombatEngine.scaringCat`). |
+| Frog | 1 | 10 HP, 3 damage every 1.2 s, range 2.0 (its tongue), speed 1.0, Aquatic | **Swallows the smallest slimes and magma cubes whole**: a lick kills a Big Slime or Magma Cube that can split no more (`swallows`); anything else only takes the lick. |
+| Piglets | 3 | 4 small pigs (scale 0.6), 10 HP each, 4 damage every 1.5 s, speed 1.8, towers only, Beast | A fast swarm that runs for the towers; splash damage clears it. Three pigs at 2 elixir fell to the tower before doing anything (7.5 tower damage per elixir, band 12-25), so four at 3 (16 per elixir). |
+| Milk Bucket | 1 | spell, radius 3 | See the spell table: clears everything on both sides, so it frees your troops from a Freeze, a web or a burn but also takes your Swiftness off. Its value (0.8 per unit) is in the spell formula. |
+
+Win rates (4000 bot matches): Frog 52%, Milk Bucket 51%, Cat 48%,
+Piglets 48%.

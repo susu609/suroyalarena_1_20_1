@@ -124,6 +124,13 @@ public enum BattleCard {
     PIGLIN("Piglin", 2, "minecraft:piglin", "minecraft:crossbow", 0,
             new TroopStats(1, 16, 5, 60, 5.0D, 1.0D, 0.3D,
                     TroopTraits.burst(2))),
+    CAT("Cat", 1, "minecraft:cat", null, 0,
+            new TroopStats(1, 10, 3, 20, 1.0D, 1.3D, 0.3D)),
+    FROG("Frog", 1, "minecraft:frog", null, 0,
+            new TroopStats(1, 10, 3, 24, 2.0D, 1.0D, 0.3D)),
+    PIGLETS("Piglets", 3, "minecraft:pig", null, 0,
+            new TroopStats(4, 10, 4, 30, 0.8D, 1.8D, 0.35D,
+                    TroopTraits.BUILDINGS)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(2.3D, 6, 3, 8, 7.0D, 0.5D, 0.0D, 0.0D, 0)
                     .thrownAt(24.0D)),
@@ -157,7 +164,10 @@ public enum BattleCard {
                     .thrownAt(20.0D)),
     ZAP("Zap", 2, "minecraft:copper_ingot",
             new SpellStats(2.5D, 5, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
-                    0.0D, 0.0D, 0, 0, 10, 0, false));
+                    0.0D, 0.0D, 0, 0, 10, 0, false)),
+    MILK_BUCKET("Milk Bucket", 1, "minecraft:milk_bucket",
+            new SpellStats(3.0D, 5, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0, 0,
+                    false).thrownAt(16.0D).cleansing());
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;
@@ -273,7 +283,9 @@ public enum BattleCard {
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
             case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
             case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
-            case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA -> EnumSet.of(Tribe.BEAST);
+            case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA, CAT, PIGLETS ->
+                    EnumSet.of(Tribe.BEAST);
+            case FROG -> EnumSet.of(Tribe.AQUATIC);
             case CREEPER, ENDERMAN -> EnumSet.of(Tribe.NIGHT);
             case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
             case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
@@ -298,6 +310,7 @@ public enum BattleCard {
             case SKELETONS -> 0.9F;
             case SPIDER -> 0.75F;
             case SPIDER_JOCKEY -> 0.9F;
+            case PIGLETS -> 0.6F;
             case CAVE_SPIDER -> 0.6F;
             case VEX -> 0.8F;
             case ZOMBIE_VILLAGER -> 0.85F;
@@ -314,12 +327,12 @@ public enum BattleCard {
     public Set<CardTactic> tactics() {
         return switch (this) {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
-                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT ->
+                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT, CAT, FROG ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
                     SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
-            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
@@ -327,7 +340,7 @@ public enum BattleCard {
                     EnumSet.of(CardTactic.ATTACK, CardTactic.DEFENSE);
             case DROWNED, BLAZE, FREEZE ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.SUPPORT);
-            case HEALING_POTION, SWIFTNESS_POTION ->
+            case HEALING_POTION, SWIFTNESS_POTION, MILK_BUCKET ->
                     EnumSet.of(CardTactic.SUPPORT);
         };
     }
@@ -359,6 +372,26 @@ public enum BattleCard {
                     WITHER_SKELETON, PIGLIN_BRUTE, STRIDER, PIGLIN -> true;
             default -> false;
         };
+    }
+
+    /**
+     * Creepers and Phantoms will not come near a Cat (vanilla: they flee
+     * cats and ocelots): within {@link #CAT_SCARE_RADIUS} of an enemy Cat
+     * they turn away and do not attack.
+     */
+    public boolean fearsCats() {
+        return this == CREEPER || this == PHANTOM;
+    }
+
+    /** How close a Creeper or Phantom will come to an enemy Cat. */
+    public static final double CAT_SCARE_RADIUS = 4.0D;
+
+    /**
+     * A Frog swallows the smallest slimes and magma cubes whole, as in
+     * vanilla: one lick kills a slime that can split no more.
+     */
+    public boolean swallowsSmallSlimes() {
+        return this == FROG;
     }
 
     /** Troop stats; null for a spell. */
