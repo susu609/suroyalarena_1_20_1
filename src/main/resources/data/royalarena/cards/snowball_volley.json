@@ -6,6 +6,7 @@
   "elixir": 2,
   "radius": 2.5,
   "travel_ticks": 8,
+  "flight_speed": 20,
   "damage": 6,
   "knockback": 1.5,
   "slow_ticks": 30

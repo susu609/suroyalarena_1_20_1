@@ -726,3 +726,15 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `MobsWave2SmokeTest.piglinFiresTwoThenReloads`, `"burst"` in
   `CombatSmokeTest`
 
+## Part 62 — Arrow Storm rework, spells thrown from the King
+
+- `card/SpellStats.java` (`flightSpeed`, `thrownAt`, `flightTicks`),
+  `card/BattleCard.java` and the spell JSONs (`"flight_speed"`): Arrow Storm
+  3 volleys of 7 every 0.4 s, radius 2.3 (was 16 over 4 s, radius 3)
+- `arena/ArenaLayout.deployTicks` (flight from the King by distance),
+  `match/MatchInstance.java`, `match/PendingDeploy.java` (`totalTicks`),
+  `S2CMatchSnapshotPacket`, `ClientMatchState`, protocol 24
+- `bot/BotBrain.java` (spell lead by flight), `client/screen/DeckScreen.java`
+  (tooltip), `server/battle/BattleField.java` (arrows from the King)
+- `SpellSmokeTest.arrowStormFiresThreeVolleys`, flight checks in
+  `SpellSmokeTest`, `"flight_speed"` in `CombatSmokeTest`

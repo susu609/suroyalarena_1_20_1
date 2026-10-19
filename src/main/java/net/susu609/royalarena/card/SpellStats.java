@@ -35,8 +35,48 @@ public record SpellStats(double radius, int castTicks, int pulses,
                          double burnPerSecond, int burnTicks, int maxTargets,
                          int stunTicks, int freezeTicks, boolean heal,
                          boolean middleReach, int slowTicks, boolean poison,
-                         int hasteTicks)
+                         int hasteTicks, double flightSpeed)
 {
+    /** The fewest ticks a thrown spell flies, even cast at the King's feet. */
+    public static final int MIN_FLIGHT_TICKS = 4;
+
+    public SpellStats(double radius, int castTicks, int pulses,
+            int pulseInterval, double damagePerPulse, double towerMultiplier,
+            double knockback, double burnPerSecond, int burnTicks, int maxTargets,
+            int stunTicks, int freezeTicks, boolean heal, boolean middleReach,
+            int slowTicks, boolean poison, int hasteTicks)
+    {
+        this(radius, castTicks, pulses, pulseInterval, damagePerPulse,
+                towerMultiplier, knockback, burnPerSecond, burnTicks,
+                maxTargets, stunTicks, freezeTicks, heal, middleReach,
+                slowTicks, poison, hasteTicks, 0.0D);
+    }
+
+    /**
+     * The same spell thrown from its caster's King tower at {@code speed}
+     * blocks a second, so it lands later the farther it is cast (like Clash
+     * Royale). Without it (0) the spell takes {@code castTicks} wherever it
+     * lands (TNT and Lightning come from the sky).
+     */
+    public SpellStats thrownAt(double speed) {
+        return new SpellStats(radius, castTicks, pulses, pulseInterval,
+                damagePerPulse, towerMultiplier, knockback, burnPerSecond,
+                burnTicks, maxTargets, stunTicks, freezeTicks, heal,
+                middleReach, slowTicks, poison, hasteTicks, speed);
+    }
+
+    public boolean thrown() {
+        return flightSpeed > 0.0D;
+    }
+
+    /** Ticks in the air to land {@code distance} blocks from the King. */
+    public int flightTicks(double distance) {
+        if (!thrown())
+            return castTicks;
+        return Math.max(MIN_FLIGHT_TICKS,
+                (int) Math.round(distance / flightSpeed * 20.0D));
+    }
+
     /** Spells deal this share of their damage to towers (balance.json). */
     public static final double TOWER_MULTIPLIER = 0.3D;
     /** A second of a target frozen or stunned counts as this much damage. */
@@ -56,7 +96,7 @@ public record SpellStats(double radius, int castTicks, int pulses,
         this(radius, castTicks, pulses, pulseInterval, damagePerPulse,
                 towerMultiplier, knockback, burnPerSecond, burnTicks,
                 maxTargets, stunTicks, freezeTicks, heal, middleReach, 0, false,
-                0);
+                0, 0.0D);
     }
 
     public SpellStats(double radius, int castTicks, int pulses,

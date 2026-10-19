@@ -501,8 +501,12 @@ public final class DeckScreen extends Screen {
                 .withStyle(ChatFormatting.AQUA));
         if (card.isSpell()) {
             SpellStats s = card.spell();
-            lines.add(line("Radius %.1f blocks, lands after %.1f s",
-                    s.radius(), s.castTicks() / 20.0D));
+            if (s.thrown())
+                lines.add(line("Radius %.1f blocks, thrown from the King at %.0f blocks/s",
+                        s.radius(), s.flightSpeed()));
+            else
+                lines.add(line("Radius %.1f blocks, lands after %.1f s",
+                        s.radius(), s.castTicks() / 20.0D));
             String effect = s.heal() ? "healing" : s.poison() ? "poison" :
                     "damage";
             if (s.damagePerPulse() <= 0.0D) {

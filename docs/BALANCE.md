@@ -132,7 +132,7 @@ tower share and burn are not counted, so they are free levers.
 
 | Spell | Damage per target | Radius | Raw | Elixir |
 |---|---|---|---|---|
-| Arrow Storm | 16 | 3.0 | 3.31 | 3 |
+| Arrow Storm | 21 (3 volleys of 7) | 2.3 | 3.32 | 3 |
 | Fireball | 25 | 2.5 | 4.00 | 4 |
 | Lightning | 40 + 0.5 s stun (41), 3 targets | 3.5 | 6.17 | 6 |
 | Potion of Healing | 16 healing | 3.0 | 3.31 | 3 |

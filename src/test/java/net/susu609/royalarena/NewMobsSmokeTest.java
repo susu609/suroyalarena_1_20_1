@@ -156,28 +156,26 @@ public final class NewMobsSmokeTest {
     }
 
     private static void blazeIsHurtByFrostAndWater() {
-        // Arrow Storm: 16 damage over the spell; the water makes it 24.
+        // Arrow Storm's first volley: 7 on land, 1.5 x 7 on the river (the
+        // three volleys, 21, kill a 20-health Blaze either way).
+        double volley = BattleCard.ARROW_STORM.spell().damagePerPulse();
         MatchInstance land = battle();
         CombatEngine landEngine = new CombatEngine(land);
         CombatUnit blazeLand = unit(landEngine, BattleCard.BLAZE, TeamSide.BLUE,
                 0.5D, 6.0D);
         landEngine.castSpell(TeamSide.RED, BattleCard.ARROW_STORM, 0.5D, 6.0D);
-        for (int i = 0; i < 100; i++)
-            landEngine.tick();
+        landEngine.tick();
         double blaze = BattleCard.BLAZE.stats().health();
-        near(blazeLand.health(), blaze - 16.0D, "on land: 16 damage");
+        near(blazeLand.health(), blaze - volley, "on land: one volley of 7");
 
         MatchInstance river = battle();
         CombatEngine riverEngine = new CombatEngine(river);
         CombatUnit blazeRiver = unit(riverEngine, BattleCard.BLAZE,
                 TeamSide.BLUE, 0.5D, 0.5D);
         riverEngine.castSpell(TeamSide.RED, BattleCard.ARROW_STORM, 0.5D, 0.5D);
-        // Only the first 8 of the 16 pulses (ticks 1..36): the full 1.5 x 16
-        // = 24 would now kill the 20-health Blaze.
-        for (int i = 0; i < 40; i++)
-            riverEngine.tick();
-        near(blazeRiver.health(), blaze - 1.5D * 8.0D,
-                "in the river: 1.5 x 8 for the first 8 pulses of 1");
+        riverEngine.tick();
+        near(blazeRiver.health(), blaze - 1.5D * volley,
+                "in the river: 1.5 x the volley");
 
         MatchInstance cold = battle();
         CombatEngine coldEngine = new CombatEngine(cold);

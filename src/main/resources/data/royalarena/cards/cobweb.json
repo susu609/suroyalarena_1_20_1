@@ -6,6 +6,7 @@
   "elixir": 2,
   "radius": 3.5,
   "travel_ticks": 8,
+  "flight_speed": 16,
   "duration_ticks": 100,
   "pulse_interval_ticks": 20,
   "damage_per_pulse": 0,

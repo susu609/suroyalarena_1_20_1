@@ -4,10 +4,11 @@
   "display_name": "Arrow Storm",
   "roles": ["defense", "support"],
   "elixir": 3,
-  "radius": 3.0,
+  "radius": 2.3,
   "travel_ticks": 6,
-  "duration_ticks": 80,
-  "pulse_interval_ticks": 5,
-  "damage_per_pulse": 1,
+  "flight_speed": 24,
+  "duration_ticks": 24,
+  "pulse_interval_ticks": 8,
+  "damage_per_pulse": 7,
   "tower_multiplier": 0.5
 }

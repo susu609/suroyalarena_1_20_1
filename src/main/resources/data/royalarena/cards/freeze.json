@@ -6,6 +6,7 @@
   "elixir": 3,
   "radius": 3.0,
   "travel_ticks": 5,
+  "flight_speed": 20,
   "damage": 8,
   "freeze_ticks": 80,
   "tower_multiplier": 0.8

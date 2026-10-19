@@ -424,8 +424,10 @@ public final class BotBrain {
                     continue;
                 // Enemies walk toward this side (own troops away from it)
                 // while the card is dragged and the spell is in flight.
+                // A thrown spell flies from the King, so far aims need more.
                 double lead = aim.stats().speed() *
-                        (card.spell().castTicks() + DRAG_TICKS) / 20.0D * 0.5D;
+                        (arena.deployTicks(card, side, aim.x(), aim.z())
+                                + DRAG_TICKS) / 20.0D * 0.5D;
                 int sign = ArenaLayout.sideSign(side) * (heal ? -1 : 1);
                 aims.add(new int[] {(int) Math.floor(aim.x()),
                         (int) Math.floor(aim.z() + sign * lead)});

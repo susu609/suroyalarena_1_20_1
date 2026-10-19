@@ -243,6 +243,8 @@ public final class CombatSmokeTest {
         check(json.contains("\"type\": \"spell\""), id + " is a spell");
         near(number(json, "radius"), s.radius(), id + " radius");
         near(number(json, "travel_ticks"), s.castTicks(), id + " travel");
+        near(json.contains("\"flight_speed\"") ? number(json, "flight_speed")
+                : 0.0D, s.flightSpeed(), id + " flight speed");
         if (s.pulses() > 1) {
             near(number(json, "duration_ticks"),
                     s.pulses() * s.pulseInterval(), id + " duration");

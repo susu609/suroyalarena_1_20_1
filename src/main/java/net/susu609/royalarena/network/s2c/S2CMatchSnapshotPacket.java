@@ -50,6 +50,7 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
             buffer.writeInt(deploy.x());
             buffer.writeInt(deploy.z());
             buffer.writeVarInt(deploy.ticksLeft());
+            buffer.writeVarInt(deploy.totalTicks());
         }
         buffer.writeUUID(s.bluePlayer());
         buffer.writeUUID(s.redPlayer());
@@ -96,7 +97,7 @@ public record S2CMatchSnapshotPacket(MatchSnapshot snapshot) {
             pending.add(new PendingDeploy(
                     BattleCard.byId(buffer.readUtf(32)),
                     buffer.readEnum(TeamSide.class), buffer.readInt(),
-                    buffer.readInt(), buffer.readVarInt()));
+                    buffer.readInt(), buffer.readVarInt(), buffer.readVarInt()));
         }
         UUID bluePlayer = buffer.readUUID();
         UUID redPlayer = buffer.readUUID();

@@ -520,8 +520,9 @@ public final class BattleField {
     // -------------------------------------------------------------- spells
 
     /**
-     * Shows spells still in flight: the fireball arcs from the caster's King
-     * tower to its target; arrows mark the circle they are about to hit.
+     * Shows spells still in flight: thrown spells (fireball, potions,
+     * arrows...) arc from the caster's King tower to their target; TNT falls
+     * from the sky and lightning sparks on its circle.
      */
     public void showFlights(List<PendingDeploy> pending) {
         Set<String> current = new HashSet<>();
@@ -598,27 +599,28 @@ public final class BattleField {
     }
 
     /**
-     * Arrow Storm arrows coming down on random points of the circle from the
-     * caster's side, landing in {@code ticks}.
+     * Arrow Storm arrows shot from the caster's King tower in an arc onto
+     * random points of the circle, landing in {@code ticks}.
      */
     private void arrowVolley(TeamSide side, BattleCard card, double x,
             double z, int ticks)
     {
         double floor = arena.floorY() + 1.0D;
         double radius = card.spell().radius();
-        int sign = ArenaLayout.sideSign(side);
+        ArenaPoint king = arena.towerPoint(TowerId.king(side));
+        double top = king.y() + TowerKind.KING.shotHeight();
         for (int i = 0; i < VOLLEY_ARROWS; i++) {
             double angle = level.random.nextDouble() * Math.PI * 2.0D;
             double r = Math.sqrt(level.random.nextDouble()) * radius;
             double tx = x + Math.cos(angle) * r;
             double tz = z + Math.sin(angle) * r;
-            double[] from = {tx + (level.random.nextDouble() - 0.5D) * 2.0D,
-                    floor + 9.0D, tz + sign * 5.0D};
+            double[] from = {king.x() + (level.random.nextDouble() - 0.5D) * 2.0D,
+                    top, king.z() + (level.random.nextDouble() - 0.5D) * 2.0D};
             sendProjectile(S2CProjectilePacket.Kind.ARROW, from,
-                    new double[] {tx, floor + 0.1D, tz}, ticks, 1.0F);
+                    new double[] {tx, floor + 0.1D, tz}, ticks, 3.0F);
         }
-        level.playSound(null, x, floor + 6.0D, z, SoundEvents.ARROW_SHOOT,
-                SoundSource.HOSTILE, 0.5F, 0.8F);
+        level.playSound(null, king.x(), top, king.z(), SoundEvents.ARROW_SHOOT,
+                SoundSource.HOSTILE, 0.6F, 0.8F);
     }
 
     private void playSpell(TickResult.SpellPulse pulse) {

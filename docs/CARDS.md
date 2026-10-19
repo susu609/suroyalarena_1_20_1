@@ -53,16 +53,22 @@ Split rules for implementation:
 
 Spells deal damage by server-side area checks on a tick schedule
 (`CombatEngine.castSpell`, stats in `SpellStats`). The arrows and the fireball
-are drawn by the clients as real 3D models (`ProjectileRenderer`): the
-fireball arcs from the caster's King tower and lands as the spell does, and
-each Arrow Storm volley lands with a damage pulse. A spell can be played **anywhere on the arena**, including
+are drawn by the clients as real 3D models (`ProjectileRenderer`). Thrown
+spells (Arrow Storm, Fireball, the potions, Freeze, Cobweb, Snowball Volley)
+fly from the caster's **King tower** to the spot, so like in Clash Royale a
+far target is reached later: flight = distance from the King / the spell's
+flight speed (blocks a second, `flight_speed` in the card JSON), at least 4
+ticks (`SpellStats.flightTicks`, `ArenaLayout.deployTicks`). TNT falls from
+the sky and Lightning strikes, so they keep a fixed delay (`travel_ticks`).
+Each Arrow Storm volley is shot from the King and lands with its damage
+pulse. A spell can be played **anywhere on the arena**, including
 the enemy half and the river. It hits enemy units whose body touches the
 circle, and enemy towers whose footprint touches it for **30%** of the damage
 (a hit King tower wakes up). Own troops and towers are never hit.
 
 | Spell | Elixir | Behaviour |
 |---|---|---|
-| Arrow Storm | **3** | Arrows fly 0.3 s, then a circle of radius 3 blocks for 4 s; every 5 ticks (0.25 s) deals 1 damage to each enemy inside: **16 total**, 4 DPS; **50%** to towers. |
+| Arrow Storm | **3** | Arrows fly from the King at 24 blocks/s, then **3 volleys** 0.4 s apart on a circle of radius 2.3 blocks: 7 damage each to every enemy inside, **21 total** in 0.8 s; **50%** to towers. |
 | Fireball | **4** | Travels 1 s, explodes radius 2.5 blocks for **25** damage, knocks back 1 block, burns 1.5 damage/s for 3 s. |
 | Lightning | **6** | After 0.75 s, real (harmless) lightning bolts strike the **3** enemy troops or towers with the most health in a 3.5 block circle: **40** damage each (18 to a tower, 45%), and a 0.5 s stun that also restarts their attack. |
 | Potion of Healing | **3** | The King throws a splash potion of healing (0.3 s); for 4 s, every 0.5 s it heals each **own** troop inside a 3 block circle by 2: **16 total**, never above full health, never towers. |
@@ -78,14 +84,13 @@ mobs themselves are invulnerable).
 
 ## Spell vs troop kill table
 
-| | Zombie (20) | Archer (20) | Spider (10) | Skeleton (11) | Slime big (20) | Slime medium (10) | Slime small (5) |
+| | Zombie (20, armour 2) | Archer (20) | Spider (16) | Skeleton (20) | Slime big (36) | Slime medium (18) | Slime small (9) |
 |---|---|---|---|---|---|---|---|
-| Arrow Storm (16) | survives | survives | dies | dies | survives | dies | dies |
-| Fireball (25) | dies | dies | dies | dies | dies | dies | dies |
+| Arrow Storm (21) | survives (19.3 taken) | dies | dies | dies | survives | dies | dies |
+| Fireball (25) | dies | dies | dies | dies | survives | dies | dies |
 
-Fireball kills a big slime in one hit, but the children it splits into spawn
-after the explosion and are not hit. Arrow Storm lasts 4 s, so it also clears
-children that split inside the circle.
+Arrow Storm's volleys come 0.4 s apart, so children a slime splits into
+inside the circle are still hit by the volleys left.
 
 ## Weapons
 

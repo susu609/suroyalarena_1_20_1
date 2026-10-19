@@ -263,6 +263,19 @@ public final class ArenaLayout {
     }
 
     /**
+     * Ticks between playing {@code card} for {@code side} at (x, z) and its
+     * effect: a troop's deploy time, or a spell's flight from that side's
+     * King tower (farther lands later; TNT and Lightning take their fixed
+     * time from the sky).
+     */
+    public int deployTicks(BattleCard card, TeamSide side, double x, double z) {
+        if (!card.isSpell())
+            return card.deployTicks();
+        ArenaPoint king = towerPoint(TowerId.king(side));
+        return card.spell().flightTicks(Math.hypot(x - king.x(), z - king.z()));
+    }
+
+    /**
      * Tower centre. All towers are even-sized, so the centre lies on a block
      * corner: the tower covers [x - size/2, x + size/2 - 1] on each axis.
      */

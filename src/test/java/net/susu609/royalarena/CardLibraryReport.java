@@ -66,7 +66,9 @@ public final class CardLibraryReport {
         c.put("raw", round2(CostFormula.raw(s)));
         List<Object> f = new ArrayList<>();
         f.add(String.format(Locale.ROOT, "radius %.1f", s.radius()));
-        f.add(String.format(Locale.ROOT, "flies %.2f s", s.castTicks() / 20.0D));
+        f.add(s.thrown()
+                ? String.format(Locale.ROOT, "thrown from the King at %.0f blocks/s", s.flightSpeed())
+                : String.format(Locale.ROOT, "lands after %.2f s", s.castTicks() / 20.0D));
         if (s.damagePerPulse() > 0) {
             if (s.pulses() > 1) {
                 String what = s.heal() ? "heals" : s.poison() ? "poison" : "damage";

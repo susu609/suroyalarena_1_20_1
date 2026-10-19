@@ -28,7 +28,7 @@ public final class SpellSmokeTest {
 
     public static void run() {
         spellsArePlayedAnywhereOnTheArena();
-        arrowStormDealsSixteenOverFourSeconds();
+        arrowStormFiresThreeVolleys();
         fireballHitsHardKnocksBackAndBurns();
         spellsDealThirtyPercentToTowers();
         botCastsASpellOnAGroup();
@@ -80,16 +80,22 @@ public final class SpellSmokeTest {
         check(match.blue().elixirTenths() == elixir - 30,
                 "Arrow Storm costs 3 elixir");
         PendingDeploy pending = match.pendingDeploys().get(0);
+        // Thrown from BLUE's King tower: the flight grows with the distance.
+        int flight = match.arena().deployTicks(BattleCard.ARROW_STORM,
+                TeamSide.BLUE, 0.5D, -7.5D);
+        int near = match.arena().deployTicks(BattleCard.ARROW_STORM,
+                TeamSide.BLUE, 0.5D, 8.5D);
         check(pending.card() == BattleCard.ARROW_STORM &&
-                pending.ticksLeft() == BattleCard.ARROW_STORM.deployTicks(),
-                "the arrows fly for their travel time");
-        for (int i = 0; i < BattleCard.ARROW_STORM.deployTicks() - 1; i++)
+                pending.ticksLeft() == flight && pending.totalTicks() == flight,
+                "the arrows fly from the King for their distance: " + flight);
+        check(near < flight && near >= SpellStats.MIN_FLIGHT_TICKS,
+                "a spell cast near its own King lands sooner: " + near);
+        for (int i = 0; i < flight - 1; i++)
             match.tick();
         check(match.drainReadyDeploys().isEmpty() &&
                 match.pendingDeploys().get(0).progress() >=
-                        1.0F - 1.0F / BattleCard.ARROW_STORM.deployTicks() -
-                        1.0E-4F,
-                "still in flight one tick early (the arrows fly 6 ticks)");
+                        1.0F - 1.0F / flight - 1.0E-4F,
+                "still in flight one tick early");
         match.tick();
         check(match.drainReadyDeploys().size() == 1,
                 "the spell lands after its travel time");
@@ -98,7 +104,7 @@ public final class SpellSmokeTest {
                 "spells may land on the other half and on the river");
     }
 
-    private static void arrowStormDealsSixteenOverFourSeconds() {
+    private static void arrowStormFiresThreeVolleys() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
@@ -124,13 +130,13 @@ public final class SpellSmokeTest {
                         "the pulse names its card");
             }
         }
-        check(pulses == 16, "16 pulses: " + pulses);
-        check(firstTick == 1 && lastTick - firstTick == 75,
-                "a pulse every 5 ticks for 4 s: " + firstTick + ".." +
-                        lastTick);
+        check(pulses == 3, "3 volleys: " + pulses);
+        check(firstTick == 1 && lastTick - firstTick == 16,
+                "a volley every 0.4 s, done in under a second: " + firstTick +
+                        ".." + lastTick);
         near(zombie.health(),
-                20.0D - 16.0D * BattleCard.ZOMBIE.stats().armorFactor(),
-                "a Zombie inside takes 16, less its armour, and survives");
+                20.0D - 21.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "a Zombie inside takes 21, less its armour, and barely survives");
         check(!spider.alive() && engine.unit(spider.id()) == null,
                 "a Spider inside dies");
         near(own.health(), 20.0D, "own troops are not hit");
@@ -186,8 +192,9 @@ public final class SpellSmokeTest {
         for (int i = 0; i < 100; i++)
             engine.tick();
         check(match.tower(TowerId.RED_KING).health() ==
-                        (int) Math.ceil(185 - 16 * 0.5D),
-                "Arrow Storm deals 50% of 16 to the King (its own share)");
+                        (int) Math.ceil(185 - 21 * 0.5D),
+                "Arrow Storm deals 50% of its 21 to the King (its own share): " +
+                        match.tower(TowerId.RED_KING).health());
         check(engine.kingAwake(TeamSide.RED), "a spell on the King wakes it");
 
         ArenaPoint own = match.arena().towerPoint(TowerId.BLUE_LEFT);
@@ -306,8 +313,8 @@ public final class SpellSmokeTest {
         for (int i = 0; i < 100; i++)
             engine.tick();
         double armor = BattleCard.ZOMBIE.stats().armorFactor();
-        near(low.health(), 20.0D - 16.0D * armor,
-                "Arrow Storm left 4, plus what the zombie's armour stopped");
+        near(low.health(), 20.0D - 21.0D * armor,
+                "Arrow Storm's 21 left under 1, plus what the armour stopped");
         near(scratched.health(), 20.0D - 8.0D * armor,
                 "Freeze left 12, plus what the zombie's armour stopped");
         low.setPosition(-1.0D, 1.0D);
@@ -323,8 +330,8 @@ public final class SpellSmokeTest {
             }
         }
         check(pulses == 8, "8 healing pulses: " + pulses);
-        near(low.health(), 20.0D,
-                "5.28 + 8 x 2 reaches full health (one pulse fewer would not)");
+        near(low.health(), 20.0D - 21.0D * armor + 16.0D,
+                "8 pulses of 2 heal 16 back");
         near(scratched.health(), 20.0D, "healing stops at full health");
         near(enemy.health(), 20.0D, "enemies are not touched");
     }

@@ -193,7 +193,7 @@ public final class ClientMatchState {
             int left = deploy.ticksLeft() - elapsed;
             if (left > 0) {
                 out.add(new PendingDeploy(deploy.card(), deploy.side(),
-                        deploy.x(), deploy.z(), left));
+                        deploy.x(), deploy.z(), left, deploy.totalTicks()));
             }
         }
         return out;

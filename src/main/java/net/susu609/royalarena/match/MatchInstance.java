@@ -238,7 +238,7 @@ public final class MatchInstance {
         player.deck().play(slot);
         record.play(side, card, battleTicks);
         pending.add(new PendingDeploy(card, side, worldX, worldZ,
-                card.deployTicks()));
+                arena.deployTicks(card, side, worldX + 0.5D, worldZ + 0.5D)));
         return DeployResult.accepted(card);
     }
 
