@@ -148,6 +148,13 @@ public enum BattleCard {
     CAMEL("Camel", 2, "minecraft:camel", null, 0,
             new TroopStats(1, 32, 2.5D, 20, 1.5D, 1.0D, 0.8D,
                     SplitRule.into(HUSK.stats()), TroopTraits.NONE)),
+    SHULKER("Shulker", 2, "minecraft:shulker", null, 0,
+            new TroopStats(1, 30, 3, 40, 6.0D, 0.0D, 0.5D)),
+    END_CRYSTAL("End Crystal", 2, "minecraft:end_crystal", null, 0,
+            new TroopStats(1, 10, 40, 20, 0.5D, 0.0D, 0.5D,
+                    new TroopTraits(3.0D, true, 0.0D))),
+    WARDEN("Warden", 8, "minecraft:warden", null, 0,
+            new TroopStats(1, 150, 15, 55, 1.5D, 0.8D, 0.9D)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(2.3D, 6, 3, 8, 7.0D, 0.5D, 0.0D, 0.0D, 0)
                     .thrownAt(24.0D)),
@@ -305,7 +312,10 @@ public enum BattleCard {
                     KILLER_RABBITS, PANDA, CAMEL ->
                     EnumSet.of(Tribe.BEAST);
             case FROG, TURTLE -> EnumSet.of(Tribe.AQUATIC);
-            case CREEPER, ENDERMAN -> EnumSet.of(Tribe.NIGHT);
+            case WARDEN -> EnumSet.of(Tribe.NIGHT);
+            case CREEPER -> EnumSet.of(Tribe.NIGHT);
+            case ENDERMAN -> EnumSet.of(Tribe.NIGHT, Tribe.END);
+            case SHULKER, END_CRYSTAL -> EnumSet.of(Tribe.END);
             case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
             case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
             case GUARDIAN -> EnumSet.of(Tribe.AQUATIC);
@@ -347,13 +357,13 @@ public enum BattleCard {
         return switch (this) {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT, CAT, FROG,
-                    KILLER_RABBITS, PANDA, TURTLE ->
+                    KILLER_RABBITS, PANDA, TURTLE, SHULKER, END_CRYSTAL ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
                     SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, ZOGLIN,
-                    CHICKEN_JOCKEY, CAMEL, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+                    CHICKEN_JOCKEY, CAMEL, WARDEN, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
@@ -372,7 +382,7 @@ public enum BattleCard {
      */
     public Body body() {
         return switch (this) {
-            case IRON_GOLEM, SNOW_GOLEM ->
+            case IRON_GOLEM, SNOW_GOLEM, END_CRYSTAL ->
                     Body.CONSTRUCT;
             case ZOMBIE, SKELETON_ARCHER, SKELETONS,
                     STRAY, ZOMBIFIED_PIGLIN, HUSK,
@@ -456,6 +466,55 @@ public enum BattleCard {
     }
 
     public static final double RIVER_SWIM = 3.0D;
+
+    /**
+     * A building (docs/CARDS.md): it never moves, loses its health over
+     * {@link #BUILDING_LIFETIME_TICKS}, and troops that only hit towers go
+     * for it first when they see it.
+     */
+    public boolean isBuilding() {
+        return this == SHULKER || this == END_CRYSTAL;
+    }
+
+    public static final int BUILDING_LIFETIME_TICKS = 20 * 30;
+
+    /**
+     * A Shulker's bullets lift a ground troop for {@link #LEVITATE_TICKS}
+     * (no walking, no attacking); its shell takes {@link #SHELL_FACTOR} of a
+     * hit unless it has fired within {@link #SHELL_OPEN_TICKS}.
+     */
+    public boolean levitates() {
+        return this == SHULKER;
+    }
+
+    public static final int LEVITATE_TICKS = 16;
+    public static final double SHELL_FACTOR = 0.6D;
+    public static final int SHELL_OPEN_TICKS = 15;
+
+    /**
+     * An End Crystal never attacks; when it breaks it blows up, hurting
+     * every troop of both sides within its splash radius by its damage.
+     */
+    public boolean explodesOnDeath() {
+        return this == END_CRYSTAL;
+    }
+
+    /**
+     * The Warden is blind: it walks for the towers and turns only on enemies
+     * that made a sound (attacked within {@link #NOISE_TICKS}) within
+     * {@link #HEAR_RANGE} blocks. Every {@link #BOOM_TICKS} its Sonic Boom
+     * hits its target within {@link #BOOM_RANGE} for {@link #BOOM_DAMAGE},
+     * through armour.
+     */
+    public boolean hearsNoise() {
+        return this == WARDEN;
+    }
+
+    public static final int NOISE_TICKS = 40;
+    public static final double HEAR_RANGE = 8.0D;
+    public static final int BOOM_TICKS = 20 * 15;
+    public static final double BOOM_RANGE = 6.0D;
+    public static final double BOOM_DAMAGE = 20.0D;
 
     /** Troop stats; null for a spell. */
     public TroopStats stats() {

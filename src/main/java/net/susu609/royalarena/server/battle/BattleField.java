@@ -134,6 +134,22 @@ public final class BattleField {
     private static final int TOWER_SOUND_GAP = 8;
     /** Fewest ticks between two Ravager roars. */
     private static final int ROAR_GAP = 60;
+    /** Game tick each Shulker last opened its shell to shoot. */
+    private final Map<UUID, Long> shulkerOpenAt = new HashMap<>();
+
+    /** Shulkers shut their shell again once the shot is out. */
+    private void closeShulkers() {
+        long now = level.getGameTime();
+        shulkerOpenAt.entrySet().removeIf(open -> {
+            if (now - open.getValue() < BattleCard.SHELL_OPEN_TICKS)
+                return false;
+            if (level.getEntity(open.getKey()) instanceof
+                    net.minecraft.world.entity.monster.Shulker shulker)
+                shulker.setRawPeekAmount(0);
+            return true;
+        });
+    }
+
     /** Pending spells whose flight has already been shown. */
     private final Set<String> launched = new HashSet<>();
 
@@ -229,6 +245,9 @@ public final class BattleField {
         if (entity instanceof net.minecraft.world.entity.monster.Zombie zombie &&
                 card == BattleCard.ZOMBIE && generation > 0)
             zombie.setBaby(true);
+        // An End Crystal stands on the floor, without its bedrock base.
+        if (entity instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal crystal)
+            crystal.setShowBottom(false);
         // Killer Rabbits are vanilla's killer bunny.
         if (entity instanceof net.minecraft.world.entity.animal.Rabbit rabbit)
             rabbit.setVariant(net.minecraft.world.entity.animal.Rabbit.Variant.EVIL);
@@ -356,6 +375,7 @@ public final class BattleField {
         for (TickResult.Attack attack : result.landed())
             playHit(attack);
         mirrorHealth();
+        closeShulkers();
         showPoison();
         showFireTrails();
         showFrozenTowers();
@@ -876,6 +896,16 @@ public final class BattleField {
             return;
         }
         double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
+        if (attacker instanceof net.minecraft.world.entity.monster.Shulker shulker) {
+            // It opens its shell to shoot a homing bullet.
+            shulker.setRawPeekAmount(100);
+            shulkerOpenAt.put(shulker.getUUID(), level.getGameTime());
+            sendProjectile(S2CProjectilePacket.Kind.SHULKER_BULLET, from, to,
+                    attack.flightTicks(), (float) (distance * 0.25D));
+            level.playSound(null, from[0], from[1], from[2],
+                    SoundEvents.SHULKER_SHOOT, SoundSource.HOSTILE, 0.6F, 1.0F);
+            return;
+        }
         if (attacker instanceof SnowGolem) {
             sendProjectile(S2CProjectilePacket.Kind.SNOWBALL, from, to,
                     attack.flightTicks(), (float) (distance * 0.15D));
@@ -1311,6 +1341,37 @@ public final class BattleField {
                         0.4D, 0.2D, 0.4D, 0.05D);
                 level.playSound(null, x, y, z, SoundEvents.PANDA_SNEEZE,
                         SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
+            case LEVITATE -> {
+                level.sendParticles(ParticleTypes.END_ROD, x, y + 0.5D, z, 8,
+                        0.25D, 0.4D, 0.25D, 0.02D);
+                level.playSound(null, x, y, z, SoundEvents.SHULKER_BULLET_HIT,
+                        SoundSource.HOSTILE, 0.6F, 1.0F);
+            }
+            case SONIC_BOOM -> {
+                // A line of sonic rings from the Warden to what it hit.
+                Entity warden = level.getEntity(event.unit());
+                if (warden != null) {
+                    double fx = warden.getX();
+                    double fy = warden.getY() + 1.6D;
+                    double fz = warden.getZ();
+                    for (int i = 1; i <= 8; i++) {
+                        double t = i / 8.0D;
+                        level.sendParticles(ParticleTypes.SONIC_BOOM,
+                                fx + (x - fx) * t, fy + (y + 0.8D - fy) * t,
+                                fz + (z - fz) * t, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                    }
+                    level.playSound(null, fx, fy, fz,
+                            SoundEvents.WARDEN_SONIC_BOOM, SoundSource.HOSTILE,
+                            1.0F, 1.0F);
+                }
+            }
+            case BLAST -> {
+                level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, x, y + 0.5D,
+                        z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                shake(x, z, 0.8F);
+                level.playSound(null, x, y, z, SoundEvents.GENERIC_EXPLODE,
+                        SoundSource.HOSTILE, 1.2F, 0.9F);
             }
             case DASH -> {
                 level.sendParticles(ParticleTypes.CLOUD, x, y + 0.2D, z, 10,

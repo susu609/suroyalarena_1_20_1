@@ -164,6 +164,11 @@ public final class BotBrain {
             play = followUp(match, engine, me);
             if (play == null && wantsToAttack(match, me))
                 play = attackPlay(match, me);
+            // A building is for defence: it only goes out unprompted when
+            // the elixir would otherwise overflow.
+            if (play != null && me.deck().hand().get(play.slot()).isBuilding()
+                    && me.elixirTenths() < ElixirMeter.MAX_TENTHS)
+                play = null;
         }
         return play == null ? null : played(play);
     }
@@ -817,6 +822,11 @@ public final class BotBrain {
             if (personality == BotPersonality.TANK_PUSH &&
                     CardRole.of(card).contains(CardRole.TANK))
                 score -= 5.0D;
+            // A building pulls troops that only hit towers, and an End
+            // Crystal is a trap for anything that walks into it.
+            if (card.isBuilding())
+                score += threat.stats().traits().buildingsOnly() ? 4.0D :
+                        card.explodesOnDeath() ? 2.5D : 1.5D;
             if (score > bestScore) {
                 best = slot;
                 bestScore = score;

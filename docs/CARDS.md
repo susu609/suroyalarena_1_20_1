@@ -450,3 +450,23 @@ Piglets 48%.
 A rider's damage (the Camel's Husk, the Chicken Jockey's zombie, the Spider
 Jockey's archer) counts for the card that was played in the match stats,
 not for the rider's own card.
+
+## Batch 3: buildings and the Warden
+
+**Buildings** (`BattleCard.isBuilding`) stand still, lose their health over
+30 s, and troops that only hit towers (Hoglin, Piglets, Zoglin...) go for
+the nearest one they see first, as in Clash Royale. They deploy on the own
+half like troops. `PowerCreepTest` measures them on defence only; the bot
+plays them to defend (they pull tower-only troops) and otherwise only when
+its elixir is full.
+
+| Card | Elixir | Stats | Rule | Win rate |
+|---|---|---|---|---|
+| Shulker | 2 | building, 30 HP, 3 damage every 2 s, range 6; End | Its homing bullets **lift** a ground troop for 0.8 s (no walking, no attacking). **Shell**: shut, it takes 60% of a hit; it opens for 0.75 s each time it fires. | 44% |
+| End Crystal | 2 | building, 10 HP; End | Never attacks. When broken it **blows up**: 40 damage to every troop of **both sides** within 3 blocks. A trap. | 34% (weak: the bot seldom baits with it) |
+| Warden | 8 | 150 HP, no armour, 15 damage every 2.75 s (about an armourless Iron Golem), speed 0.8; Night | **Blind**: walks for the towers and turns only on enemies that attacked in the last 2 s within 8 blocks (silent troops and buildings cannot distract it). **Sonic Boom** every 15 s: 20 damage through armour on its target (troop or tower) within 6 blocks. Its 8 elixir comes from these abilities (see docs/BALANCE.md). | 46% |
+
+A 1-elixir End Crystal (24 damage) won 47% but its defence score went
+over the band (+1.21), so it is 2 elixir with a bigger blast.
+
+Villager is not made yet: each profession will be its own card later.

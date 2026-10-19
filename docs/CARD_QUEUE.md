@@ -81,3 +81,8 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
 - [x] Batch 2 (by hand): Zoglin (rage, towers only), Killer Rabbits (pack),
   Chicken Jockey (two lives), Panda (sneeze), Turtle (shield, swims), Camel
   (dash, Husk rider).
+- [x] Batch 3 (by hand): Shulker and End Crystal (buildings), Warden (blind,
+  Sonic Boom, 8 elixir).
+- [ ] Villager professions (by hand, later): each profession its own card
+  (ideas so far: Armorer +2 armour aura, Librarian +20% damage aura, bell
+  ringer that reveals enemies). Ask the user before making them.

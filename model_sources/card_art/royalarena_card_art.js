@@ -81,6 +81,9 @@
         'panda': 2,
         'turtle': 1,
         'camel': 2,
+        'shulker': 2,
+        'end_crystal': 2,
+        'warden': 8,
     };
     const CARD_IDS = Object.keys(CARDS);
 

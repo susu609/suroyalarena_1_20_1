@@ -39,6 +39,8 @@ public final class CostFormula {
     public static final double RIVER_STRONG = 1.05D;
     /** Leaves burning patches behind it (Strider). */
     public static final double FIRE_TRAIL = 1.15D;
+    /** Buildings (Shulker, End Crystal): never move, decay in 30 s. */
+    public static final double BUILDING = 0.8D;
 
     private CostFormula() {
     }
@@ -65,6 +67,9 @@ public final class CostFormula {
             modifier *= RANGED * (1.0D + RANGE_STEP * (s.range() - 4.0D));
         if (s.speed() >= 1.33D)
             modifier *= 1.1D;
+        // A building stands still and lives 30 s.
+        if (s.speed() <= 0.0D)
+            modifier *= BUILDING;
         if (s.count() >= 5)
             modifier *= 0.85D;
         else if (s.count() >= 3)
@@ -127,6 +132,52 @@ public final class CostFormula {
         double share = s.maxTargets() > 0 ?
                 Math.min(1.0D, s.maxTargets() / 4.0D) : 1.0D;
         return 1.0D + value * s.radius() * share / SPELL_COST_DIVISOR;
+    }
+
+    /**
+     * A card's own abilities, beyond its stats and traits (docs/CARDS.md):
+     * what each is judged worth, as a cost multiplier. The Warden's Sonic
+     * Boom counts as the extra damage per second it adds.
+     */
+    public static double abilityModifier(BattleCard card) {
+        if (card == null || card.isSpell())
+            return 1.0D;
+        TroopStats s = card.stats();
+        return switch (card) {
+            // Keeps Creepers and Phantoms away: a hard counter.
+            case CAT -> 1.3D;
+            // Kills the smallest slimes and magma cubes in one lick.
+            case FROG -> 1.2D;
+            // Up to 60% faster swings as it bleeds.
+            case ZOGLIN -> 1.15D;
+            // A double-damage first blow with knockback.
+            case CAMEL -> 1.1D;
+            // Blows small enemies back every 4 s.
+            case PANDA -> 1.1D;
+            // Three times as fast on the river.
+            case TURTLE -> 1.05D;
+            // Lifts what it hits for 0.8 s; its shell blocks 40% of a hit.
+            case SHULKER -> 1.4D;
+            // The Sonic Boom's damage per second (through armour), and
+            // hearing: silent troops and buildings cannot distract it.
+            case WARDEN -> Math.sqrt(1.0D + BattleCard.BOOM_DAMAGE /
+                    (BattleCard.BOOM_TICKS / 20.0D) /
+                    (s.damage() / (s.attackTicks() / 20.0D))) * HEARING;
+            default -> 1.0D;
+        };
+    }
+
+    /** Hearing only enemies that make a sound (the Warden). */
+    public static final double HEARING = 1.3D;
+
+    /** A troop card's unrounded cost: its stats, traits and abilities. */
+    public static double raw(BattleCard card) {
+        return card.isSpell() ? raw(card.spell()) :
+                raw(card.stats()) * abilityModifier(card);
+    }
+
+    public static int elixir(BattleCard card) {
+        return (int) Math.floor(raw(card) + 0.5D);
     }
 
     public static int elixir(SpellStats s) {

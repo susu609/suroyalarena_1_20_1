@@ -1,0 +1,27 @@
+{
+  "id": "end_crystal",
+  "type": "troop",
+  "display_name": "End Crystal",
+  "roles": [
+    "defense"
+  ],
+  "body": "construct",
+  "building": true,
+  "lifetime_ticks": 600,
+  "elixir": 2,
+  "entity": "minecraft:end_crystal",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 10,
+    "damage": 40,
+    "attack_interval_ticks": 20,
+    "range": 0.5,
+    "move_speed": 0.0,
+    "flying": false,
+    "targets": "ground",
+    "splash_radius": 3.0,
+    "self_destruct": true,
+    "explodes_on_death": "both sides"
+  }
+}

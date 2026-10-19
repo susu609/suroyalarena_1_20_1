@@ -132,9 +132,9 @@ public final class CombatSmokeTest {
                                 CostFormula.raw(card.spell()));
                 continue;
             }
-            check(CostFormula.elixir(card.stats()) == card.cost(),
+            check(CostFormula.elixir(card) == card.cost(),
                     card.id() + " cost " + card.cost() + " vs formula " +
-                            CostFormula.raw(card.stats()));
+                            CostFormula.raw(card));
         }
         var starter = BattleDeck.starter().snapshotCycle();
         check(starter.size() == 8, "starter deck has 8 cards");

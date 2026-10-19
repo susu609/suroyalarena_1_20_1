@@ -24,7 +24,10 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
      * sneeze, a Camel's dash) fired on a unit this tick.
      */
     public record TribeEvent(UUID unit, Kind kind, double x, double z) {
-        public enum Kind { REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY, SNEEZE, DASH }
+        public enum Kind {
+            REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY, SNEEZE, DASH, LEVITATE,
+            SONIC_BOOM, BLAST
+        }
     }
 
     /**

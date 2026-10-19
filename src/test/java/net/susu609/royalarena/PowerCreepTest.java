@@ -47,6 +47,14 @@ public final class PowerCreepTest {
                         card.id(), value);
                 if (value < MIN_SPELL || value > MAX_SPELL)
                     problems.add(line);
+            } else if (card.isBuilding()) {
+                // A building cannot attack across the bridge: it is
+                // measured only on defence.
+                double score = defendScore(card);
+                line = String.format(Locale.ROOT, "%-16s defend score %+.2f",
+                        card.id(), score);
+                if (score < MIN_SCORE || score > MAX_SCORE)
+                    problems.add(line);
             } else if (card.stats().traits().buildingsOnly()) {
                 double siege = Sim.soloTowerDamage(card) / (double) card.cost();
                 line = String.format(Locale.ROOT, "%-16s tower damage/elixir %.1f",
@@ -68,13 +76,28 @@ public final class PowerCreepTest {
         System.out.println("RoyalArena power creep tests: PASS");
     }
 
+    /** Elixir a building comes out ahead defending against each fighting troop. */
+    static double defendScore(BattleCard card) {
+        double defend = 0.0D;
+        int fights = 0;
+        for (BattleCard other : BattleCard.values()) {
+            if (other.isSpell() || other.stats().traits().buildingsOnly() ||
+                    other.isBuilding())
+                continue;
+            defend -= Sim.push(other, card);
+            fights++;
+        }
+        return defend / fights;
+    }
+
     /** Average of attacking into and defending against every fighting troop. */
     static double pushScore(BattleCard card) {
         double attack = 0.0D;
         double defend = 0.0D;
         int fights = 0;
         for (BattleCard other : BattleCard.values()) {
-            if (other.isSpell() || other.stats().traits().buildingsOnly())
+            if (other.isSpell() || other.stats().traits().buildingsOnly() ||
+                    other.isBuilding())
                 continue;
             attack += Sim.push(card, other);
             defend -= Sim.push(other, card);

@@ -799,3 +799,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `BattleField` (baby zombie rider, Husk on the Camel, killer bunny
   variant, sneeze and dash particles and sounds), `DeckScreen` tooltips
 - `MobsWave4SmokeTest`
+
+## Part 68 — Buildings (Shulker, End Crystal), Warden, abilities in the cost
+
+- `card/BattleCard.java` and the JSONs: `isBuilding`, `levitates`,
+  `explodesOnDeath`, `hearsNoise` and their numbers; tribe End; protocol 29
+- `card/CostFormula.java`: `abilityModifier` / `raw(BattleCard)` (every
+  card-keyed ability valued), buildings x0.8
+- `CombatEngine`: building decay, tower-only troops go for buildings,
+  Warden hearing and Sonic Boom, Shulker shell and levitation, End Crystal
+  blast; `TickResult` LEVITATE, SONIC_BOOM, BLAST
+- `BotBrain`: buildings defend (pull tower-only troops), wait otherwise
+- `BattleField` (Shulker bullet and shell, crystal without base, boom,
+  blast), `ProjectileRenderer` (SHULKER_BULLET), `DeckScreen`, `MobSounds`
+- `PowerCreepTest.defendScore`, `MobsWave5SmokeTest`

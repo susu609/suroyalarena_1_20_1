@@ -305,7 +305,9 @@ public final class CombatEngine {
         applyDamage(landed, destroyed, pushes);
         applyBurns();
         applySpellHits(hits, destroyed, pushes);
+        applyBooms(destroyed);
         sneezes(pushes);
+        decayBuildings();
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
                 pushes, landed, List.copyOf(teleports),
@@ -329,6 +331,10 @@ public final class CombatEngine {
         TroopStats stats = unit.stats();
         // Frozen or stunned: no walking, no attacking, the same target.
         if (unit.frozen())
+            return;
+        // An End Crystal only waits to be broken.
+        BattleCard self = cardOf.get(unit.id());
+        if (self != null && self.explodesOnDeath())
             return;
         // A Creeper or Phantom near an enemy Cat backs away from it.
         CombatUnit cat = scaringCat(unit);
@@ -367,6 +373,8 @@ public final class CombatEngine {
                     stats.range() + EPSILON;
         }
 
+        if (self != null && self.hearsNoise())
+            planBoom(unit, enemy, tower);
         if (!inRange) {
             // Crossing units (Blaze) go straight over the water; the rest
             // use the bridges.
@@ -393,6 +401,8 @@ public final class CombatEngine {
         if (!unit.ready())
             return;
         unit.startShotCooldown();
+        // Every attack is a sound the Warden can hear (and opens a shell).
+        lastAttackAt.put(unit.id(), now);
         BattleCard own = cardOf.get(unit.id());
         if (own != null && own.rages())
             unit.hasteCooldown(1.0D + BattleCard.RAGE_MAX * Math.min(1.0D,
@@ -429,6 +439,131 @@ public final class CombatEngine {
             volley(unit, enemy, damage, attacks);
         if (traits.selfDestruct())
             unit.expire();
+    }
+
+    /** The engine tick each unit last attacked (a sound; a Shulker's shell opens). */
+    private final Map<UUID, Integer> lastAttackAt = new java.util.HashMap<>();
+    /** When each Warden's Sonic Boom is ready again. */
+    private final Map<UUID, Integer> boomReady = new java.util.HashMap<>();
+    /** Sonic Booms decided this tick: the Warden and its target. */
+    private final List<Object[]> booms = new ArrayList<>();
+
+    /**
+     * For a troop that only hits towers: the nearest enemy building in
+     * sight (they go for it first, as in Clash Royale), or none.
+     */
+    private CombatUnit nearestBuilding(CombatUnit unit) {
+        CombatUnit best = null;
+        double bestDistance = unit.stats().sight() + EPSILON;
+        for (CombatUnit other : units) {
+            BattleCard card = cardOf.get(other.id());
+            if (other.side() == unit.side() || !other.alive() ||
+                    card == null || !card.isBuilding())
+                continue;
+            double d = distance(unit, other);
+            if (d <= bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * The Warden's target: the troop it is on while that stays close, else
+     * the nearest enemy that made a sound within its hearing.
+     */
+    private CombatUnit heard(CombatUnit unit) {
+        CombatUnit current = unit.target() == null ? null :
+                unit(unit.target());
+        if (current != null && current.alive() &&
+                current.side() != unit.side() && canTarget(unit, current) &&
+                distance(unit, current) <= BattleCard.HEAR_RANGE * LEASH_FACTOR)
+            return current;
+        CombatUnit best = null;
+        double bestDistance = BattleCard.HEAR_RANGE + EPSILON;
+        for (CombatUnit other : units) {
+            if (other.side() == unit.side() || !other.alive() ||
+                    !canTarget(unit, other) ||
+                    now - lastAttackAt.getOrDefault(other.id(), -1000) >
+                            BattleCard.NOISE_TICKS)
+                continue;
+            double d = distance(unit, other);
+            if (d <= bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    /** Plans a Warden's Sonic Boom on its target, if it is ready and in reach. */
+    private void planBoom(CombatUnit warden, CombatUnit enemy, TowerId tower) {
+        int ready = boomReady.computeIfAbsent(warden.id(), id -> now);
+        if (now < ready)
+            return;
+        double reach = enemy != null ? edgeDistance(warden, enemy) :
+                edgeDistanceToTower(warden, tower);
+        if (reach > BattleCard.BOOM_RANGE)
+            return;
+        boomReady.put(warden.id(), now + BattleCard.BOOM_TICKS);
+        booms.add(new Object[] {warden, enemy, tower});
+    }
+
+    /** Lands this tick's Sonic Booms: through armour, on troops and towers. */
+    private void applyBooms(List<TowerId> destroyed) {
+        for (Object[] boom : booms) {
+            CombatUnit warden = (CombatUnit) boom[0];
+            CombatUnit enemy = (CombatUnit) boom[1];
+            TowerId tower = (TowerId) boom[2];
+            BattleCard source = creditOf(warden.id());
+            double x;
+            double z;
+            if (enemy != null) {
+                if (!enemy.alive())
+                    continue;
+                damageUnit(enemy, BattleCard.BOOM_DAMAGE, warden.side(),
+                        source, true);
+                x = enemy.x();
+                z = enemy.z();
+            } else {
+                hitTower(tower, BattleCard.BOOM_DAMAGE, destroyed,
+                        warden.side(), source);
+                ArenaPoint p = arena.towerPoint(tower);
+                x = p.x();
+                z = p.z();
+            }
+            tribeEvents.add(new TribeEvent(warden.id(),
+                    TribeEvent.Kind.SONIC_BOOM, x, z));
+        }
+        booms.clear();
+    }
+
+    /** Buildings lose their health over their lifetime. */
+    private void decayBuildings() {
+        for (CombatUnit unit : units) {
+            BattleCard card = cardOf.get(unit.id());
+            if (card != null && card.isBuilding() && unit.alive())
+                unit.hurt(unit.maxHealth() / BattleCard.BUILDING_LIFETIME_TICKS);
+        }
+    }
+
+    /**
+     * A broken End Crystal blows up: every troop of both sides within its
+     * splash radius takes its damage.
+     */
+    private void blast(CombatUnit crystal) {
+        BattleCard source = creditOf(crystal.id());
+        double radius = crystal.stats().traits().splashRadius();
+        for (CombatUnit other : units) {
+            if (other == crystal || !other.alive())
+                continue;
+            if (Math.hypot(other.x() - crystal.x(), other.z() - crystal.z()) <=
+                    radius + other.radius() + EPSILON)
+                damageUnit(other, crystal.damage(), crystal.side(), source);
+        }
+        tribeEvents.add(new TribeEvent(crystal.id(), TribeEvent.Kind.BLAST,
+                crystal.x(), crystal.z()));
     }
 
     /** When each Panda next sneezes (engine tick). */
@@ -508,7 +643,10 @@ public final class CombatEngine {
      */
     private CombatUnit pickEnemy(CombatUnit unit) {
         if (unit.stats().traits().buildingsOnly())
-            return null;
+            return nearestBuilding(unit);
+        BattleCard self = cardOf.get(unit.id());
+        if (self != null && self.hearsNoise())
+            return heard(unit);
         double sight = unit.stats().sight();
         CombatUnit current = unit.target() == null ? null :
                 unit(unit.target());
@@ -1015,6 +1153,12 @@ public final class CombatEngine {
                 line(attack, victim, source);
             if (attack.slowTicks() > 0 && victim != null && victim.alive())
                 victim.slow(attack.slowTicks());
+            if (source != null && source.levitates() && victim != null &&
+                    victim.alive() && victim.stats().traits().hover() <= 0.0D) {
+                victim.freeze(BattleCard.LEVITATE_TICKS);
+                tribeEvents.add(new TribeEvent(victim.id(),
+                        TribeEvent.Kind.LEVITATE, victim.x(), victim.z()));
+            }
             if (attack.knockback() > 0.0D && victim != null && victim.alive()) {
                 CombatUnit attacker = attack.attackerUnit() == null ? null :
                         unit(attack.attackerUnit());
@@ -1159,6 +1303,12 @@ public final class CombatEngine {
         if (victim.stats().traits().waterWeak() &&
                 arena.isRiver((int) Math.floor(victim.z())))
             amount *= TroopTraits.WATER_WEAKNESS;
+        // A Shulker shut in its shell takes little.
+        BattleCard hit = cardOf.get(victim.id());
+        if (hit != null && hit.levitates() && now -
+                lastAttackAt.getOrDefault(victim.id(), -1000) >
+                BattleCard.SHELL_OPEN_TICKS)
+            amount *= BattleCard.SHELL_FACTOR;
         double before = victim.health();
         if (!victim.hurt(amount))
             return false;
@@ -1249,6 +1399,9 @@ public final class CombatEngine {
             units.remove(i--);
             if (unit.tribe().deathBurnTicks() > 0)
                 lastFlame(unit);
+            BattleCard dead = cardOf.get(unit.id());
+            if (dead != null && dead.explodesOnDeath())
+                blast(unit);
             deaths.add(new Death(unit.id(), unit.x(), unit.z(),
                     childrenOf(unit)));
         }

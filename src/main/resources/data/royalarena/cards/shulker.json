@@ -1,0 +1,26 @@
+{
+  "id": "shulker",
+  "type": "troop",
+  "display_name": "Shulker",
+  "roles": [
+    "defense"
+  ],
+  "body": "living",
+  "building": true,
+  "lifetime_ticks": 600,
+  "elixir": 2,
+  "entity": "minecraft:shulker",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 30,
+    "damage": 3,
+    "attack_interval_ticks": 40,
+    "range": 6.0,
+    "move_speed": 0.0,
+    "flying": false,
+    "targets": "ground",
+    "levitation_ticks": 16,
+    "shell_damage_factor": 0.6
+  }
+}

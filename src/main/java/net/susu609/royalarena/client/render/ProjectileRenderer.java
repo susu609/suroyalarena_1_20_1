@@ -161,6 +161,7 @@ public final class ProjectileRenderer {
             case SNOWBALL -> EntityType.SNOWBALL;
             case TNT -> EntityType.TNT;
             case ARROW -> EntityType.ARROW;
+            case SHULKER_BULLET -> EntityType.SHULKER_BULLET;
         };
         Entity entity = type.create(level);
         if (entity != null)

@@ -31,6 +31,9 @@ public final class MobSounds {
     /** Sound when the mob takes damage. */
     public static String hurt(String entityId, boolean tiny) {
         String path = mob(entityId);
+        // An End Crystal is no mob: it has no sounds of its own.
+        if (path.equals("end_crystal"))
+            return "entity.generic.hurt";
         return "entity." + path + ".hurt" + small(path, tiny) +
                 land(path);
     }
@@ -38,6 +41,8 @@ public final class MobSounds {
     /** Sound when the mob dies. */
     public static String death(String entityId, boolean tiny) {
         String path = mob(entityId);
+        if (path.equals("end_crystal"))
+            return "entity.generic.explode";
         return "entity." + path + ".death" + small(path, tiny) +
                 land(path);
     }

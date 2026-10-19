@@ -81,6 +81,25 @@ measured on their own with `scripts/tribes.sh` (decks built around a tribe,
 with and without the bonuses); the card win rates below are measured on
 plain random decks.
 
+## Abilities in the cost
+
+Rules a card has beyond its stats and traits are valued too
+(`CostFormula.abilityModifier`, multiplied into the troop cost; the card
+config page gets it inside `traitMod`):
+
+| Card | Ability | Multiplier |
+|---|---|---|
+| Cat | keeps Creepers and Phantoms away | x1.3 |
+| Frog | swallows the smallest slimes | x1.2 |
+| Zoglin | rage | x1.15 |
+| Camel | dash | x1.1 |
+| Panda | sneeze | x1.1 |
+| Turtle | swims fast | x1.05 |
+| Shulker | levitation, shell | x1.4 |
+| Warden | Sonic Boom as extra damage per second (sqrt), hearing x1.3 | about x1.45 |
+
+Buildings (speed 0) get x0.8: they never move and last 30 s.
+
 ## Power band (`PowerCreepTest`)
 
 Cost alone misses how cards play out, so the build also measures every

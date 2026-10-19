@@ -1,0 +1,29 @@
+{
+  "id": "warden",
+  "type": "troop",
+  "display_name": "Warden",
+  "roles": [
+    "attack"
+  ],
+  "body": "living",
+  "elixir": 8,
+  "entity": "minecraft:warden",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 150,
+    "damage": 15,
+    "attack_interval_ticks": 55,
+    "range": 1.5,
+    "move_speed": 0.8,
+    "flying": false,
+    "targets": "ground",
+    "hears": "enemies that attacked in the last 2 s within 8 blocks",
+    "sonic_boom": {
+      "damage": 20,
+      "range": 6.0,
+      "cooldown_ticks": 300,
+      "through_armor": true
+    }
+  }
+}

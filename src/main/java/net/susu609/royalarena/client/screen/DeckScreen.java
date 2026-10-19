@@ -641,6 +641,22 @@ public final class DeckScreen extends Screen {
         if (card.sneezes())
             lines.add(line("Sneezes every %.0f s: small enemies near it are blown back",
                     BattleCard.SNEEZE_TICKS / 20.0D));
+        if (card.isBuilding())
+            lines.add(line("Building: stands still, lasts %.0f s; tower-only troops go for it",
+                    BattleCard.BUILDING_LIFETIME_TICKS / 20.0D));
+        if (card.levitates())
+            lines.add(line("Its bullets lift ground troops for %.1f s; shut, its shell blocks %.0f%%",
+                    BattleCard.LEVITATE_TICKS / 20.0D,
+                    (1.0D - BattleCard.SHELL_FACTOR) * 100.0D));
+        if (card.explodesOnDeath())
+            lines.add(line("Never attacks; when broken it blows up, hurting both sides"));
+        if (card.hearsNoise())
+            lines.add(line("Blind: turns only on enemies that attacked within %.0f blocks",
+                    BattleCard.HEAR_RANGE));
+        if (card.hearsNoise())
+            lines.add(line("Sonic Boom every %.0f s: %.0f damage through armour, range %.0f",
+                    BattleCard.BOOM_TICKS / 20.0D, BattleCard.BOOM_DAMAGE,
+                    BattleCard.BOOM_RANGE));
         if (card.swimsFast())
             lines.add(line("Slow on land, %.0f times as fast on the river",
                     BattleCard.RIVER_SWIM));

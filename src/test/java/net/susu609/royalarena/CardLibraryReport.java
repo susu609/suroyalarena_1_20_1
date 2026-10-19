@@ -104,7 +104,7 @@ public final class CardLibraryReport {
     private static void troop(Map<String, Object> c, BattleCard card) {
         TroopStats s = card.stats();
         c.put("kind", "troop");
-        c.put("raw", round2(CostFormula.raw(s)));
+        c.put("raw", round2(CostFormula.raw(card)));
         c.put("count", s.count());
         c.put("hp", s.health());
         c.put("dmg", s.damage());
@@ -114,7 +114,9 @@ public final class CardLibraryReport {
         c.put("armor", s.armor());
         c.put("ticks", s.attackTicks());
         // What the card config page needs to recompute the cost.
-        c.put("traitMod", CostFormula.traitModifier(s));
+        // Abilities count too (CostFormula.abilityModifier).
+        c.put("traitMod", CostFormula.traitModifier(s) *
+                CostFormula.abilityModifier(card));
         c.put("generations", s.split() == null || s.split().into() != null ?
                 1 : 1 + s.split().generations());
         c.put("riderHp", s.split() != null && s.split().into() != null ?
