@@ -1,0 +1,23 @@
+{
+  "id": "chicken_jockey",
+  "type": "troop",
+  "display_name": "Chicken Jockey",
+  "roles": [
+    "attack"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:chicken",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 4,
+    "damage": 3,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 1.8,
+    "flying": false,
+    "targets": "ground"
+  },
+  "splits_into": "zombie"
+}

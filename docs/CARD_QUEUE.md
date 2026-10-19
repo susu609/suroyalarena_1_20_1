@@ -78,3 +78,6 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
   Bee, Evoker, Guardian, Snow Golem (see docs/CARDS.md).
 - [x] Batch 1 of vanilla-behaviour cards (by hand): Cat, Frog, Piglets, Milk
   Bucket (docs/CARDS.md). Gold Ingot was dropped (not needed).
+- [x] Batch 2 (by hand): Zoglin (rage, towers only), Killer Rabbits (pack),
+  Chicken Jockey (two lives), Panda (sneeze), Turtle (shield, swims), Camel
+  (dash, Husk rider).

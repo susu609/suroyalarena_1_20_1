@@ -1,0 +1,25 @@
+{
+  "id": "zoglin",
+  "type": "troop",
+  "display_name": "Zoglin",
+  "roles": [
+    "attack"
+  ],
+  "body": "undead",
+  "elixir": 3,
+  "entity": "minecraft:zoglin",
+  "fire_immune": true,
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 40,
+    "damage": 8,
+    "attack_interval_ticks": 28,
+    "range": 1.2,
+    "move_speed": 1.4,
+    "flying": false,
+    "targets": "buildings",
+    "knockback": 1.0,
+    "rage": "attacks up to 60% faster as it loses health"
+  }
+}

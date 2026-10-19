@@ -75,6 +75,12 @@
         'frog': 1,
         'piglets': 3,
         'milk_bucket': 1,
+        'zoglin': 3,
+        'killer_rabbits': 2,
+        'chicken_jockey': 2,
+        'panda': 2,
+        'turtle': 1,
+        'camel': 2,
     };
     const CARD_IDS = Object.keys(CARDS);
 

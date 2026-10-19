@@ -19,9 +19,12 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
                          List<Attack> landed, List<Teleport> teleports,
                          List<TribeEvent> tribeEvents)
 {
-    /** A tribe's special rule fired on a unit this tick (docs/TRIBES.md). */
+    /**
+     * A tribe's special rule (docs/TRIBES.md) or a card's own (a Panda's
+     * sneeze, a Camel's dash) fired on a unit this tick.
+     */
     public record TribeEvent(UUID unit, Kind kind, double x, double z) {
-        public enum Kind { REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY }
+        public enum Kind { REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY, SNEEZE, DASH }
     }
 
     /**

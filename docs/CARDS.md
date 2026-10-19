@@ -433,3 +433,20 @@ role (`MobsWave3SmokeTest`):
 
 Win rates (4000 bot matches): Frog 52%, Milk Bucket 51%, Cat 48%,
 Piglets 48%.
+
+## Batch 2 of vanilla-behaviour cards
+
+(`MobsWave4SmokeTest`; win rates from 4000 bot matches.)
+
+| Card | Elixir | Stats | Rule | Win rate |
+|---|---|---|---|---|
+| Zoglin | 3 | 40 HP, 8 damage every 1.4 s, knockback 1, speed 1.4, towers only, fire immune, undead; Zombie and Nether | **Rage**: each swing comes up to 60% sooner as it loses health (full rage at a quarter of its health or less). | 48% |
+| Killer Rabbits | 2 | 3 rabbits (vanilla's killer bunny), 3 HP and **8 armour** each, 4 damage a second, speed 1.8; Beast | A fast, hard-biting swarm that splash and spells wipe out. | 52% |
+| Chicken Jockey | 2 | a chicken (4 HP, speed 1.8) carrying a baby zombie; Zombie | **Two lives**: when the chicken falls, the baby zombie (a Zombie, 20 HP, armour 2) fights on. | 50% |
+| Panda | 2 | 20 HP, 6 damage every 1.5 s, speed 0.8; Beast | **Sneeze** every 4 s: small enemies (body radius under 0.5: Fox, Spider, Silverfish, the Skeletons...) within 1.5 blocks are blown 1.5 blocks back. | 41% |
+| Turtle | 1 | 30 HP, **10 armour** (its shell), a 1-damage nip every 2 s, speed 0.5; Aquatic | **Swims**: three times as fast on the river. A cheap shield that barely fights. | 56% |
+| Camel | 2 | 32 HP, 2.5 damage a second (its Husk rider), range 1.5, speed 1.0; Beast | **Dash**: its first blow hits twice as hard and knocks the target 1.5 blocks back. When it falls, the Husk fights on. | 58% |
+
+A rider's damage (the Camel's Husk, the Chicken Jockey's zombie, the Spider
+Jockey's archer) counts for the card that was played in the match stats,
+not for the rider's own card.

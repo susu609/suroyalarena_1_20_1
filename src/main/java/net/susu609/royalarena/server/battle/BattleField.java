@@ -225,6 +225,13 @@ public final class BattleField {
         entity.setInvulnerable(true);
         if (entity instanceof Slime slime && card.mobSize() > 0)
             slime.setSize(Math.max(1, card.mobSize() >> generation), false);
+        // The Zombie a Chicken Jockey drops is the baby that rode it.
+        if (entity instanceof net.minecraft.world.entity.monster.Zombie zombie &&
+                card == BattleCard.ZOMBIE && generation > 0)
+            zombie.setBaby(true);
+        // Killer Rabbits are vanilla's killer bunny.
+        if (entity instanceof net.minecraft.world.entity.animal.Rabbit rabbit)
+            rabbit.setVariant(net.minecraft.world.entity.animal.Rabbit.Variant.EVIL);
         if (entity instanceof Mob mob) {
             mob.setNoAi(true);
             mob.setPersistenceRequired();
@@ -244,6 +251,10 @@ public final class BattleField {
         if (card == BattleCard.SPIDER_JOCKEY ||
                 card == BattleCard.SKELETON_RIDER)
             mountRider(entity);
+        else if (card == BattleCard.CHICKEN_JOCKEY)
+            mountRider(entity, EntityType.ZOMBIE, null, true);
+        else if (card == BattleCard.CAMEL)
+            mountRider(entity, EntityType.HUSK, null, false);
         return entity;
     }
 
@@ -253,9 +264,22 @@ public final class BattleField {
      * Jockey, the rider's own Skeleton Archer unit takes over when it dies).
      */
     private void mountRider(Entity spider) {
-        Entity rider = EntityType.SKELETON.create(level);
+        mountRider(spider, EntityType.SKELETON, Items.BOW, false);
+    }
+
+    /**
+     * A rider for show on a mount (the Chicken Jockey's baby zombie, the
+     * Camel's Husk): the mount's unit fights, and the rider's own card unit
+     * takes over when the mount dies.
+     */
+    private void mountRider(Entity spider, EntityType<?> type, Item held,
+            boolean baby)
+    {
+        Entity rider = type.create(level);
         if (rider == null)
             return;
+        if (baby && rider instanceof net.minecraft.world.entity.monster.Zombie z)
+            z.setBaby(true);
         rider.moveTo(spider.getX(), spider.getY(), spider.getZ(),
                 spider.getYRot(), 0.0F);
         rider.addTag("royalarena_troop");
@@ -263,8 +287,10 @@ public final class BattleField {
         if (rider instanceof Mob mob) {
             mob.setNoAi(true);
             mob.setPersistenceRequired();
-            mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
-            mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
+            if (held != null) {
+                mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(held));
+                mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
+            }
         }
         if (level.addFreshEntity(rider))
             rider.startRiding(spider, true);
@@ -1279,6 +1305,18 @@ public final class BattleField {
                         SoundSource.HOSTILE, 0.5F, 1.2F);
             }
             case VOLLEY -> {
+            }
+            case SNEEZE -> {
+                level.sendParticles(ParticleTypes.SNEEZE, x, y + 0.8D, z, 12,
+                        0.4D, 0.2D, 0.4D, 0.05D);
+                level.playSound(null, x, y, z, SoundEvents.PANDA_SNEEZE,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
+            case DASH -> {
+                level.sendParticles(ParticleTypes.CLOUD, x, y + 0.2D, z, 10,
+                        0.4D, 0.1D, 0.4D, 0.05D);
+                level.playSound(null, x, y, z, SoundEvents.CAMEL_DASH,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
             }
         }
     }

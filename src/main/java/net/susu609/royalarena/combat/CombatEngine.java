@@ -193,7 +193,22 @@ public final class CombatEngine {
      * Registers a unit created by a split; its health and damage already
      * carry its tribe bonus ({@link #childrenOf}).
      */
+    /** The card a rider about to be added fights for (the played card). */
+    private final Map<ChildSpawn, BattleCard> riderCredit =
+            new java.util.IdentityHashMap<>();
+    /** Riders' played cards, by unit (everyone else: {@link #cardOf}). */
+    private final Map<UUID, BattleCard> creditOf = new java.util.HashMap<>();
+
+    /** The played card a unit's damage counts for in the match stats. */
+    private BattleCard creditOf(UUID unit) {
+        BattleCard credit = creditOf.get(unit);
+        return credit != null ? credit : cardOf.get(unit);
+    }
+
     public CombatUnit add(UUID entityId, ChildSpawn spawn) {
+        BattleCard credit = riderCredit.remove(spawn);
+        if (credit != null)
+            creditOf.put(entityId, credit);
         CombatUnit unit = new CombatUnit(
                 entityId, spawn.side(), spawn.stats(), spawn.generation(),
                 spawn.health(), spawn.damage(), spawn.radius(), spawn.x(),
@@ -290,6 +305,7 @@ public final class CombatEngine {
         applyDamage(landed, destroyed, pushes);
         applyBurns();
         applySpellHits(hits, destroyed, pushes);
+        sneezes(pushes);
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
                 pushes, landed, List.copyOf(teleports),
@@ -360,6 +376,10 @@ public final class CombatEngine {
             double slow = (unit.webbed() ? WEB_SPEED : unit.slowed() ?
                     TroopTraits.SLOW_SPEED : 1.0D) *
                     (unit.hasted() ? HASTE_SPEED : 1.0D);
+            BattleCard walker = cardOf.get(unit.id());
+            if (walker != null && walker.swimsFast() &&
+                    arena.isRiver((int) Math.floor(unit.z())))
+                slow *= BattleCard.RIVER_SWIM;
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
                     stats.speedPerTick() * speedMultiplier * slow *
                             unit.tribe().speed()));
@@ -373,6 +393,11 @@ public final class CombatEngine {
         if (!unit.ready())
             return;
         unit.startShotCooldown();
+        BattleCard own = cardOf.get(unit.id());
+        if (own != null && own.rages())
+            unit.hasteCooldown(1.0D + BattleCard.RAGE_MAX * Math.min(1.0D,
+                    Math.max(0.0D, (1.0D - unit.health() / unit.maxHealth()) /
+                            0.75D)));
         boolean ranged = !stats.melee();
         // Laser beams and fangs hit at once; arrows and fireballs fly.
         int flight = ranged && !traits.charges() && !traits.lines() ?
@@ -387,16 +412,55 @@ public final class CombatEngine {
             damage *= 1.0D + unit.tribe().packDamage() * packmates(unit);
         if (enemy != null && swallows(unit, enemy))
             damage = SWALLOW_DAMAGE;
+        double knockback = ranged ? 0.0D : traits.knockback();
+        if (own != null && own.dashes() && enemy != null && unit.dash()) {
+            damage *= BattleCard.DASH_DAMAGE;
+            knockback = BattleCard.DASH_KNOCKBACK;
+            tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.DASH,
+                    unit.x(), unit.z()));
+        }
         attacks.add(new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
                 damage, ranged, flight, unit.side(), targetX, targetZ,
-                traits.splashRadius(), ranged ? 0.0D : traits.knockback(),
+                traits.splashRadius(), knockback,
                 traits.slowTicks(), traits.lineWidth(),
                 stats.range() + unit.radius() + 1.0D, unit.x(), unit.z()));
         if (ranged && unit.volley(unit.tribe().extraShotEvery()))
             volley(unit, enemy, damage, attacks);
         if (traits.selfDestruct())
             unit.expire();
+    }
+
+    /** When each Panda next sneezes (engine tick). */
+    private final Map<UUID, Integer> sneezeAt = new java.util.HashMap<>();
+
+    /**
+     * Every Panda sneezes each {@link BattleCard#SNEEZE_TICKS}: small
+     * enemies close to it are blown back.
+     */
+    private void sneezes(List<Push> pushes) {
+        for (CombatUnit panda : units) {
+            BattleCard card = cardOf.get(panda.id());
+            if (card == null || !card.sneezes() || !panda.alive() ||
+                    panda.frozen())
+                continue;
+            int at = sneezeAt.computeIfAbsent(panda.id(),
+                    id -> now + BattleCard.SNEEZE_TICKS);
+            if (now < at)
+                continue;
+            sneezeAt.put(panda.id(), now + BattleCard.SNEEZE_TICKS);
+            tribeEvents.add(new TribeEvent(panda.id(), TribeEvent.Kind.SNEEZE,
+                    panda.x(), panda.z()));
+            for (CombatUnit other : units) {
+                if (other.side() == panda.side() || !other.alive() ||
+                        other.radius() >= BattleCard.SNEEZE_SMALL ||
+                        edgeDistance(panda, other) > BattleCard.SNEEZE_RANGE)
+                    continue;
+                knockBack(other, panda.x(), panda.z(),
+                        -ArenaLayout.sideSign(panda.side()),
+                        BattleCard.SNEEZE_PUSH, pushes);
+            }
+        }
     }
 
     /** Damage of a Frog's lick on a slime it swallows: always a kill. */
@@ -826,7 +890,7 @@ public final class CombatEngine {
                 if (unit.alive() && unit.stats().traits().leavesFireTrail() &&
                         !unit.frozen())
                     firePatches.add(new FirePatch(unit.side(),
-                            cardOf.get(unit.id()), unit.x(), unit.z(),
+                            creditOf(unit.id()), unit.x(), unit.z(),
                             unit.stats().traits().fireTrailTicks()));
             }
         }
@@ -904,7 +968,7 @@ public final class CombatEngine {
         for (Attack attack : attacks) {
             // The shooter may have died while its arrow flew; it still counts.
             BattleCard source = attack.attackerUnit() == null ? null :
-                    cardOf.get(attack.attackerUnit());
+                    creditOf(attack.attackerUnit());
             CombatUnit victim = null;
             if (attack.victimUnit() != null) {
                 victim = unit(attack.victimUnit());
@@ -1193,7 +1257,7 @@ public final class CombatEngine {
 
     /** Nether tribe step 5: a dying troop sets the enemies near it burning. */
     private void lastFlame(CombatUnit dead) {
-        BattleCard source = cardOf.get(dead.id());
+        BattleCard source = creditOf(dead.id());
         for (CombatUnit other : units) {
             if (other.side() == dead.side() || !other.alive())
                 continue;
@@ -1219,11 +1283,15 @@ public final class CombatEngine {
             ArenaWaypoint spot = arena.clampSpawn(parent.x(), parent.z(), sign);
             TribeBonus bonus = tribeBonus(BattleCard.forStats(rider),
                     parent.side());
-            children.add(new ChildSpawn(parent.side(), rider,
+            ChildSpawn child = new ChildSpawn(parent.side(), rider,
                     parent.generation() + 1, rider.health() * bonus.health(),
                     rider.damage() * bonus.damage(),
                     rider.radius(), spot.x(), spot.z(),
-                    rule.invulnerableTicks(), parent.lockedTower()));
+                    rule.invulnerableTicks(), parent.lockedTower());
+            // A rider fights for the card that was played (the Camel's
+            // Husk is the Camel's damage), not for its own card.
+            riderCredit.put(child, creditOf(parent.id()));
+            children.add(child);
             return children;
         }
         for (int i = 0; i < rule.children(); i++) {

@@ -131,6 +131,23 @@ public enum BattleCard {
     PIGLETS("Piglets", 3, "minecraft:pig", null, 0,
             new TroopStats(4, 10, 4, 30, 0.8D, 1.8D, 0.35D,
                     TroopTraits.BUILDINGS)),
+    ZOGLIN("Zoglin", 3, "minecraft:zoglin", null, 0,
+            new TroopStats(1, 40, 8, 28, 1.2D, 1.4D, 0.65D,
+                    new TroopTraits(0.0D, false, 1.0D, true, 0, 0, 0.0D, 0,
+                            0.0D, false, false, false, false, false, 0.0D, 0,
+                            false, 0))),
+    KILLER_RABBITS("Killer Rabbits", 2, "minecraft:rabbit", null, 0,
+            new TroopStats(3, 3, 4, 20, 0.8D, 1.8D, 0.25D).withArmor(8)),
+    CHICKEN_JOCKEY("Chicken Jockey", 2, "minecraft:chicken", null, 0,
+            new TroopStats(1, 4, 3, 20, 1.2D, 1.8D, 0.35D,
+                    SplitRule.into(ZOMBIE.stats()), TroopTraits.NONE)),
+    PANDA("Panda", 2, "minecraft:panda", null, 0,
+            new TroopStats(1, 20, 6, 30, 1.2D, 0.8D, 0.65D)),
+    TURTLE("Turtle", 1, "minecraft:turtle", null, 0,
+            new TroopStats(1, 30, 1, 40, 1.0D, 0.5D, 0.6D).withArmor(10)),
+    CAMEL("Camel", 2, "minecraft:camel", null, 0,
+            new TroopStats(1, 32, 2.5D, 20, 1.5D, 1.0D, 0.8D,
+                    SplitRule.into(HUSK.stats()), TroopTraits.NONE)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(2.3D, 6, 3, 8, 7.0D, 0.5D, 0.0D, 0.0D, 0)
                     .thrownAt(24.0D)),
@@ -266,7 +283,8 @@ public enum BattleCard {
     public java.util.Set<Tribe> tribes() {
         return switch (this) {
             case ZOMBIE -> EnumSet.of(Tribe.ZOMBIE, Tribe.NIGHT);
-            case HUSK, ZOMBIE_VILLAGER -> EnumSet.of(Tribe.ZOMBIE);
+            case HUSK, ZOMBIE_VILLAGER, CHICKEN_JOCKEY -> EnumSet.of(Tribe.ZOMBIE);
+            case ZOGLIN -> EnumSet.of(Tribe.ZOMBIE, Tribe.NETHER);
             case DROWNED -> EnumSet.of(Tribe.ZOMBIE, Tribe.AQUATIC);
             case ZOMBIFIED_PIGLIN -> EnumSet.of(Tribe.ZOMBIE, Tribe.NETHER);
             case PHANTOM -> EnumSet.of(Tribe.ZOMBIE, Tribe.NIGHT);
@@ -283,9 +301,10 @@ public enum BattleCard {
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
             case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
             case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
-            case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA, CAT, PIGLETS ->
+            case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA, CAT, PIGLETS,
+                    KILLER_RABBITS, PANDA, CAMEL ->
                     EnumSet.of(Tribe.BEAST);
-            case FROG -> EnumSet.of(Tribe.AQUATIC);
+            case FROG, TURTLE -> EnumSet.of(Tribe.AQUATIC);
             case CREEPER, ENDERMAN -> EnumSet.of(Tribe.NIGHT);
             case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
             case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
@@ -327,12 +346,14 @@ public enum BattleCard {
     public Set<CardTactic> tactics() {
         return switch (this) {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
-                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT, CAT, FROG ->
+                    ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT, CAT, FROG,
+                    KILLER_RABBITS, PANDA, TURTLE ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
                     SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
-            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
+            case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, ZOGLIN,
+                    CHICKEN_JOCKEY, CAMEL, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
@@ -356,7 +377,7 @@ public enum BattleCard {
             case ZOMBIE, SKELETON_ARCHER, SKELETONS,
                     STRAY, ZOMBIFIED_PIGLIN, HUSK,
                     WITHER_SKELETON, DROWNED, PHANTOM,
-                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER ->
+                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER, ZOGLIN ->
                     Body.UNDEAD;
             default -> Body.LIVING;
         };
@@ -369,7 +390,7 @@ public enum BattleCard {
     public boolean fireImmune() {
         return switch (this) {
             case BLAZE, GHAST, MAGMA_CUBE, ZOMBIFIED_PIGLIN, HOGLIN,
-                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER, PIGLIN -> true;
+                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER, PIGLIN, ZOGLIN -> true;
             default -> false;
         };
     }
@@ -393,6 +414,48 @@ public enum BattleCard {
     public boolean swallowsSmallSlimes() {
         return this == FROG;
     }
+
+    /**
+     * A Zoglin's rage: it attacks faster the more health it has lost, up to
+     * {@link #RAGE_MAX} faster at a quarter of its health or less.
+     */
+    public boolean rages() {
+        return this == ZOGLIN;
+    }
+
+    public static final double RAGE_MAX = 0.6D;
+
+    /**
+     * A Camel's dash: its first blow lands {@link #DASH_DAMAGE} times as
+     * hard and knocks the target {@link #DASH_KNOCKBACK} blocks back.
+     */
+    public boolean dashes() {
+        return this == CAMEL;
+    }
+
+    public static final double DASH_DAMAGE = 2.0D;
+    public static final double DASH_KNOCKBACK = 1.5D;
+
+    /**
+     * A Panda sneezes every {@link #SNEEZE_TICKS}: small enemies (body
+     * radius under {@link #SNEEZE_SMALL}) within {@link #SNEEZE_RANGE}
+     * blocks of it are blown {@link #SNEEZE_PUSH} blocks away.
+     */
+    public boolean sneezes() {
+        return this == PANDA;
+    }
+
+    public static final int SNEEZE_TICKS = 80;
+    public static final double SNEEZE_SMALL = 0.5D;
+    public static final double SNEEZE_RANGE = 1.5D;
+    public static final double SNEEZE_PUSH = 1.5D;
+
+    /** A Turtle swims: it walks {@link #RIVER_SWIM} times as fast on the river. */
+    public boolean swimsFast() {
+        return this == TURTLE;
+    }
+
+    public static final double RIVER_SWIM = 3.0D;
 
     /** Troop stats; null for a spell. */
     public TroopStats stats() {

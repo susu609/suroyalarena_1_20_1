@@ -785,3 +785,17 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `SpellTargetHighlighter` (milk lights both sides), `MobSounds` (cat hiss,
   frog tongue), card art list, `vanilla.json`
 - `MobsWave3SmokeTest`, `"cleanse"` in `CombatSmokeTest`
+
+## Part 67 — Zoglin, Killer Rabbits, Chicken Jockey, Panda, Turtle, Camel
+
+- `card/BattleCard.java` and the JSONs; rules keyed by card:
+  `rages` (Zoglin), `dashes` (Camel), `sneezes` (Panda), `swimsFast`
+  (Turtle); riders via `SplitRule.into` (Chicken Jockey's Zombie, Camel's
+  Husk); protocol 28
+- `CombatEngine` (rage cooldown, dash, `sneezes`, river swim,
+  `creditOf`: a rider's damage counts for the played card),
+  `CombatUnit.dash` / `hasteCooldown`, `TickResult.TribeEvent.Kind`
+  SNEEZE and DASH
+- `BattleField` (baby zombie rider, Husk on the Camel, killer bunny
+  variant, sneeze and dash particles and sounds), `DeckScreen` tooltips
+- `MobsWave4SmokeTest`

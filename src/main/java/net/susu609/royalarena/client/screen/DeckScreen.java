@@ -633,6 +633,24 @@ public final class DeckScreen extends Screen {
                     BattleCard.CAT_SCARE_RADIUS));
         if (card.swallowsSmallSlimes())
             lines.add(line("Swallows the smallest slimes and magma cubes whole"));
+        if (card.rages())
+            lines.add(line("Rage: attacks up to %.0f%% faster as it loses health",
+                    BattleCard.RAGE_MAX * 100.0D));
+        if (card.dashes())
+            lines.add(line("Dash: its first blow hits twice as hard and knocks back"));
+        if (card.sneezes())
+            lines.add(line("Sneezes every %.0f s: small enemies near it are blown back",
+                    BattleCard.SNEEZE_TICKS / 20.0D));
+        if (card.swimsFast())
+            lines.add(line("Slow on land, %.0f times as fast on the river",
+                    BattleCard.RIVER_SWIM));
+        if (s.split() != null && s.split().into() != null) {
+            BattleCard rider = BattleCard.forStats(s.split().into());
+            if (rider != null && card != BattleCard.SPIDER_JOCKEY &&
+                    card != BattleCard.SKELETON_RIDER)
+                lines.add(line("When it falls, its %s fights on",
+                        rider.displayName()));
+        }
         return lines;
     }
 

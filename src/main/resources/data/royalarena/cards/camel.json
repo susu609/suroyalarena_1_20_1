@@ -1,0 +1,25 @@
+{
+  "id": "camel",
+  "type": "troop",
+  "display_name": "Camel",
+  "roles": [
+    "attack"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:camel",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 32,
+    "damage": 2.5,
+    "attack_interval_ticks": 20,
+    "range": 1.5,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground",
+    "dash_damage_multiplier": 2.0,
+    "dash_knockback": 1.5
+  },
+  "splits_into": "husk"
+}

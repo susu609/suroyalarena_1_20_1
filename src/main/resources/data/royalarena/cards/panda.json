@@ -1,0 +1,25 @@
+{
+  "id": "panda",
+  "type": "troop",
+  "display_name": "Panda",
+  "roles": [
+    "defense"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:panda",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 6,
+    "attack_interval_ticks": 30,
+    "range": 1.2,
+    "move_speed": 0.8,
+    "flying": false,
+    "targets": "ground",
+    "sneeze_ticks": 80,
+    "sneeze_range": 1.5,
+    "sneeze_push": 1.5
+  }
+}

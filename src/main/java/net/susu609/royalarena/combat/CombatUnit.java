@@ -47,6 +47,7 @@ public final class CombatUnit {
     private TribeBonus tribe = TribeBonus.NONE;
     private boolean landedFirstHit;
     private boolean saved;
+    private boolean dashed;
     private int shots;
     private int burstShot;
 
@@ -122,6 +123,20 @@ public final class CombatUnit {
         invulnerableTicks = Math.max(invulnerableTicks, invulnerable);
     }
     /** True the first time it is asked after the unit's first hit landed. */
+    /** Whether its dash is still to come; true once, then false (Camel). */
+    boolean dash() {
+        if (dashed)
+            return false;
+        dashed = true;
+        return true;
+    }
+
+    /** Shortens the attack it just started: {@code factor} times as fast. */
+    void hasteCooldown(double factor) {
+        if (factor > 1.0D)
+            cooldown = Math.max(1, (int) Math.round(cooldown / factor));
+    }
+
     boolean firstHit() {
         if (landedFirstHit)
             return false;

@@ -1,0 +1,23 @@
+{
+  "id": "killer_rabbits",
+  "type": "troop",
+  "display_name": "Killer Rabbits",
+  "roles": [
+    "defense"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:rabbit",
+  "model_scale": 1.0,
+  "count": 3,
+  "unit": {
+    "health": 3,
+    "armor": 8,
+    "damage": 4,
+    "attack_interval_ticks": 20,
+    "range": 0.8,
+    "move_speed": 1.8,
+    "flying": false,
+    "targets": "ground"
+  }
+}
