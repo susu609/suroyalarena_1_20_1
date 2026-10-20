@@ -18,6 +18,12 @@ public final class ArenaSounds {
     public static final String FINAL_SECONDS = "block.note_block.hat";
     public static final String ELIXIR_FULL = "entity.experience_orb.pickup";
     public static final String BATTLE_MUSIC = "music_disc.pigstep";
+    /**
+     * The mod's own tune for the first phase (x1 elixir): the sound event
+     * {@code royalarena:music.arena_phase1} in sounds.json, a 75 s loop made
+     * by scripts/music/compose_phase1.py.
+     */
+    public static final String PHASE1_MUSIC = "music.arena_phase1";
 
     // Cards and the deck (client)
     public static final String CARD_REFUSED = "block.note_block.bass";

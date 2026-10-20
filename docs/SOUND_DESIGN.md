@@ -181,3 +181,24 @@ Bạn đã chọn các tiếng dưới đây trên trang nghe thử. Tên tiến
 | Thắng trận | `MobSounds.celebrate`: tối đa 6 quân còn sống của bên thắng; illager, phù thủy, piglin dùng tiếng ăn mừng raid (`entity.X.celebrate`), còn lại dùng tiếng idle | `BattleField.celebrate` |
 
 `MobSoundsSmokeTest` kiểm mọi id có thật trong 1.20.1.
+
+## Nhạc của mod: "Arena March" (giai đoạn đầu)
+
+Nhạc nền giai đoạn đầu (elixir x1) là một bản **nguyên bản do Claude soạn**
+(không lấy giai điệu hay âm thanh của game nào), phong cách hùng tráng nhẹ
+với tiếng note block (bass, harp, bell, pling, snare, hat, kick) cộng kèn
+horn tổng hợp cho giai điệu lớn.
+
+- **Cách làm:** `scripts/music/compose_phase1.py` (numpy, ffmpeg) soạn và
+  tổng hợp ra `assets/royalarena/sounds/music/arena_phase1.ogg`. Chạy lại
+  script sau khi sửa nốt để tạo file mới (cần `numpy` và `ffmpeg`).
+- **Bản nhạc:** 128 bpm, Đô trưởng, 40 ô nhịp 4/4 = đúng 75 s, nối vòng
+  liền mạch (đuôi vang gói về đầu). Năm đoạn 8 ô nhịp: A chuông, A đầy hơn,
+  B kèn horn, A kèn và chuông, cầu nhẹ rồi quay lại.
+- **Mức âm:** -19 dBFS rms, đỉnh dưới -3 dBFS, để tiếng hiệu ứng còn rõ.
+- **Trong game:** `BattleSounds.music` phát từ lúc đếm ngược cho tới khi
+  elixir tăng tốc (x2) hay hiệp phụ, lúc đó chuyển sang Pigstep. Theo thanh
+  Music; tắt bằng `arenaMusic = false` (giữ Pigstep cả trận) hoặc
+  `battleMusic = false` (không nhạc).
+- **Kiểm tra:** `MusicSmokeTest` (file có thật, mapping trong sounds.json).
+  Chất lượng nghe thật phải nghe bằng tai.

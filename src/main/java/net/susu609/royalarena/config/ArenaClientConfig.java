@@ -70,6 +70,13 @@ public final class ArenaClientConfig {
                     "while a battle runs.")
             .define("battleMusic", true);
 
+    public static final ForgeConfigSpec.BooleanValue ARENA_MUSIC = BUILDER
+            .comment("Play the mod's own tune, Arena March, in the first " +
+                    "phase of a battle (from the countdown until the elixir " +
+                    "speeds up); false keeps Pigstep all battle. Needs " +
+                    "battleMusic.")
+            .define("arenaMusic", true);
+
     public static final ForgeConfigSpec.BooleanValue MENU_HINT = BUILDER
             .comment("A reminder in the top left corner, outside a match, " +
                     "of the key that opens the Royal Arena screen.")

@@ -1,0 +1,8 @@
+{
+  "music.arena_phase1": {
+    "category": "music",
+    "sounds": [
+      {"name": "royalarena:music/arena_phase1", "stream": true}
+    ]
+  }
+}

@@ -813,3 +813,13 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `BattleField` (Shulker bullet and shell, crystal without base, boom,
   blast), `ProjectileRenderer` (SHULKER_BULLET), `DeckScreen`, `MobSounds`
 - `PowerCreepTest.defendScore`, `MobsWave5SmokeTest`
+
+## Part 69 — Mob summon and cheer sounds, Arena March
+
+- `card/MobSounds.java` (`ambient`, `summon`, `celebrate`), `BattleField`
+  (`deploy` plays the summon sound once, `celebrate` for the winners),
+  `ServerMatchSession`; `MobSoundsSmokeTest` checks every id
+- `scripts/music/compose_phase1.py` -> `sounds/music/arena_phase1.ogg`,
+  `sounds.json`, `ArenaSounds.PHASE1_MUSIC`, `ArenaClientConfig.ARENA_MUSIC`,
+  `client/sound/BattleSounds.java` (own tune in phase 1, Pigstep after),
+  `MusicSmokeTest`
