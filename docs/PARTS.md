@@ -832,3 +832,15 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `match/MusicPlan.java` (which piece when, pure Java), `ArenaSounds`
   (`RUSH_MUSIC`, `LAST_STAND_MUSIC`), `sounds.json`, `BattleSounds.music`
 - `MusicSmokeTest`: the timeline (2:00, 2:30, 2:50, 3:00, 4:00, 4:50) and the files
+
+## Part 71 — Music: less machine-made
+
+- `scripts/music/notes.py` (note names, chords), `arranger.py` (bass, arp and
+  drum patterns that change with the bar: walk-ups, fills, ghost notes)
+- `arena_march.py` rewritten around a two-bar hook: borrowed D7 and Bb, a lift
+  to D major, a piano bridge with a roll and riser back into the loop;
+  `late_scores.py` brings the hook back in A minor and D minor with E7/A7
+- `synth.py`: `piano` voice, `Mix.play(humanize=True)` (timing, accents, gain)
+- Levels -20.5 / -18.5 / -17.5 dBFS rms; Rush and Last Stand open on a hit
+- `client/sound/FadingMusic`: the old piece fades over 1 s when the phase
+  changes (`BattleSounds.music`)

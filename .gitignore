@@ -16,3 +16,4 @@ run-client1/
 run-client2/
 run-server/
 !gradle-wrapper.jar
+__pycache__/

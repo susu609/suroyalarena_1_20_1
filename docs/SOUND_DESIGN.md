@@ -193,9 +193,13 @@ horn tổng hợp cho giai điệu lớn.
   `scripts/music/compose_phase1.py` (numpy, ffmpeg) tổng hợp ra `assets/royalarena/sounds/music/arena_phase1.ogg`. Chạy lại
   script sau khi sửa nốt để tạo file mới (cần `numpy` và `ffmpeg`).
 - **Bản nhạc:** 128 bpm, Đô trưởng, 40 ô nhịp 4/4 = đúng 75 s, nối vòng
-  liền mạch (đuôi vang gói về đầu). Năm đoạn 8 ô nhịp: A chuông, A đầy hơn,
-  B kèn horn, A kèn và chuông, cầu nhẹ rồi quay lại.
-- **Mức âm:** -19 dBFS rms, đỉnh dưới -3 dBFS, để tiếng hiệu ứng còn rõ.
+  liền mạch (đuôi vang gói về đầu). Năm đoạn 8 ô nhịp: A chuông, A có bè
+  pling, B kèn horn, A nâng lên Rê trưởng, cầu piano nhẹ rồi trống dồn quay lại.
+- **Cho đỡ "máy":** chơi lệch vài ms, nhấn phách, mỗi ô nhịp bass/arp/trống
+  khác nhau, trống dồn cuối mỗi 8 ô (`arranger.py`, `Mix.play`).
+- **Mức âm:** tăng dần theo pha: Arena March -20.5, Rush -18.5, Last Stand
+  -17.5 dBFS rms, đỉnh dưới -3 dBFS, để tiếng hiệu ứng còn rõ. Đổi bản thì
+  bản cũ fade 1 s (`FadingMusic`).
 - **Trong game:** `BattleSounds.music` theo đồng hồ trận (`MusicPlan`):
   Arena March từ lúc đếm ngược tới 2:00; **Arena Rush** 2:00-3:00 (còn 60 s,
   30 s, 10 s); **Last Stand** hiệp phụ 3:00-5:00 (còn 60 s ở 4:00, 10 s ở

@@ -1,12 +1,7 @@
 package net.susu609.royalarena.client.sound;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.client.state.ClientMatchState;
@@ -24,7 +19,7 @@ import net.susu609.royalarena.match.SoundCues;
  */
 public final class BattleSounds {
     private static SoundCues.Frame last = SoundCues.Frame.NONE;
-    private static SoundInstance music;
+    private static FadingMusic music;
     /** Name of the track {@link #music} plays (a MusicPlan.Track or PIGSTEP). */
     private static String musicName;
     /** Ticks since the music was started (a stream takes a moment to begin). */
@@ -84,8 +79,8 @@ public final class BattleSounds {
         // One name per track: the plan's piece, or Pigstep.
         String wanted = plan == null ? null : own ? plan.name() : "PIGSTEP";
         if (music != null && !java.util.Objects.equals(wanted, musicName)) {
-            // The phase changed (or the battle ended): stop what plays.
-            mc.getSoundManager().stop(music);
+            // The phase changed (or the battle ended): fade out what plays.
+            music.fadeOut();
             music = null;
             musicName = null;
         }
@@ -105,22 +100,20 @@ public final class BattleSounds {
                     mc.getSoundManager().isActive(music))
                 return;
         }
-        ResourceLocation track;
+        SoundEvent track;
         if (own) {
-            track = RL.of(RoyalArena.MOD_ID, switch (plan) {
-                case PHASE1 -> ArenaSounds.PHASE1_MUSIC;
-                case RUSH -> ArenaSounds.RUSH_MUSIC;
-                case LAST_STAND -> ArenaSounds.LAST_STAND_MUSIC;
-            });
+            track = SoundEvent.createVariableRangeEvent(RL.of(RoyalArena.MOD_ID,
+                    switch (plan) {
+                        case PHASE1 -> ArenaSounds.PHASE1_MUSIC;
+                        case RUSH -> ArenaSounds.RUSH_MUSIC;
+                        case LAST_STAND -> ArenaSounds.LAST_STAND_MUSIC;
+                    }));
         } else {
-            SoundEvent vanilla = ClientSounds.event(ArenaSounds.BATTLE_MUSIC);
-            if (vanilla == null)
+            track = ClientSounds.event(ArenaSounds.BATTLE_MUSIC);
+            if (track == null)
                 return;
-            track = vanilla.getLocation();
         }
-        music = new SimpleSoundInstance(track, SoundSource.MUSIC,
-                1.0F, 1.0F, RandomSource.create(), loops, 0,
-                SoundInstance.Attenuation.NONE, 0.0D, 0.0D, 0.0D, true);
+        music = new FadingMusic(track, loops);
         musicName = wanted;
         mc.getSoundManager().play(music);
         musicAge = 0;

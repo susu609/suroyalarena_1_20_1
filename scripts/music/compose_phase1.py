@@ -22,4 +22,4 @@ mix = Mix(LOOP_SECONDS, tail=3.0)
 mix.play(events(), STEP)
 finish(mix, sys.argv[1] if len(sys.argv) > 1 else
        "src/main/resources/assets/royalarena/sounds/music/arena_phase1.ogg",
-       loop=True)
+       loop=True, rms_db=-20.5)

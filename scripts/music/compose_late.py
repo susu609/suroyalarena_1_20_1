@@ -21,9 +21,11 @@ from synth import Mix, finish  # noqa: E402
 
 OUT = Path("src/main/resources/assets/royalarena/sounds/music")
 
-for name, seconds, events in (
-        ("arena_rush", RUSH_SECONDS, rush_events()),
-        ("last_stand", LAST_STAND_SECONDS, last_stand_events())):
+# Each later phase is a little louder than the one before (phase 1 sits at
+# -20.5 dBFS rms).
+for name, seconds, events, level in (
+        ("arena_rush", RUSH_SECONDS, rush_events(), -18.5),
+        ("last_stand", LAST_STAND_SECONDS, last_stand_events(), -17.5)):
     mix = Mix(seconds, tail=2.5)
     mix.play(events, STEP)
-    finish(mix, OUT / f"{name}.ogg", loop=False)
+    finish(mix, OUT / f"{name}.ogg", loop=False, rms_db=level)

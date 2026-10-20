@@ -157,6 +157,22 @@ def tom(m, secs=0.5):
     return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 9)
 
 
+def piano(m, secs):
+    """A soft hammered string: slightly stretched partials, two detuned
+    strings per note, upper partials dying first."""
+    t = t_axis(secs)
+    f = hz(m)
+    tone = 0.0
+    for k in range(1, 9):
+        fk = f * k * np.sqrt(1 + 0.0004 * k * k)
+        if fk > SR / 2.2:
+            break
+        decay = 1.4 + 0.8 * k + f / 500
+        tone = tone + (1.0 / k ** 1.3) * np.exp(-t * decay) * (
+            np.sin(2 * np.pi * fk * t) + 0.6 * np.sin(2 * np.pi * fk * 1.0012 * t))
+    return tone * adsr(len(t), 0.002, 0.12)
+
+
 # --------------------------------------------------------- parts -> sounds
 # part name -> (function taking (note, secs), gain, pan)
 VOICES = {
@@ -170,7 +186,12 @@ VOICES = {
     "arp": (harp, 1.0, 0.35),
     "pad": (horn, 1.0, 0.0),
     "tom": (tom, 0.5, -0.2),
+    "piano": (piano, 0.16, -0.1),
 }
+
+# Parts that are not pushed or pulled by the beat (sustained or effects).
+UNACCENTED = {"pad", "strings", "crash", "riser"}
+DRUMS = {"kick", "snare", "hat", "tom", "timp", "crash", "riser", "tick"}
 
 
 class Mix:
@@ -190,28 +211,45 @@ class Mix:
         self.buf[start:end, 0] += chunk * left
         self.buf[start:end, 1] += chunk * right
 
-    def play(self, events, step_seconds):
-        """Render events (arena_march.py's shape) in order."""
+    def play(self, events, step_seconds, humanize=True, bar_steps=16):
+        """
+        Render events (arena_march.py's shape) in order. humanize plays them
+        like a person would: a few ms early or late (less for drums), the
+        downbeat and the beats leaned on, the off 16ths lighter, and no two
+        hits exactly as loud. Its own random stream, so the drum noise is
+        unchanged.
+        """
+        feel = np.random.default_rng(1609)
         for e in events:
             part = e["part"]
             at = e["step"] * step_seconds
+            g = e["gain"]
+            if humanize:
+                spread = 0.003 if part in DRUMS else 0.007
+                at = max(0.0, at + float(np.clip(feel.normal(0, spread),
+                                                 -2 * spread, 2 * spread)))
+                g *= 1 + feel.uniform(-0.05, 0.05)
+                if part not in UNACCENTED:
+                    pos = e["step"] % bar_steps
+                    g *= (1.12 if pos == 0 else 1.06 if pos % 4 == 0 else
+                          0.94 if pos % 2 else 1.0)
             if part in VOICES:
                 fn, gain, pan = VOICES[part]
-                self.put(fn(e["note"], e["secs"]), at, pan, e["gain"] * gain)
+                self.put(fn(e["note"], e["secs"]), at, pan, g * gain)
             elif part == "kick":
-                self.put(kick(), at, 0.0, e["gain"])
+                self.put(kick(), at, 0.0, g)
             elif part == "snare":
-                self.put(snare(e["arg"]), at, 0.1, e["gain"])
+                self.put(snare(e["arg"]), at, 0.1, g)
             elif part == "hat":
-                self.put(hat(e["arg"]), at, -0.25, e["gain"])
+                self.put(hat(e["arg"]), at, -0.25, g)
             elif part == "timp":
-                self.put(timpani(e["note"]), at, 0.0, e["gain"])
+                self.put(timpani(e["note"]), at, 0.0, g)
             elif part == "crash":
-                self.put(crash(), at, 0.0, e["gain"])
+                self.put(crash(), at, 0.0, g)
             elif part == "riser":
-                self.put(riser(e["secs"]), at, 0.0, e["gain"])
+                self.put(riser(e["secs"]), at, 0.0, g)
             elif part == "tick":
-                self.put(tick(e["note"]), at, 0.3, e["gain"])
+                self.put(tick(e["note"]), at, 0.3, g)
             else:
                 raise KeyError(part)
 
