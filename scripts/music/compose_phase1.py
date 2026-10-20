@@ -21,25 +21,11 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from arena_march import LOOP_SECONDS, STEP, events  # noqa: E402
+
 SR = 44100
-BPM = 128
-STEP = 60.0 / BPM / 4.0          # one sixteenth
-BAR_STEPS = 16
-BARS = 40
-LOOP_SECONDS = BARS * BAR_STEPS * STEP   # 75.0
 TAIL = 3.0                        # seconds of ring-out wrapped onto the start
-
-NOTE_INDEX = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
-
-
-def midi(name):
-    """'C#5' / 'Bb3' -> MIDI number."""
-    letter, rest = name[0], name[1:]
-    shift = 0
-    while rest and rest[0] in "#b":
-        shift += 1 if rest[0] == "#" else -1
-        rest = rest[1:]
-    return 12 * (int(rest) + 1) + NOTE_INDEX[letter] + shift
 
 
 def hz(m):
@@ -128,53 +114,8 @@ def hat(gain=1.0):
     return gain * noise * np.exp(-t * 70)
 
 
-# --------------------------------------------------------------- the score
-CHORDS = {
-    "C": (("C2", "C3"), ("C4", "E4", "G4")),
-    "G": (("G2", "G3"), ("G3", "B3", "D4")),
-    "Am": (("A2", "A3"), ("A3", "C4", "E4")),
-    "F": (("F2", "F3"), ("F3", "A3", "C4")),
-}
-
-A_CHORDS = ["C", "G", "Am", "F", "C", "G", "F", "G"]
-B_CHORDS = ["Am", "F", "C", "G", "Am", "F", "G", "G"]
-
-# (step in bar, note, length in steps)
-A_TUNE = [
-    [(0, "E5", 3), (3, "G5", 1), (4, "C6", 4), (8, "G5", 4), (12, "E5", 2), (14, "D5", 2)],
-    [(0, "D5", 3), (3, "G5", 1), (4, "B5", 4), (8, "G5", 4), (12, "D5", 4)],
-    [(0, "C5", 3), (3, "E5", 1), (4, "A5", 4), (8, "E5", 4), (12, "C5", 2), (14, "D5", 2)],
-    [(0, "A4", 3), (3, "C5", 1), (4, "F5", 4), (8, "E5", 2), (10, "D5", 2), (12, "C5", 4)],
-    [(0, "E5", 3), (3, "G5", 1), (4, "C6", 4), (8, "B5", 2), (10, "C6", 2), (12, "D6", 4)],
-    [(0, "B5", 4), (4, "G5", 4), (8, "D5", 4), (12, "G5", 4)],
-    [(0, "A5", 4), (4, "F5", 4), (8, "C6", 4), (12, "A5", 4)],
-    [(0, "G5", 6), (6, "A5", 2), (8, "B5", 4), (12, "D6", 4)],
-]
-B_TUNE = [
-    [(0, "E5", 6), (6, "D5", 2), (8, "C5", 8)],
-    [(0, "F5", 6), (6, "E5", 2), (8, "A5", 8)],
-    [(0, "G5", 4), (4, "E5", 4), (8, "C5", 4), (12, "E5", 4)],
-    [(0, "D5", 6), (6, "E5", 2), (8, "B4", 8)],
-    [(0, "E5", 4), (4, "A5", 4), (8, "C6", 8)],
-    [(0, "A5", 4), (4, "C6", 4), (8, "A5", 8)],
-    [(0, "G5", 4), (4, "B5", 4), (8, "D6", 8)],
-    [(0, "D6", 8), (8, "B5", 4), (12, "G5", 4)],
-]
-
-# What plays in each of the five 8-bar sections.
-SECTIONS = [
-    dict(chords=A_CHORDS, tune=A_TUNE, lead=("bell",), drums="light",
-         harp=True, pad=False),
-    dict(chords=A_CHORDS, tune=A_TUNE, lead=("pling", "bell"), drums="march",
-         harp=True, pad=False),
-    dict(chords=B_CHORDS, tune=B_TUNE, lead=("horn",), drums="march",
-         harp=True, pad=True),
-    dict(chords=A_CHORDS, tune=A_TUNE, lead=("horn", "bell"), drums="full",
-         harp=True, pad=True),
-    dict(chords=A_CHORDS, tune=A_TUNE, lead=("harp",), drums="kick",
-         harp=False, pad=False),
-]
-
+# ----------------------------------------------------------- the render
+# The notes are in arena_march.py; here only how each part sounds.
 INSTR = {"bell": bell, "pling": pling, "horn": horn, "harp": harp}
 GAIN = {"bell": 0.36, "pling": 0.24, "horn": 0.26, "harp": 0.30}
 PAN = {"bell": 0.25, "pling": -0.3, "horn": 0.0, "harp": -0.2, "bass": 0.0,
@@ -184,8 +125,8 @@ N = int((LOOP_SECONDS + TAIL) * SR)
 mix = np.zeros((N, 2))
 
 
-def put(sound, start_step, pan, gain=1.0, step_offset=0.0):
-    start = int((start_step * STEP + step_offset) * SR)
+def put(sound, start_step, pan, gain=1.0):
+    start = int(start_step * STEP * SR)
     end = min(N, start + len(sound))
     if start >= N or end <= start:
         return
@@ -196,68 +137,24 @@ def put(sound, start_step, pan, gain=1.0, step_offset=0.0):
     mix[start:end, 1] += chunk * right
 
 
-def note(kind, name, start_step, length_steps, gain=1.0, pan=None, tail=0.0):
-    secs = length_steps * STEP + tail
-    sound = INSTR[kind](midi(name), secs)
-    put(sound, start_step, PAN[kind] if pan is None else pan,
-        gain * GAIN[kind])
-
-
-for s, sec in enumerate(SECTIONS):
-    for b in range(8):
-        bar = s * 8 + b
-        base = bar * BAR_STEPS
-        chord = sec["chords"][b]
-        (bass_lo, bass_hi), triad = CHORDS[chord]
-
-        # Bass: root on the beat, octave on the offbeat 8ths (note-block bass).
-        for i, (step, name) in enumerate(((0, bass_lo), (4, bass_lo),
-                                          (6, bass_hi), (8, bass_lo),
-                                          (12, bass_lo), (14, bass_hi))):
-            put(bass(midi(name), 0.5), base + step, PAN["bass"], 0.42)
-
-        # Harp arpeggio in 8ths up and down the triad.
-        if sec["harp"]:
-            order = (0, 1, 2, 1, 0, 1, 2, 1)
-            for i, k in enumerate(order):
-                name = triad[k]
-                m = midi(name) + 12
-                put(harp(m, 0.6), base + i * 2, PAN["arp"], 0.16)
-
-        # Sustained pad (horn, soft) under the big sections.
-        if sec["pad"] and b % 2 == 0:
-            for name in triad:
-                put(horn(midi(name), 2 * BAR_STEPS * STEP), base, PAN["pad"],
-                    0.05)
-
-        # The tune.
-        for step, name, length in sec["tune"][b]:
-            for kind in sec["lead"]:
-                shift = ""   # octave doubling for the bell under the horn
-                n = name
-                if kind == "bell" and "horn" in sec["lead"]:
-                    n = name[:-1] + str(int(name[-1]) + 1)
-                gain = 1.0 if kind != "bell" or "horn" not in sec["lead"] else 0.6
-                note(kind, n, base + step, length, gain, tail=0.25)
-
-        # Drums.
-        d = sec["drums"]
-        if d in ("light", "march", "full", "kick"):
-            if d != "light" or b >= 4:
-                for step in (0, 8):
-                    put(kick(), base + step, PAN["kick"], 0.65)
-        if d in ("march", "full") or (d == "light" and b >= 4):
-            for step in (4, 12):
-                put(snare(0.8), base + step, PAN["snare"], 0.45)
-            put(snare(0.4), base + 14, PAN["snare"], 0.25)
-        if d in ("light", "march", "full"):
-            for step in range(0, 16, 2):
-                loud = 1.0 if step % 4 == 0 else 0.55
-                put(hat(loud), base + step, PAN["hat"], 0.24)
-        if d == "full" and b == 7:
-            # A snare roll into the bridge.
-            for step in (10, 11, 12, 13, 14, 15):
-                put(snare(0.6), base + step, PAN["snare"], 0.3)
+for e in events():
+    part = e["part"]
+    if part.startswith("lead_"):
+        kind = part[5:]
+        put(INSTR[kind](e["note"], e["secs"]), e["step"], PAN[kind],
+            e["gain"] * GAIN[kind])
+    elif part == "bass":
+        put(bass(e["note"], e["secs"]), e["step"], PAN["bass"], e["gain"])
+    elif part == "arp":
+        put(harp(e["note"], e["secs"]), e["step"], PAN["arp"], e["gain"])
+    elif part == "pad":
+        put(horn(e["note"], e["secs"]), e["step"], PAN["pad"], e["gain"])
+    elif part == "kick":
+        put(kick(), e["step"], PAN["kick"], e["gain"])
+    elif part == "snare":
+        put(snare(e["arg"]), e["step"], PAN["snare"], e["gain"])
+    elif part == "hat":
+        put(hat(e["arg"]), e["step"], PAN["hat"], e["gain"])
 
 # --------------------------------------------------------- space and finish
 

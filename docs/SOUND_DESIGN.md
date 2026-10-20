@@ -189,8 +189,8 @@ Nhạc nền giai đoạn đầu (elixir x1) là một bản **nguyên bản do 
 với tiếng note block (bass, harp, bell, pling, snare, hat, kick) cộng kèn
 horn tổng hợp cho giai điệu lớn.
 
-- **Cách làm:** `scripts/music/compose_phase1.py` (numpy, ffmpeg) soạn và
-  tổng hợp ra `assets/royalarena/sounds/music/arena_phase1.ogg`. Chạy lại
+- **Cách làm:** nốt nhạc ở `scripts/music/arena_march.py`;
+  `scripts/music/compose_phase1.py` (numpy, ffmpeg) tổng hợp ra `assets/royalarena/sounds/music/arena_phase1.ogg`. Chạy lại
   script sau khi sửa nốt để tạo file mới (cần `numpy` và `ffmpeg`).
 - **Bản nhạc:** 128 bpm, Đô trưởng, 40 ô nhịp 4/4 = đúng 75 s, nối vòng
   liền mạch (đuôi vang gói về đầu). Năm đoạn 8 ô nhịp: A chuông, A đầy hơn,
@@ -202,3 +202,4 @@ horn tổng hợp cho giai điệu lớn.
   `battleMusic = false` (không nhạc).
 - **Kiểm tra:** `MusicSmokeTest` (file có thật, mapping trong sounds.json).
   Chất lượng nghe thật phải nghe bằng tai.
+- **Bản nhạc, MIDI, phối khí thật và prompt cho app AI:** docs/MUSIC.md.
