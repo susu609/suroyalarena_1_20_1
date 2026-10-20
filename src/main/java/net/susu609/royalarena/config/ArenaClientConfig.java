@@ -77,6 +77,13 @@ public final class ArenaClientConfig {
                     "battleMusic.")
             .define("arenaMusic", true);
 
+    public static final ForgeConfigSpec.DoubleValue MUSIC_VOLUME = BUILDER
+            .comment("How loud the battle music is next to the battle's " +
+                    "sounds (troops, shots, spells), on top of the game's " +
+                    "Music slider. 1 = the file's own level; lower keeps " +
+                    "the mobs clear.")
+            .defineInRange("musicVolume", 0.35D, 0.0D, 1.0D);
+
     public static final ForgeConfigSpec.BooleanValue MENU_HINT = BUILDER
             .comment("A reminder in the top left corner, outside a match, " +
                     "of the key that opens the Royal Arena screen.")

@@ -236,6 +236,9 @@ horn tổng hợp cho giai điệu lớn.
   4:50). Mỗi bản bắt đầu đúng lúc pha bắt đầu và dài đúng bằng pha. Theo
   thanh Music; tắt bằng `arenaMusic = false` (Pigstep cả trận) hoặc
   `battleMusic = false` (không nhạc). Chi tiết: docs/MUSIC.md.
+- **Nhạc không lấn tiếng mob:** nhạc phát ở `musicVolume` = 0.35 (khoảng
+  -9 dB, nhân với thanh Music của game) trong `royalarena-client.toml`;
+  chỉnh được lúc đang chơi, 1 = mức gốc của file.
 - **Kiểm tra:** `MusicSmokeTest` (file có thật, mapping trong sounds.json).
   Chất lượng nghe thật phải nghe bằng tai.
 - **Bản nhạc, MIDI, phối khí thật và prompt cho app AI:** docs/MUSIC.md.
