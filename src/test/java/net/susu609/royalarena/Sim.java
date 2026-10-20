@@ -85,6 +85,9 @@ final class Sim {
             for (var child : death.children())
                 engine.add(UUID.randomUUID(), child);
         }
+        // Units that appear without a death (an Illusioner's images).
+        for (var spawn : result.spawns())
+            engine.add(UUID.randomUUID(), spawn);
         return result;
     }
 
@@ -148,6 +151,48 @@ final class Sim {
         return defender.cost() * (1.0D - keptD) +
                 (towersBefore - towerHealth(match)) / TOWER_HP_PER_ELIXIR -
                 attacker.cost() * (1.0D - keptA);
+    }
+
+    /**
+     * Like {@link #push}, with {@code helper} (a support troop that does not
+     * fight, the Allay) walking in just behind {@code attacker}; both cards'
+     * losses count.
+     */
+    static double pushWith(BattleCard attacker, BattleCard helper,
+            BattleCard defender)
+    {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        spawn(engine, match, attacker, TeamSide.BLUE, -6.0D, 2.0D);
+        int attackers = engine.units().size();
+        spawn(engine, match, helper, TeamSide.BLUE, -6.0D, 3.0D);
+        java.util.Set<UUID> helpers = new java.util.HashSet<>();
+        for (int i = attackers; i < engine.units().size(); i++)
+            helpers.add(engine.units().get(i).id());
+        spawn(engine, match, defender, TeamSide.RED, -6.0D, -7.0D);
+        int towersBefore = towerHealth(match);
+        for (int tick = 0; tick < 1200; tick++) {
+            step(engine, match.arena());
+            if (match.state() != MatchState.BATTLE ||
+                    healthLeft(engine, TeamSide.BLUE) <= 0.0D)
+                break;
+        }
+        double keptA = 0.0D;
+        double keptH = 0.0D;
+        for (CombatUnit unit : engine.units()) {
+            if (unit.side() != TeamSide.BLUE)
+                continue;
+            if (helpers.contains(unit.id()))
+                keptH += unit.health();
+            else
+                keptA += unit.health();
+        }
+        keptA = Math.min(1.0D, keptA / cardHealth(attacker));
+        keptH = Math.min(1.0D, keptH / cardHealth(helper));
+        double keptD = healthLeft(engine, TeamSide.RED) / cardHealth(defender);
+        return defender.cost() * (1.0D - keptD) +
+                (towersBefore - towerHealth(match)) / TOWER_HP_PER_ELIXIR -
+                attacker.cost() * (1.0D - keptA) - helper.cost() * (1.0D - keptH);
     }
 
     /** Tower health one card alone takes off the tower it walks to. */

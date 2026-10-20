@@ -47,9 +47,8 @@ public enum BattleCard {
                     TroopTraits.BUILDINGS)),
     PILLAGER("Pillager", 3, "minecraft:pillager", "minecraft:crossbow", 0,
             new TroopStats(1, 24, 11, 40, 6.0D, 1.0D, 0.3D)),
-    MAGMA_CUBE("Magma Cube", 3, "minecraft:magma_cube", null, 4,
-            new TroopStats(1, 16, 7, 28, 1.2D, 0.83D, 1.0D,
-                    new SplitRule(1, 2, 0.5D, 0.5D, 0.5D, 1.0D, 6)).withArmor(12)),
+    MAGMA_CUBE("Magma Cube", 2, "minecraft:magma_cube", null, 2,
+            new TroopStats(2, 12, 3, 30, 1.0D, 1.0D, 0.5D)),
     ENDERMAN("Enderman", 3, "minecraft:enderman", null, 0,
             new TroopStats(1, 40, 7, 24, 1.2D, 1.0D, 0.4D,
                     TroopTraits.teleporting(100))),
@@ -155,6 +154,18 @@ public enum BattleCard {
                     new TroopTraits(3.0D, true, 0.0D))),
     WARDEN("Warden", 8, "minecraft:warden", null, 0,
             new TroopStats(1, 150, 15, 55, 1.5D, 0.8D, 0.9D)),
+    ILLUSIONER("Illusioner", 3, "minecraft:illusioner", "minecraft:bow", 0,
+            new TroopStats(1, 24, 5, 30, 5.5D, 1.0D, 0.3D)),
+    AXOLOTL("Axolotl", 2, "minecraft:axolotl", null, 0,
+            new TroopStats(1, 18, 4, 20, 1.0D, 1.0D, 0.4D,
+                    new TroopTraits(0.0D, false, 0.0D, false, 0, 0, 0.0D, 0,
+                            0.0D, false, false, false, false, false, 0.0D, 0,
+                            true))),
+    ENDERMITE("Endermite", 1, "minecraft:endermite", null, 0,
+            new TroopStats(3, 4, 1, 16, 0.8D, 1.6D, 0.25D)),
+    ALLAY("Allay", 2, "minecraft:allay", null, 0,
+            new TroopStats(1, 16, 2, 20, 0.5D, 1.3D, 0.3D,
+                    TroopTraits.hovering(1.0D, true, false, false))),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(2.3D, 6, 3, 8, 7.0D, 0.5D, 0.0D, 0.0D, 0)
                     .thrownAt(24.0D)),
@@ -191,7 +202,16 @@ public enum BattleCard {
                     0.0D, 0.0D, 0, 0, 10, 0, false)),
     MILK_BUCKET("Milk Bucket", 1, "minecraft:milk_bucket",
             new SpellStats(3.0D, 5, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0, 0,
-                    false).thrownAt(16.0D).cleansing());
+                    false).thrownAt(16.0D).cleansing()),
+    WITHER_SKULL("Wither Skull", 2, "minecraft:wither_skeleton_skull",
+            new SpellStats(2.0D, 5, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0).thrownAt(16.0D)),
+    ENDER_PEARL("Ender Pearl", 2, "minecraft:ender_pearl",
+            new SpellStats(1.0D, 5, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0)
+                    .thrownAt(20.0D)),
+    WATER_BUCKET("Water Bucket", 2, "minecraft:water_bucket",
+            new SpellStats(2.5D, 5, 1, 1, 0.0D, 0.0D, 1.5D, 0.0D, 0)
+                    .thrownAt(16.0D));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;
@@ -313,6 +333,10 @@ public enum BattleCard {
                     EnumSet.of(Tribe.BEAST);
             case FROG, TURTLE -> EnumSet.of(Tribe.AQUATIC);
             case WARDEN -> EnumSet.of(Tribe.NIGHT);
+            case ILLUSIONER -> EnumSet.of(Tribe.ILLAGER);
+            case AXOLOTL -> EnumSet.of(Tribe.AQUATIC);
+            case ENDERMITE -> EnumSet.of(Tribe.END, Tribe.ARTHROPOD);
+            case ALLAY -> EnumSet.of(Tribe.GOLEM);
             case CREEPER -> EnumSet.of(Tribe.NIGHT);
             case ENDERMAN -> EnumSet.of(Tribe.NIGHT, Tribe.END);
             case SHULKER, END_CRYSTAL -> EnumSet.of(Tribe.END);
@@ -357,21 +381,23 @@ public enum BattleCard {
         return switch (this) {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT, CAT, FROG,
-                    KILLER_RABBITS, PANDA, TURTLE, SHULKER, END_CRYSTAL ->
+                    KILLER_RABBITS, PANDA, TURTLE, SHULKER, END_CRYSTAL, AXOLOTL,
+                    ENDERMITE ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
-                    SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP ->
+                    SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP, ILLUSIONER, WATER_BUCKET ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, ZOGLIN,
                     CHICKEN_JOCKEY, CAMEL, WARDEN, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
                     PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
-                    FIREBALL, TNT, POISON_CLOUD ->
+                    FIREBALL, TNT, POISON_CLOUD, WITHER_SKULL ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.DEFENSE);
             case DROWNED, BLAZE, FREEZE ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.SUPPORT);
-            case HEALING_POTION, SWIFTNESS_POTION, MILK_BUCKET ->
+            case HEALING_POTION, SWIFTNESS_POTION, MILK_BUCKET, ALLAY,
+                    ENDER_PEARL ->
                     EnumSet.of(CardTactic.SUPPORT);
         };
     }
@@ -511,6 +537,122 @@ public enum BattleCard {
     }
 
     public static final int NOISE_TICKS = 40;
+
+    /**
+     * An Illusioner's tricks: the first time it falls under
+     * {@link #ILLUSION_BELOW} of its health it splits off
+     * {@link #ILLUSION_COUNT} mirror images (1 health, no attack) that draw
+     * shots and troops for {@link #ILLUSION_TICKS}; every
+     * {@link #BLIND_EVERY}-th arrow blinds its target, cutting its range to
+     * {@link #BLIND_RANGE} for {@link #BLIND_TICKS}.
+     */
+    public boolean castsIllusions() {
+        return this == ILLUSIONER;
+    }
+
+    public static final double ILLUSION_BELOW = 0.5D;
+    public static final int ILLUSION_COUNT = 3;
+    public static final int ILLUSION_TICKS = 80;
+    public static final int BLIND_EVERY = 3;
+    public static final int BLIND_TICKS = 60;
+    public static final double BLIND_RANGE = 0.6D;
+
+    /**
+     * An Axolotl plays dead once: hurt under {@link #PLAY_DEAD_BELOW} of its
+     * health, it lies still for {@link #PLAY_DEAD_TICKS}, cannot be picked
+     * as a target, and gets {@link #PLAY_DEAD_HEAL} of its health back.
+     */
+    public boolean playsDead() {
+        return this == AXOLOTL;
+    }
+
+    public static final double PLAY_DEAD_BELOW = 0.3D;
+    public static final int PLAY_DEAD_TICKS = 60;
+    public static final double PLAY_DEAD_HEAL = 0.5D;
+
+    /**
+     * Endermites vanish after {@link #ENDERMITE_TICKS}, and an enemy
+     * Enderman within {@link #ENDERMITE_LURE} blocks drops its target to
+     * chase them (vanilla endermen hate endermites).
+     */
+    public boolean luresEndermen() {
+        return this == ENDERMITE;
+    }
+
+    public static final int ENDERMITE_TICKS = 200;
+    public static final double ENDERMITE_LURE = 6.0D;
+
+    /**
+     * An Allay does not fight: it flies beside the nearest own troop and
+     * heals every own troop within {@link #ALLAY_RADIUS} by its damage once
+     * per attack interval.
+     */
+    public boolean healsAround() {
+        return this == ALLAY;
+    }
+
+    public static final double ALLAY_RADIUS = 2.0D;
+
+    /**
+     * A Magma Cube leaps: an enemy within {@link #LEAP_RANGE} blocks (an
+     * archer first) gets jumped on, the landing hurting everything within
+     * {@link #LEAP_SPLASH} for {@link #LEAP_DAMAGE} times its hit; once per
+     * {@link #LEAP_TICKS}.
+     */
+    public boolean leaps() {
+        return this == MAGMA_CUBE;
+    }
+
+    public static final double LEAP_RANGE = 3.0D;
+    public static final int LEAP_TICKS = 60;
+    public static final double LEAP_SPLASH = 1.0D;
+    public static final double LEAP_DAMAGE = 1.5D;
+
+    /**
+     * Wither Skull: every unit it hits withers for {@link #WITHER_TICKS},
+     * losing {@link #WITHER_PER_SECOND} a second through armour and healing
+     * nothing meanwhile. A Wither Skeleton is immune.
+     */
+    public boolean withers() {
+        return this == WITHER_SKULL;
+    }
+
+    public static final int WITHER_TICKS = 100;
+    public static final double WITHER_PER_SECOND = 1.0D;
+
+    /** Wither Skeletons shrug off the wither, as in vanilla. */
+    public boolean witherImmune() {
+        return this == WITHER_SKELETON;
+    }
+
+    /**
+     * Ender Pearl: the one troop nearest where it lands is moved: an own
+     * troop {@link #PEARL_DISTANCE} blocks toward the enemy (never past the
+     * river), an enemy as far back toward its own King. Buildings stay.
+     */
+    public boolean pearls() {
+        return this == ENDER_PEARL;
+    }
+
+    public static final double PEARL_DISTANCE = 5.0D;
+
+    /**
+     * Water Bucket: puts out every fire in its circle (burning troops of
+     * both sides, a Strider's trail), pushes enemies away and hurts the
+     * enemies that water hurts ({@link #hurtByWater}) by
+     * {@link #WATER_DAMAGE}.
+     */
+    public boolean douses() {
+        return this == WATER_BUCKET;
+    }
+
+    public static final double WATER_DAMAGE = 12.0D;
+
+    /** Mobs vanilla water hurts: Blaze, Enderman, Snow Golem, Strider. */
+    public boolean hurtByWater() {
+        return this == BLAZE || this == ENDERMAN || this == SNOW_GOLEM ||
+                this == STRIDER;
+    }
     public static final double HEAR_RANGE = 8.0D;
     public static final int BOOM_TICKS = 20 * 15;
     public static final double BOOM_RANGE = 6.0D;

@@ -52,7 +52,7 @@ public final class SpellTargetHighlighter {
                     ArenaCameraController.projectCursorToArena() : null;
             if (target != null && ClientMatchState.canDeploySelected(
                     target.getX(), target.getZ()))
-                collect(mc, card.spell(), target.getX() + 0.5D,
+                collect(mc, card, target.getX() + 0.5D,
                         target.getZ() + 0.5D, next);
         }
         LIT.clear();
@@ -76,9 +76,12 @@ public final class SpellTargetHighlighter {
                 (float) (0.5D + 0.5D * Math.sin(phase));
     }
 
-    private static void collect(Minecraft mc, SpellStats spell, double x,
+    private static void collect(Minecraft mc, BattleCard card, double x,
             double z, Set<Entity> out)
     {
+        SpellStats spell = card.spell();
+        // Milk, Water and the Ender Pearl touch troops of both sides.
+        boolean both = spell.cleanse() || card.douses() || card.pearls();
         ArenaLayout arena = ClientMatchState.arena();
         // Healing and Swiftness light up the own troops they would reach.
         TeamSide caster = ClientMatchState.deploySide();
@@ -103,7 +106,7 @@ public final class SpellTargetHighlighter {
             }
             TeamSide of = TroopVisuals.sideOf(entity);
             if (!(entity instanceof LivingEntity living) || !entity.isAlive() ||
-                    of == null || !spell.cleanse() && of != target)
+                    of == null || !both && of != target)
                 continue;
             double reach = spell.radius() +
                     entity.getBbWidth() * TroopVisuals.scale(entity) / 2.0D;
@@ -111,6 +114,17 @@ public final class SpellTargetHighlighter {
                 hits.add(entity);
                 health.add((double) living.getHealth());
             }
+        }
+        // An Ender Pearl moves only the troop nearest where it lands.
+        if (card.pearls() && hits.size() > 1) {
+            Entity nearest = hits.get(0);
+            for (Entity e : hits) {
+                if (Math.hypot(e.getX() - x, e.getZ() - z) <
+                        Math.hypot(nearest.getX() - x, nearest.getZ() - z))
+                    nearest = e;
+            }
+            out.add(nearest);
+            return;
         }
         if (spell.maxTargets() <= 0 || hits.size() <= spell.maxTargets()) {
             out.addAll(hits);

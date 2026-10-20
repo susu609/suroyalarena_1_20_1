@@ -38,7 +38,7 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
   cross the river. Its own trick (Claude's pick, say if you want another): it
   leaves a short-lived fire trail that burns enemies standing on it (1 a
   second). Fast and fragile.
-- [ ] Ender Pearl (spell, `minecraft:ender_pearl`) **(by hand)**: a SMALL
+- [x] Ender Pearl (spell, `minecraft:ender_pearl`) **(by hand)**: a SMALL
   area, thrown on one troop. Own troop: teleported forward toward the enemy
   by a short, capped distance (about 5 blocks, never past the river into the
   enemy half). Enemy troop: pushed back toward its own King by the same
@@ -63,7 +63,7 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
   ranged and slowing.
 - [x] Piglin (`minecraft:piglin`, Nether, fire immune): crossbow, range 5, two
   quick shots then a long reload. Reuses ranged.
-- [ ] Allay (`minecraft:allay`) **(by hand)**: flies beside the nearest own
+- [x] Allay (`minecraft:allay`) **(by hand)**: flies beside the nearest own
   troop and heals those within 2 blocks a little each second; does not fight.
 - [x] Poison Cloud (spell) **(by hand)**: a circle that poisons everyone in
   it for 5 s (2 a second); stays 5 s.
@@ -83,6 +83,9 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
   (dash, Husk rider).
 - [x] Batch 3 (by hand): Shulker and End Crystal (buildings), Warden (blind,
   Sonic Boom, 8 elixir).
+- [x] Batch 4 (by hand): Illusioner (images, blindness), Axolotl (plays
+  dead), Endermite (lures Endermen), Allay (heals around), Magma Cube rework
+  (two small cubes that leap), Wither Skull, Ender Pearl, Water Bucket.
 - [ ] Villager professions (by hand, later): each profession its own card
   (ideas so far: Armorer +2 armour aura, Librarian +20% damage aura, bell
   ringer that reveals enemies). Ask the user before making them.

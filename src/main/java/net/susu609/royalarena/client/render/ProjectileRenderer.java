@@ -98,6 +98,15 @@ public final class ProjectileRenderer {
             } else if (f.kind() == Kind.HEALING_POTION) {
                 mc.level.addParticle(ParticleTypes.EFFECT, p.x, p.y, p.z, 0.0D,
                         0.0D, 0.0D);
+            } else if (f.kind() == Kind.WITHER_SKULL) {
+                mc.level.addParticle(ParticleTypes.SMOKE, p.x, p.y, p.z, 0.0D,
+                        0.01D, 0.0D);
+            } else if (f.kind() == Kind.ENDER_PEARL) {
+                mc.level.addParticle(ParticleTypes.PORTAL, p.x, p.y, p.z, 0.0D,
+                        0.0D, 0.0D);
+            } else if (f.kind() == Kind.WATER) {
+                mc.level.addParticle(ParticleTypes.FALLING_WATER, p.x, p.y, p.z,
+                        0.0D, 0.0D, 0.0D);
             }
         }
     }
@@ -162,6 +171,9 @@ public final class ProjectileRenderer {
             case TNT -> EntityType.TNT;
             case ARROW -> EntityType.ARROW;
             case SHULKER_BULLET -> EntityType.SHULKER_BULLET;
+            case WITHER_SKULL -> EntityType.WITHER_SKULL;
+            case ENDER_PEARL -> EntityType.ENDER_PEARL;
+            case WATER -> EntityType.POTION;
         };
         Entity entity = type.create(level);
         if (entity != null)
@@ -169,6 +181,10 @@ public final class ProjectileRenderer {
         if (kind == Kind.HEALING_POTION && entity instanceof ThrownPotion potion)
             potion.setItem(PotionUtils.setPotion(
                     new ItemStack(Items.SPLASH_POTION), Potions.HEALING));
+        // Water Bucket flies as a splash bottle of water.
+        if (kind == Kind.WATER && entity instanceof ThrownPotion potion)
+            potion.setItem(PotionUtils.setPotion(
+                    new ItemStack(Items.SPLASH_POTION), Potions.WATER));
         return entity;
     }
 }

@@ -18,6 +18,7 @@ import java.util.Locale;
  * <li>troops that only hit towers: tower health taken per elixir when they
  * walk in alone (they need support against defenders, so pushes alone would
  * call them weak);</li>
+ * <li>support troops (Allay): what they add to a Zombie's fights;</li>
  * <li>spells: cost formula value per elixir paid.</li>
  * </ul>
  */
@@ -42,10 +43,18 @@ public final class PowerCreepTest {
         for (BattleCard card : BattleCard.values()) {
             String line;
             if (card.isSpell()) {
-                double value = CostFormula.raw(card.spell()) / card.cost();
+                double value = CostFormula.raw(card) / card.cost();
                 line = String.format(Locale.ROOT, "%-16s spell value/elixir %.2f",
                         card.id(), value);
                 if (value < MIN_SPELL || value > MAX_SPELL)
+                    problems.add(line);
+            } else if (card.healsAround()) {
+                // A support troop does not fight: it is measured by what it
+                // adds to a Zombie's fights, its own cost included.
+                double score = supportScore(card);
+                line = String.format(Locale.ROOT, "%-16s support score %+.2f",
+                        card.id(), score);
+                if (score < MIN_SCORE || score > MAX_SCORE)
                     problems.add(line);
             } else if (card.isBuilding()) {
                 // A building cannot attack across the bridge: it is
@@ -76,13 +85,36 @@ public final class PowerCreepTest {
         System.out.println("RoyalArena power creep tests: PASS");
     }
 
+    /** A troop that fights both ways: no spell, building or support. */
+    static boolean fights(BattleCard card) {
+        return !card.isSpell() && !card.stats().traits().buildingsOnly() &&
+                !card.isBuilding() && !card.healsAround();
+    }
+
+    /**
+     * Elixir a support troop adds when it follows a Zombie attacking into
+     * each fighting troop, over the Zombie attacking alone (its own losses
+     * counted).
+     */
+    static double supportScore(BattleCard card) {
+        double gain = 0.0D;
+        int fights = 0;
+        for (BattleCard other : BattleCard.values()) {
+            if (!fights(other))
+                continue;
+            gain += Sim.pushWith(BattleCard.ZOMBIE, card, other) -
+                    Sim.push(BattleCard.ZOMBIE, other);
+            fights++;
+        }
+        return gain / fights;
+    }
+
     /** Elixir a building comes out ahead defending against each fighting troop. */
     static double defendScore(BattleCard card) {
         double defend = 0.0D;
         int fights = 0;
         for (BattleCard other : BattleCard.values()) {
-            if (other.isSpell() || other.stats().traits().buildingsOnly() ||
-                    other.isBuilding())
+            if (!fights(other))
                 continue;
             defend -= Sim.push(other, card);
             fights++;
@@ -96,8 +128,7 @@ public final class PowerCreepTest {
         double defend = 0.0D;
         int fights = 0;
         for (BattleCard other : BattleCard.values()) {
-            if (other.isSpell() || other.stats().traits().buildingsOnly() ||
-                    other.isBuilding())
+            if (!fights(other))
                 continue;
             attack += Sim.push(card, other);
             defend -= Sim.push(other, card);

@@ -1,0 +1,28 @@
+{
+  "id": "allay",
+  "type": "troop",
+  "display_name": "Allay",
+  "roles": [
+    "support"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:allay",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 16,
+    "damage": 2,
+    "attack_interval_ticks": 20,
+    "range": 0.5,
+    "move_speed": 1.3,
+    "flying": true,
+    "hover": 1.0,
+    "crosses_river": true,
+    "targets": "none",
+    "heals_own_troops": {
+      "radius": 2.0,
+      "per_interval": 2
+    }
+  }
+}

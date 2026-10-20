@@ -96,6 +96,11 @@ config page gets it inside `traitMod`):
 | Panda | sneeze | x1.1 |
 | Turtle | swims fast | x1.05 |
 | Shulker | levitation, shell | x1.4 |
+| Illusioner | mirror images, blinding arrows | x1.25 |
+| Axolotl | plays dead once, heals half | x1.2 |
+| Endermite | lives 10 s (x0.7), lures Endermen (x1.1) | x0.77 |
+| Allay | its damage is a heal on every own troop within 2 blocks | x2.0 |
+| Magma Cube | leap with a splash | x1.2 |
 | Warden | Sonic Boom as extra damage per second (sqrt), hearing x1.3 | about x1.45 |
 
 Buildings (speed 0) get x0.8: they never move and last 30 s.
@@ -213,3 +218,18 @@ Minimum time between two card plays: 20 / 10 / 7 ticks in phases 1 / 2 / 3
 walk about 4.3 blocks/s, so troops must use their own move speed instead of
 vanilla defaults. The exact attribute value per block/s still needs measuring
 in game.
+
+## Spell rules in the cost
+
+A spell's own rule adds elixir on top of the spell formula
+(`CostFormula.spellAbility`, part of `CostFormula.raw(card)`):
+
+| Spell | Rule | Adds |
+|---|---|---|
+| Wither Skull | wither (5 damage) + healing blocked (worth 1.5) per target, x radius / 20.8 | +0.62 |
+| Ender Pearl | one troop moved 5 blocks | +1.0 |
+| Water Bucket | push 1.5 blocks (2 a block) + fire out (1) + 12 damage on a quarter of the targets, x radius / 20.8 | +0.84 |
+
+`PowerCreepTest` checks spells with that full cost, and measures the Allay
+(a support troop that does not fight) by what it adds to a Zombie's fights,
+its own losses counted (`supportScore`).

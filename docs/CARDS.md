@@ -470,3 +470,23 @@ A 1-elixir End Crystal (24 damage) won 47% but its defence score went
 over the band (+1.21), so it is 2 elixir with a bigger blast.
 
 Villager is not made yet: each profession will be its own card later.
+
+## Batch 4: Illusioner, Axolotl, Endermite, Allay, Magma Cube, three spells
+
+| Card | Elixir | Stats | Rule | Win rate |
+|---|---|---|---|---|
+| Illusioner | 3 | 24 HP, bow 5 every 1.5 s, range 5.5; Illager | **Mirror images**: the first time it drops under half its health, 3 images (1 HP, no attack) step out around it for 4 s; whoever was on it looks again and may pick an image. **Blindness**: every 3rd arrow cuts its target's range to 60% for 3 s. | 49% |
+| Axolotl | 2 | 18 HP, 4 every 1 s, melee; hits 1.5x from the river; Aquatic | **Plays dead** once: hurt under 30%, it lies still for 3 s, nothing can pick it as a target, and it gets half its health back. | 43% |
+| Endermite | 1 | 3 of them, 4 HP, 1 every 0.8 s, fast; End, Arthropod | **Vanish** after 10 s. An enemy **Enderman** within 6 blocks drops its target to chase them (vanilla endermen hate endermites). | 52% |
+| Allay | 2 | 16 HP, flies (crosses the river); Golem | **Never attacks.** It flies just behind the nearest own troop and **heals** every own troop within 2 blocks by 2 a second. | 44% |
+| Magma Cube (reworked) | 2 (was 3) | 2 small cubes (vanilla size 2), 12 HP each, 3 every 1.5 s, no armour, no split; Nether, Slime, fire immune | **Leap**: an enemy within 3 blocks gets jumped on (an archer first, even behind a blocker); the landing deals 1.5x and splashes 1 block. Once every 3 s. A Frog swallows it whole. | 58% |
+| Wither Skull | 2 | spell, radius 2, 6 damage, thrown from the King | **Wither** 5 s: 1 a second through armour, and **no healing** meanwhile (Healing, Allay, Axolotl, Zombie regen, lifesteal). Wither Skeletons are immune. Towers take the blast only. | 43% |
+| Ender Pearl | 2 | spell, radius 1, no damage | Moves the **one troop nearest the centre**: an own troop 5 blocks toward the enemy, never past the river; an enemy 5 blocks back toward its own King. Buildings stay. | 54% |
+| Water Bucket | 2 | spell, radius 2.5, no damage to most | Puts out **fire** on both sides (burning troops, a Strider's trail), **pushes** enemies 1.5 blocks, and deals **12** to the enemies water hurts: Blaze, Enderman, Snow Golem, Strider (an Enderman that can still teleport gets away). | 42% |
+
+Win rates from 4000 bot matches. Allay was 3 elixir and won 39%: it is 2
+now (its ability counts x2.0 in the cost). Endermite was 4 mites and won
+62%: it is 3 now. The Wither Skull's numbers are the chosen ones; the formula
+makes it 2 elixir, not 3 (its wither and the healing it blocks are in the
+cost). Pillager (62-64%) and Camel (62-64%) were already over 60% before this
+batch and are left as they were.

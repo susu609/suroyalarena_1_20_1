@@ -163,16 +163,58 @@ public final class CostFormula {
             case WARDEN -> Math.sqrt(1.0D + BattleCard.BOOM_DAMAGE /
                     (BattleCard.BOOM_TICKS / 20.0D) /
                     (s.damage() / (s.attackTicks() / 20.0D))) * HEARING;
+            // Three images that draw fire, and arrows that blind.
+            case ILLUSIONER -> 1.25D;
+            // Plays dead once and gets half its health back.
+            case AXOLOTL -> 1.2D;
+            // Gone after 10 s, but drags enemy Endermen off their target.
+            case ENDERMITE -> LIFETIME_10S * 1.1D;
+            // Its "damage" heals every own troop within 2 blocks.
+            case ALLAY -> 2.0D;
+            // Leaps onto an archer and splashes where it lands.
+            case MAGMA_CUBE -> 1.2D;
             default -> 1.0D;
         };
     }
+
+    /** A troop that vanishes after 10 s does a share of its work. */
+    public static final double LIFETIME_10S = 0.7D;
+
+    /**
+     * What a spell's own rule adds to its cost, in elixir (docs/BALANCE.md):
+     * the Wither Skull's wither (its damage, and the healing it blocks), the
+     * Ender Pearl's move, the Water Bucket's push, fire put out and the
+     * damage to the few mobs water hurts (about a quarter of a crowd).
+     */
+    public static double spellAbility(BattleCard card) {
+        SpellStats s = card.spell();
+        return switch (card) {
+            case WITHER_SKULL -> (BattleCard.WITHER_PER_SECOND *
+                    BattleCard.WITHER_TICKS / 20.0D + HEAL_BLOCK_VALUE) *
+                    s.radius() / SPELL_COST_DIVISOR;
+            case ENDER_PEARL -> PEARL_VALUE;
+            case WATER_BUCKET -> (s.knockback() * PUSH_VALUE_PER_BLOCK +
+                    DOUSE_VALUE + BattleCard.WATER_DAMAGE * 0.25D) *
+                    s.radius() / SPELL_COST_DIVISOR;
+            default -> 0.0D;
+        };
+    }
+
+    /** Blocking a target's healing for a few seconds, in damage. */
+    public static final double HEAL_BLOCK_VALUE = 1.5D;
+    /** Moving one troop 5 blocks (forward, or an enemy back), in elixir. */
+    public static final double PEARL_VALUE = 1.0D;
+    /** A block of push on one target, in damage. */
+    public static final double PUSH_VALUE_PER_BLOCK = 2.0D;
+    /** Putting one target's fire out, in damage. */
+    public static final double DOUSE_VALUE = 1.0D;
 
     /** Hearing only enemies that make a sound (the Warden). */
     public static final double HEARING = 1.3D;
 
     /** A troop card's unrounded cost: its stats, traits and abilities. */
     public static double raw(BattleCard card) {
-        return card.isSpell() ? raw(card.spell()) :
+        return card.isSpell() ? raw(card.spell()) + spellAbility(card) :
                 raw(card.stats()) * abilityModifier(card);
     }
 

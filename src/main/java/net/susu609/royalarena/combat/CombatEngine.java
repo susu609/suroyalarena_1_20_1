@@ -27,8 +27,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -83,6 +86,19 @@ public final class CombatEngine {
     private final List<TribeEvent> tribeEvents = new ArrayList<>();
     /** Burning patches a Strider leaves behind it. */
     private final List<FirePatch> firePatches = new ArrayList<>();
+    /** Units that appear this tick without a death (mirror images). */
+    private final List<ChildSpawn> spawns = new ArrayList<>();
+    /** Engine tick each unit was added (Endermites and images vanish). */
+    private final Map<UUID, Integer> bornAt = new HashMap<>();
+    /** Shots that blind where they land (an Illusioner's every 3rd). */
+    private final Set<Attack> blinding =
+            Collections.newSetFromMap(new IdentityHashMap<>());
+    /** Shots each Illusioner has fired. */
+    private final Map<UUID, Integer> illusionerShots = new HashMap<>();
+    /** Illusioners that have already split off their images. */
+    private final Set<UUID> illusionsCast = new HashSet<>();
+    /** When each Magma Cube may leap again (engine tick). */
+    private final Map<UUID, Integer> leapReady = new HashMap<>();
 
     private static final class FirePatch {
         final TeamSide side;
@@ -236,6 +252,7 @@ public final class CombatEngine {
     private CombatUnit register(CombatUnit unit) {
         units.add(unit);
         cardOf.put(unit.id(), BattleCard.forStats(unit.stats()));
+        bornAt.put(unit.id(), now);
         return unit;
     }
 
@@ -274,6 +291,7 @@ public final class CombatEngine {
     public TickResult tick() {
         teleports.clear();
         tribeEvents.clear();
+        spawns.clear();
         now++;
         List<Move> moves = new ArrayList<>();
         List<Attack> attacks = new ArrayList<>();
@@ -304,6 +322,7 @@ public final class CombatEngine {
         List<Push> pushes = new ArrayList<>();
         applyDamage(landed, destroyed, pushes);
         applyBurns();
+        allayAuras();
         applySpellHits(hits, destroyed, pushes);
         applyBooms(destroyed);
         sneezes(pushes);
@@ -311,7 +330,7 @@ public final class CombatEngine {
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
                 pushes, landed, List.copyOf(teleports),
-                List.copyOf(tribeEvents));
+                List.copyOf(tribeEvents), List.copyOf(spawns));
     }
 
     /** Whether a King tower may shoot: it was hit, or a Princess tower fell. */
@@ -329,13 +348,34 @@ public final class CombatEngine {
             List<Attack> attacks)
     {
         TroopStats stats = unit.stats();
+        BattleCard self = cardOf.get(unit.id());
+        // Endermites and mirror images vanish when their time is up.
+        if (self != null && outlived(unit, self)) {
+            unit.expire();
+            tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.VANISH,
+                    unit.x(), unit.z()));
+            return;
+        }
         // Frozen or stunned: no walking, no attacking, the same target.
         if (unit.frozen())
             return;
+        // An Axolotl playing dead lies still and gets its health back.
+        if (unit.playingDead()) {
+            unit.heal(unit.maxHealth() * BattleCard.PLAY_DEAD_HEAL /
+                    BattleCard.PLAY_DEAD_TICKS);
+            if (unit.tickPlayDead())
+                tribeEvents.add(new TribeEvent(unit.id(),
+                        TribeEvent.Kind.WAKE, unit.x(), unit.z()));
+            return;
+        }
         // An End Crystal only waits to be broken.
-        BattleCard self = cardOf.get(unit.id());
         if (self != null && self.explodesOnDeath())
             return;
+        // An Allay only follows its troops (it heals in allayAuras).
+        if (self != null && self.healsAround()) {
+            followTroops(unit, moves);
+            return;
+        }
         // A Creeper or Phantom near an enemy Cat backs away from it.
         CombatUnit cat = scaringCat(unit);
         if (cat != null) {
@@ -363,15 +403,18 @@ public final class CombatEngine {
         if (enemy != null) {
             targetX = enemy.x();
             targetZ = enemy.z();
-            inRange = edgeDistance(unit, enemy) <= stats.range() + EPSILON;
+            inRange = edgeDistance(unit, enemy) <= unit.range() + EPSILON;
         } else {
             tower = laneTower(unit);
             ArenaPoint point = arena.towerPoint(tower);
             targetX = point.x();
             targetZ = point.z();
             inRange = edgeDistanceToTower(unit, tower) <=
-                    stats.range() + EPSILON;
+                    unit.range() + EPSILON;
         }
+        // A Magma Cube jumps onto a near enemy instead of walking up.
+        if (!inRange && self != null && self.leaps() && leap(unit, attacks))
+            return;
 
         if (self != null && self.hearsNoise())
             planBoom(unit, enemy, tower);
@@ -393,6 +436,9 @@ public final class CombatEngine {
                             unit.tribe().speed()));
             return;
         }
+        // Mirror images draw fire; they do not fight.
+        if (self != null && self.castsIllusions() && unit.generation() > 0)
+            return;
         TroopTraits traits = stats.traits();
         // A Guardian first locks on to a new target.
         if (traits.charges() &&
@@ -429,12 +475,18 @@ public final class CombatEngine {
             tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.DASH,
                     unit.x(), unit.z()));
         }
-        attacks.add(new Attack(unit.id(), null,
+        Attack attack = new Attack(unit.id(), null,
                 enemy == null ? null : enemy.id(), enemy == null ? tower : null,
                 damage, ranged, flight, unit.side(), targetX, targetZ,
                 traits.splashRadius(), knockback,
                 traits.slowTicks(), traits.lineWidth(),
-                stats.range() + unit.radius() + 1.0D, unit.x(), unit.z()));
+                stats.range() + unit.radius() + 1.0D, unit.x(), unit.z());
+        attacks.add(attack);
+        // Every 3rd arrow of an Illusioner blinds what it hits.
+        if (own != null && own.castsIllusions() && enemy != null &&
+                illusionerShots.merge(unit.id(), 1, Integer::sum) %
+                        BattleCard.BLIND_EVERY == 0)
+            blinding.add(attack);
         if (ranged && unit.volley(unit.tribe().extraShotEvery()))
             volley(unit, enemy, damage, attacks);
         if (traits.selfDestruct())
@@ -476,7 +528,7 @@ public final class CombatEngine {
     private CombatUnit heard(CombatUnit unit) {
         CombatUnit current = unit.target() == null ? null :
                 unit(unit.target());
-        if (current != null && current.alive() &&
+        if (current != null && current.alive() && !current.playingDead() &&
                 current.side() != unit.side() && canTarget(unit, current) &&
                 distance(unit, current) <= BattleCard.HEAR_RANGE * LEASH_FACTOR)
             return current;
@@ -484,7 +536,7 @@ public final class CombatEngine {
         double bestDistance = BattleCard.HEAR_RANGE + EPSILON;
         for (CombatUnit other : units) {
             if (other.side() == unit.side() || !other.alive() ||
-                    !canTarget(unit, other) ||
+                    other.playingDead() || !canTarget(unit, other) ||
                     now - lastAttackAt.getOrDefault(other.id(), -1000) >
                             BattleCard.NOISE_TICKS)
                 continue;
@@ -647,10 +699,16 @@ public final class CombatEngine {
         BattleCard self = cardOf.get(unit.id());
         if (self != null && self.hearsNoise())
             return heard(unit);
+        // An Enderman drops everything to chase an Endermite near it.
+        if (self == BattleCard.ENDERMAN) {
+            CombatUnit mite = nearestEndermite(unit);
+            if (mite != null)
+                return mite;
+        }
         double sight = unit.stats().sight();
         CombatUnit current = unit.target() == null ? null :
                 unit(unit.target());
-        if (current != null && current.alive() &&
+        if (current != null && current.alive() && !current.playingDead() &&
                 current.side() != unit.side() && canTarget(unit, current) &&
                 distance(unit, current) <= sight * LEASH_FACTOR)
             return current;
@@ -659,7 +717,7 @@ public final class CombatEngine {
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit other : units) {
             if (other.side() == unit.side() || !other.alive() ||
-                    !canTarget(unit, other))
+                    other.playingDead() || !canTarget(unit, other))
                 continue;
             double d = distance(unit, other);
             if (d <= sight && d < bestDistance) {
@@ -760,13 +818,13 @@ public final class CombatEngine {
         double range = id.kind().range();
         UUID currentId = towerTarget.get(id);
         CombatUnit current = currentId == null ? null : unit(currentId);
-        if (current != null && current.alive() &&
+        if (current != null && current.alive() && !current.playingDead() &&
                 edgeDistanceToTower(current, id) <= range + EPSILON)
             return current;
         CombatUnit best = null;
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit unit : units) {
-            if (unit.side() == id.side() || !unit.alive())
+            if (unit.side() == id.side() || !unit.alive() || unit.playingDead())
                 continue;
             double d = edgeDistanceToTower(unit, id);
             if (d <= range + EPSILON && d < bestDistance) {
@@ -795,8 +853,15 @@ public final class CombatEngine {
             }
             SpellStats spell = active.card.spell();
             List<Hit> pulseHits = spell.cleanse() ? cleanseTargets(active) :
+                    active.card.pearls() ? pearlTarget(active) :
+                    active.card.douses() ? waterTargets(active) :
                     spell.friendly() ? healTargets(active) :
                     spellTargets(active);
+            // Water puts out a Strider's trail in its circle.
+            if (active.card.douses())
+                firePatches.removeIf(patch -> Math.hypot(patch.x - active.x,
+                        patch.z - active.z) <= spell.radius() +
+                        TroopTraits.TRAIL_RADIUS);
             List<TickResult.Strike> strikes = new ArrayList<>();
             for (Hit hit : pulseHits) {
                 if (hit.unit() != null) {
@@ -919,6 +984,14 @@ public final class CombatEngine {
                     hit.unit().clearEffects();
                 continue;
             }
+            if (hit.spell().card.pearls()) {
+                pearl(hit.unit(), hit.spell().side);
+                continue;
+            }
+            if (hit.spell().card.douses()) {
+                douse(hit, pushes);
+                continue;
+            }
             if (hit.tower() != null) {
                 hitTower(hit.tower(), hit.damage(), destroyed,
                         hit.spell().side, hit.spell().card);
@@ -969,6 +1042,10 @@ public final class CombatEngine {
             if (spell.stunTicks() > 0)
                 unit.stun(spell.stunTicks());
             BattleCard own = cardOf.get(unit.id());
+            if (hit.spell().card.withers() && unit.alive() &&
+                    (own == null || !own.witherImmune()))
+                unit.wither(BattleCard.WITHER_TICKS,
+                        BattleCard.WITHER_PER_SECOND, hit.spell().card);
             if (own == null || !own.fireImmune())
                 unit.ignite(spell.burnTicks(), spell.burnPerSecond(),
                         hit.spell().card);
@@ -1067,6 +1144,10 @@ public final class CombatEngine {
             if (poison > 0.0D)
                 damageUnit(unit, poison * bodyOf(unit).poisonFactor(),
                         unit.side().opponent(), unit.poisonSource(), true);
+            double wither = unit.witherStep();
+            if (wither > 0.0D)
+                damageUnit(unit, wither, unit.side().opponent(),
+                        unit.witherSource(), true);
         }
     }
 
@@ -1104,6 +1185,7 @@ public final class CombatEngine {
             List<Push> pushes)
     {
         for (Attack attack : attacks) {
+            boolean blinds = blinding.remove(attack);
             // The shooter may have died while its arrow flew; it still counts.
             BattleCard source = attack.attackerUnit() == null ? null :
                     creditOf(attack.attackerUnit());
@@ -1153,6 +1235,11 @@ public final class CombatEngine {
                 line(attack, victim, source);
             if (attack.slowTicks() > 0 && victim != null && victim.alive())
                 victim.slow(attack.slowTicks());
+            if (blinds && victim != null && victim.alive()) {
+                victim.blind(BattleCard.BLIND_TICKS);
+                tribeEvents.add(new TribeEvent(victim.id(),
+                        TribeEvent.Kind.BLIND, victim.x(), victim.z()));
+            }
             if (source != null && source.levitates() && victim != null &&
                     victim.alive() && victim.stats().traits().hover() <= 0.0D) {
                 victim.freeze(BattleCard.LEVITATE_TICKS);
@@ -1242,7 +1329,7 @@ public final class CombatEngine {
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit other : units) {
             if (other == first || other.side() == unit.side() || !other.alive() ||
-                    unit.stats().traits().buildingsOnly())
+                    other.playingDead() || unit.stats().traits().buildingsOnly())
                 continue;
             double d = distance(unit, other);
             if (d <= unit.stats().range() + unit.radius() + other.radius() &&
@@ -1316,7 +1403,278 @@ public final class CombatEngine {
             cheatDeath(victim);
         stats.troopDamage(by, source, before - victim.health(),
                 !victim.alive());
+        if (victim.alive())
+            afterHurt(victim);
         return true;
+    }
+
+    /**
+     * A troop was hurt and lives: an Illusioner under half health splits off
+     * its images (once), an Axolotl under 30% plays dead (once).
+     */
+    private void afterHurt(CombatUnit victim) {
+        BattleCard card = cardOf.get(victim.id());
+        if (card == null)
+            return;
+        if (card.castsIllusions() && victim.generation() == 0 &&
+                victim.health() < victim.maxHealth() * BattleCard.ILLUSION_BELOW &&
+                illusionsCast.add(victim.id()))
+            castIllusions(victim);
+        if (card.playsDead() &&
+                victim.health() < victim.maxHealth() * BattleCard.PLAY_DEAD_BELOW &&
+                victim.playDead(BattleCard.PLAY_DEAD_TICKS)) {
+            victim.setTarget(null);
+            tribeEvents.add(new TribeEvent(victim.id(),
+                    TribeEvent.Kind.PLAY_DEAD, victim.x(), victim.z()));
+        }
+    }
+
+    /**
+     * Mirror images around an Illusioner (1 health, no attack): whoever was
+     * on the Illusioner looks again, and may pick an image.
+     */
+    private void castIllusions(CombatUnit illusioner) {
+        int sign = ArenaLayout.sideSign(illusioner.side());
+        for (int i = 0; i < BattleCard.ILLUSION_COUNT; i++) {
+            double angle = Math.PI * 2.0D * i / BattleCard.ILLUSION_COUNT;
+            ArenaWaypoint spot = arena.clampSpawn(
+                    illusioner.x() + Math.cos(angle) * 0.9D,
+                    illusioner.z() + Math.sin(angle) * 0.9D, sign);
+            spawns.add(new ChildSpawn(illusioner.side(), illusioner.stats(), 1,
+                    1.0D, 0.0D, illusioner.radius(), spot.x(), spot.z(), 0,
+                    illusioner.lockedTower()));
+        }
+        for (CombatUnit other : units) {
+            if (illusioner.id().equals(other.target()))
+                other.setTarget(null);
+        }
+        towerTarget.values().removeIf(illusioner.id()::equals);
+        tribeEvents.add(new TribeEvent(illusioner.id(),
+                TribeEvent.Kind.ILLUSION, illusioner.x(), illusioner.z()));
+    }
+
+    /** Whether an Endermite's or a mirror image's time is up. */
+    private boolean outlived(CombatUnit unit, BattleCard card) {
+        int age = now - bornAt.getOrDefault(unit.id(), now);
+        if (card.luresEndermen())
+            return age >= BattleCard.ENDERMITE_TICKS;
+        return card.castsIllusions() && unit.generation() > 0 &&
+                age >= BattleCard.ILLUSION_TICKS;
+    }
+
+    /** The nearest enemy Endermite an Enderman can go for, or none. */
+    private CombatUnit nearestEndermite(CombatUnit enderman) {
+        CombatUnit best = null;
+        double bestDistance = BattleCard.ENDERMITE_LURE + EPSILON;
+        for (CombatUnit other : units) {
+            if (other.side() == enderman.side() || !other.alive() ||
+                    cardOf.get(other.id()) != BattleCard.ENDERMITE ||
+                    !canTarget(enderman, other))
+                continue;
+            double d = distance(enderman, other);
+            if (d <= bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * A Magma Cube's leap: onto an enemy within {@link BattleCard#LEAP_RANGE}
+     * (an archer before anyone else, then the nearest), landing beside it
+     * with a splash. False when it is not ready or nothing is close.
+     */
+    private boolean leap(CombatUnit cube, List<Attack> attacks) {
+        if (now < leapReady.getOrDefault(cube.id(), 0))
+            return false;
+        CombatUnit prey = null;
+        boolean preyRanged = false;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit other : units) {
+            if (other.side() == cube.side() || !other.alive() ||
+                    other.playingDead() || !canTarget(cube, other))
+                continue;
+            double d = edgeDistance(cube, other);
+            if (d > BattleCard.LEAP_RANGE + EPSILON)
+                continue;
+            boolean ranged = !other.stats().melee();
+            if ((ranged && !preyRanged) ||
+                    (ranged == preyRanged && d < bestDistance)) {
+                prey = other;
+                preyRanged = ranged;
+                bestDistance = d;
+            }
+        }
+        if (prey == null)
+            return false;
+        double dx = prey.x() - cube.x();
+        double dz = prey.z() - cube.z();
+        double length = Math.max(1.0E-3D, Math.hypot(dx, dz));
+        double gap = cube.radius() + prey.radius() + 0.1D;
+        ArenaWaypoint spot = arena.clampSpawn(prey.x() - dx / length * gap,
+                prey.z() - dz / length * gap, ArenaLayout.sideSign(cube.side()));
+        cube.setPosition(spot.x(), spot.z());
+        teleports.add(new TickResult.Teleport(cube.id(), spot.x(), spot.z()));
+        leapReady.put(cube.id(), now + BattleCard.LEAP_TICKS);
+        cube.setTarget(prey.id());
+        cube.startCooldown();
+        lastAttackAt.put(cube.id(), now);
+        attacks.add(new Attack(cube.id(), null, prey.id(), null,
+                cube.damage() * BattleCard.LEAP_DAMAGE, false, 0, cube.side(),
+                prey.x(), prey.z(), BattleCard.LEAP_SPLASH, 0.0D, 0, 0.0D, 0.0D,
+                spot.x(), spot.z()));
+        tribeEvents.add(new TribeEvent(cube.id(), TribeEvent.Kind.LEAP,
+                spot.x(), spot.z()));
+        return true;
+    }
+
+    /**
+     * An Allay flies to just behind the nearest own troop (not another
+     * Allay, not a building); with none, it holds still.
+     */
+    private void followTroops(CombatUnit allay, List<Move> moves) {
+        CombatUnit best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit other : units) {
+            BattleCard card = cardOf.get(other.id());
+            if (other == allay || other.side() != allay.side() ||
+                    !other.alive() || (card != null &&
+                            (card.healsAround() || card.isBuilding())))
+                continue;
+            double d = distance(allay, other);
+            if (d < bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        if (best == null)
+            return;
+        double tz = best.z() + ArenaLayout.sideSign(allay.side()) * 0.8D;
+        if (Math.hypot(best.x() - allay.x(), tz - allay.z()) < 0.3D)
+            return;
+        moves.add(new Move(allay.id(), best.x(), tz,
+                allay.stats().speedPerTick() * speedMultiplier *
+                        allay.tribe().speed()));
+    }
+
+    /**
+     * Every Allay heals, once per its attack interval, each own troop within
+     * {@link BattleCard#ALLAY_RADIUS} by its damage.
+     */
+    private void allayAuras() {
+        for (CombatUnit allay : units) {
+            BattleCard card = cardOf.get(allay.id());
+            if (card == null || !card.healsAround() || !allay.alive() ||
+                    allay.frozen() || (now - bornAt.getOrDefault(allay.id(),
+                            now)) % allay.stats().attackTicks() != 0)
+                continue;
+            boolean healed = false;
+            for (CombatUnit other : units) {
+                if (other == allay || other.side() != allay.side() ||
+                        !other.alive() || Math.hypot(other.x() - allay.x(),
+                                other.z() - allay.z()) >
+                                BattleCard.ALLAY_RADIUS + other.radius())
+                    continue;
+                double before = other.health();
+                if (other.heal(allay.damage())) {
+                    stats.healing(allay.side(), creditOf(allay.id()),
+                            other.health() - before);
+                    healed = true;
+                }
+            }
+            if (healed)
+                tribeEvents.add(new TribeEvent(allay.id(),
+                        TribeEvent.Kind.HEAL_AURA, allay.x(), allay.z()));
+        }
+    }
+
+    /** The one troop an Ender Pearl lands nearest (no building), if any. */
+    private List<Hit> pearlTarget(ActiveSpell active) {
+        CombatUnit best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit unit : units) {
+            BattleCard card = cardOf.get(unit.id());
+            if (!unit.alive() || (card != null && card.isBuilding()))
+                continue;
+            double d = Math.hypot(unit.x() - active.x, unit.z() - active.z);
+            if (d <= active.card.spell().radius() + unit.radius() + EPSILON &&
+                    d < bestDistance) {
+                best = unit;
+                bestDistance = d;
+            }
+        }
+        return best == null ? List.of() :
+                List.of(new Hit(best, null, 0.0D, active));
+    }
+
+    /**
+     * Moves the pearled troop: an own troop forward toward the enemy, as far
+     * as it can go up to {@link BattleCard#PEARL_DISTANCE} without leaving
+     * its own half; an enemy as far back toward its own King.
+     */
+    private void pearl(CombatUnit unit, TeamSide caster) {
+        int sign = ArenaLayout.sideSign(unit.side());
+        double z;
+        if (unit.side() == caster) {
+            if (arena.sideOf(unit.z()) != sign)
+                return;
+            double step = BattleCard.PEARL_DISTANCE;
+            while (step > 0.0D && arena.sideOf(unit.z() - sign * step) != sign)
+                step -= 0.25D;
+            if (step <= 0.0D)
+                return;
+            z = unit.z() - sign * step;
+        } else {
+            z = unit.z() + sign * BattleCard.PEARL_DISTANCE;
+            unit.setTarget(null);
+        }
+        ArenaWaypoint spot = arena.clampSpawn(unit.x(), z, sign);
+        unit.setPosition(spot.x(), spot.z());
+        teleports.add(new TickResult.Teleport(unit.id(), spot.x(), spot.z()));
+    }
+
+    /**
+     * Every unit Water Bucket touches is put out; an enemy is pushed away,
+     * and hurt if water hurts it (an Enderman that can still teleport gets
+     * away first).
+     */
+    private void douse(Hit hit, List<Push> pushes) {
+        CombatUnit unit = hit.unit();
+        unit.douse();
+        if (unit.side() == hit.spell().side || !unit.alive())
+            return;
+        if (unit.canTeleport()) {
+            blinkAway(unit, hit.spell().x, hit.spell().z);
+            return;
+        }
+        if (hit.damage() > 0.0D)
+            damageUnit(unit, hit.damage(), hit.spell().side, hit.spell().card,
+                    true);
+        if (unit.alive())
+            knockBack(unit, hit.spell().x, hit.spell().z,
+                    -ArenaLayout.sideSign(hit.spell().side),
+                    hit.spell().card.spell().knockback(), pushes);
+    }
+
+    /**
+     * Every unit of both sides inside a Water Bucket's circle (towers are
+     * left alone); enemies that water hurts take its damage.
+     */
+    private List<Hit> waterTargets(ActiveSpell active) {
+        List<Hit> hits = new ArrayList<>();
+        for (CombatUnit unit : units) {
+            if (!unit.alive() || Math.hypot(unit.x() - active.x,
+                    unit.z() - active.z) > active.card.spell().radius() +
+                    unit.radius() + EPSILON)
+                continue;
+            BattleCard card = cardOf.get(unit.id());
+            boolean hurts = unit.side() != active.side && card != null &&
+                    card.hurtByWater();
+            hits.add(new Hit(unit, null, hurts ? BattleCard.WATER_DAMAGE : 0.0D,
+                    active));
+        }
+        return hits;
     }
 
     private void hitTower(TowerId id, double damage, List<TowerId> destroyed,

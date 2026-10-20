@@ -2,29 +2,31 @@
   "id": "magma_cube",
   "type": "troop",
   "display_name": "Magma Cube",
-  "roles": ["attack", "defense"],
+  "roles": [
+    "attack",
+    "defense"
+  ],
   "body": "living",
-  "elixir": 3,
   "fire_immune": true,
+  "elixir": 2,
   "entity": "minecraft:magma_cube",
+  "slime_size": 2,
   "model_scale": 1.0,
-  "count": 1,
+  "count": 2,
   "unit": {
-    "health": 16,
-    "armor": 12,
-    "damage": 7,
-    "attack_interval_ticks": 28,
-    "range": 1.2,
-    "move_speed": 0.83,
+    "health": 12,
+    "damage": 3,
+    "attack_interval_ticks": 30,
+    "range": 1.0,
+    "move_speed": 1.0,
     "flying": false,
-    "targets": "ground"
-  },
-  "split": {
-    "generations": 1,
-    "children": 2,
-    "health_factor": 0.5,
-    "damage_factor": 0.5,
-    "spread": 1.0,
-    "invulnerable_ticks": 6
+    "targets": "ground",
+    "leap": {
+      "range": 3.0,
+      "cooldown_ticks": 60,
+      "landing_splash": 1.0,
+      "damage_multiplier": 1.5,
+      "prefers": "ranged"
+    }
   }
 }

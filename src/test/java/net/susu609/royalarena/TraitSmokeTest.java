@@ -67,9 +67,10 @@ public final class TraitSmokeTest {
                 "the Hoglin targets towers; the Iron Golem and Ravager fight");
         check(CardRole.of(BattleCard.PILLAGER).contains(CardRole.RANGED),
                 "the Pillager is ranged");
-        check(CardRole.of(BattleCard.MAGMA_CUBE).contains(CardRole.TANK) &&
-                BattleCard.MAGMA_CUBE.stats().split().generations() == 1,
-                "the Magma Cube is a tank that splits once");
+        check(BattleCard.MAGMA_CUBE.leaps() &&
+                BattleCard.MAGMA_CUBE.stats().split() == null &&
+                BattleCard.MAGMA_CUBE.stats().count() == 2,
+                "the Magma Cube is two small cubes that leap, no split");
         for (BattleCard card : BattleCard.values())
             check(card.isSpell() || card.stats().range() <
                     TowerKind.PRINCESS.range(), card.id() +

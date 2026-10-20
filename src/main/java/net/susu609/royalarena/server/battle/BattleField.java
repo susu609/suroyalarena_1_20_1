@@ -100,6 +100,8 @@ public final class BattleField {
     /** Near black, for a Wither Skeleton's wither. */
     private static final DustParticleOptions WITHER_DUST =
             new DustParticleOptions(new Vector3f(0.15F, 0.12F, 0.15F), 1.0F);
+    /** Dark grey for a Wither Skull's circle. */
+    private static final int WITHER_FLASH = 0x2A2A2A;
     /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
     private static final int VOLLEY_ARROWS = 5;
     /** Fewest ticks between two red hurt flashes of one troop. */
@@ -392,6 +394,9 @@ public final class BattleField {
         stateSounds();
         for (TickResult.Death death : result.deaths())
             removeDead(death);
+        // An Illusioner's mirror images step out of it.
+        for (ChildSpawn spawn : result.spawns())
+            spawnChild(spawn);
         for (TowerId id : result.destroyedTowers())
             onTowerDestroyed.accept(id);
     }
@@ -676,6 +681,30 @@ public final class BattleField {
                             SoundEvents.TNT_PRIMED, SoundSource.HOSTILE, 1.0F,
                             1.0F);
                 }
+                case WITHER_SKULL -> {
+                    sendProjectile(S2CProjectilePacket.Kind.WITHER_SKULL, hand,
+                            new double[] {tx, floor + 0.5D, tz},
+                            deploy.ticksLeft(), 2.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            SoundEvents.WITHER_SHOOT, SoundSource.HOSTILE, 0.5F,
+                            1.2F);
+                }
+                case ENDER_PEARL -> {
+                    sendProjectile(S2CProjectilePacket.Kind.ENDER_PEARL, hand,
+                            new double[] {tx, floor + 0.3D, tz},
+                            deploy.ticksLeft(), 4.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            SoundEvents.ENDER_PEARL_THROW, SoundSource.HOSTILE,
+                            0.8F, 1.0F);
+                }
+                case WATER_BUCKET -> {
+                    sendProjectile(S2CProjectilePacket.Kind.WATER, hand,
+                            new double[] {tx, floor + 0.3D, tz},
+                            deploy.ticksLeft(), 4.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            ArenaSfx.SPELL_THROW.get(), SoundSource.HOSTILE,
+                            0.8F, 1.0F);
+                }
                 case ZAP -> level.sendParticles(
                         ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 20,
                         deploy.card().spell().radius() * 0.5D, 0.1D,
@@ -838,6 +867,31 @@ public final class BattleField {
                             0.5D, 0.3D, 0.4D);
                 arenaSound(x, floor, z, ArenaSfx.ZAP.get(),
                         SoundSource.HOSTILE, 0.9F, 1.0F);
+            }
+            case WITHER_SKULL -> {
+                // A small black blast; withered troops smoke afterwards.
+                flash(x, z, radius, WITHER_FLASH);
+                level.sendParticles(ParticleTypes.EXPLOSION, x, floor + 0.5D,
+                        z, 2, radius * 0.3D, 0.2D, radius * 0.3D, 0.0D);
+                level.sendParticles(WITHER_DUST, x, floor + 0.5D, z, 40,
+                        radius * 0.5D, 0.4D, radius * 0.5D, 0.0D);
+                arenaSound(x, floor, z, SoundEvents.GENERIC_EXPLODE,
+                        SoundSource.HOSTILE, 0.6F, 1.4F);
+            }
+            case ENDER_PEARL -> level.sendParticles(ParticleTypes.PORTAL, x,
+                    floor + 0.5D, z, 30, radius * 0.5D, 0.4D, radius * 0.5D,
+                    0.4D);
+            case WATER_BUCKET -> {
+                flash(x, z, radius, S2CAoeFlashPacket.ICE);
+                level.sendParticles(ParticleTypes.SPLASH, x, floor + 0.3D, z,
+                        80, radius * 0.5D, 0.2D, radius * 0.5D, 0.2D);
+                level.sendParticles(ParticleTypes.FALLING_WATER, x,
+                        floor + 1.2D, z, 30, radius * 0.5D, 0.3D,
+                        radius * 0.5D, 0.0D);
+                arenaSound(x, floor, z, SoundEvents.GENERIC_SPLASH,
+                        SoundSource.HOSTILE, 0.9F, 1.0F);
+                arenaSound(x, floor, z, SoundEvents.GENERIC_EXTINGUISH_FIRE,
+                        SoundSource.HOSTILE, 0.6F, 1.0F);
             }
             case SNOWBALL_VOLLEY -> {
                 flash(x, z, radius, S2CAoeFlashPacket.ICE);
@@ -1433,6 +1487,43 @@ public final class BattleField {
                 arenaSound(x, y, z, SoundEvents.CAMEL_DASH,
                         SoundSource.HOSTILE, 0.8F, 1.0F);
             }
+            case ILLUSION -> {
+                level.sendParticles(ParticleTypes.CLOUD, x, y + 1.0D, z, 20,
+                        0.8D, 0.6D, 0.8D, 0.02D);
+                arenaSound(x, y, z, SoundEvents.ILLUSIONER_MIRROR_MOVE,
+                        SoundSource.HOSTILE, 0.9F, 1.0F);
+            }
+            case BLIND -> {
+                level.sendParticles(ParticleTypes.SQUID_INK, x, y + 1.2D, z, 8,
+                        0.2D, 0.2D, 0.2D, 0.01D);
+                arenaSound(x, y, z, SoundEvents.ILLUSIONER_PREPARE_BLINDNESS,
+                        SoundSource.HOSTILE, 0.5F, 1.2F);
+            }
+            case PLAY_DEAD, WAKE -> {
+                if (level.getEntity(event.unit()) instanceof
+                        net.minecraft.world.entity.animal.axolotl.Axolotl axolotl)
+                    axolotl.setPlayingDead(event.kind() == TickResult.TribeEvent.Kind.PLAY_DEAD);
+                if (event.kind() == TickResult.TribeEvent.Kind.WAKE)
+                    level.sendParticles(ParticleTypes.HEART, x, y + 0.6D, z, 3,
+                            0.2D, 0.1D, 0.2D, 0.0D);
+            }
+            case LEAP -> {
+                level.sendParticles(ParticleTypes.LAVA, x, y + 0.2D, z, 6,
+                        0.4D, 0.1D, 0.4D, 0.0D);
+                level.sendParticles(ParticleTypes.FLAME, x, y + 0.1D, z, 12,
+                        0.6D, 0.05D, 0.6D, 0.02D);
+                arenaSound(x, y, z, SoundEvents.MAGMA_CUBE_JUMP,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
+            case HEAL_AURA -> {
+                level.sendParticles(ParticleTypes.HEART, x, y + 1.0D, z, 2,
+                        BattleCard.ALLAY_RADIUS * 0.4D, 0.3D,
+                        BattleCard.ALLAY_RADIUS * 0.4D, 0.0D);
+                arenaSound(x, y + 1.0D, z, SoundEvents.ALLAY_ITEM_GIVEN,
+                        SoundSource.HOSTILE, 0.3F, 1.2F);
+            }
+            case VANISH -> level.sendParticles(ParticleTypes.POOF, x, y + 0.4D,
+                    z, 6, 0.2D, 0.2D, 0.2D, 0.02D);
         }
     }
 
@@ -1441,6 +1532,11 @@ public final class BattleField {
         if (entity == null)
             return;
         double y = entity.getY();
+        // A Magma Cube's leap moves it (its LEAP event shows the landing).
+        if (entity instanceof MagmaCube) {
+            entity.moveTo(teleport.x(), y, teleport.z());
+            return;
+        }
         level.sendParticles(ParticleTypes.PORTAL, entity.getX(), y + 1.0D,
                 entity.getZ(), 24, 0.4D, 0.8D, 0.4D, 0.3D);
         entity.moveTo(teleport.x(), y, teleport.z());
@@ -1469,7 +1565,15 @@ public final class BattleField {
             return;
         for (CombatUnit unit : engine.units()) {
             Entity entity = level.getEntity(unit.id());
-            if (entity == null || !unit.poisoned())
+            if (entity == null)
+                continue;
+            if (unit.withered() || unit.blinded())
+                level.sendParticles(unit.withered() ? WITHER_DUST :
+                                ParticleTypes.SQUID_INK, entity.getX(),
+                        entity.getY() + entity.getBbHeight() * 0.9D,
+                        entity.getZ(), unit.withered() ? 4 : 1, 0.2D, 0.15D,
+                        0.2D, 0.0D);
+            if (!unit.poisoned())
                 continue;
             level.sendParticles(unit.poisonSource() ==
                             BattleCard.WITHER_SKELETON ? WITHER_DUST : POISON_DUST,

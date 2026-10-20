@@ -1,0 +1,18 @@
+{
+  "id": "water_bucket",
+  "type": "spell",
+  "display_name": "Water Bucket",
+  "roles": ["defense", "support"],
+  "elixir": 2,
+  "radius": 2.5,
+  "travel_ticks": 5,
+  "flight_speed": 16,
+  "damage": 0,
+  "knockback": 1.5,
+  "tower_multiplier": 0.0,
+  "puts_out_fire": "every unit and fire trail in the circle, both sides",
+  "water_damage": {
+    "damage": 12,
+    "hurts": ["blaze", "enderman", "snow_golem", "strider"]
+  }
+}

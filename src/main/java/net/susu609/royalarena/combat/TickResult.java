@@ -11,13 +11,15 @@ import java.util.UUID;
  * Everything one combat tick decided, for the world layer to act out:
  * {@code attacks} are the blows struck and shots fired this tick,
  * {@code landed} the ones whose damage was applied this tick (melee blows of
- * this tick and arrows arriving now).
+ * this tick and arrows arriving now). {@code spawns} are units that appear
+ * without a death (an Illusioner's mirror images), to be added like split
+ * children.
  */
 public record TickResult(List<Move> moves, List<Attack> attacks,
                          List<Death> deaths, List<TowerId> destroyedTowers,
                          List<SpellPulse> spellPulses, List<Push> pushes,
                          List<Attack> landed, List<Teleport> teleports,
-                         List<TribeEvent> tribeEvents)
+                         List<TribeEvent> tribeEvents, List<ChildSpawn> spawns)
 {
     /**
      * A tribe's special rule (docs/TRIBES.md) or a card's own (a Panda's
@@ -26,7 +28,8 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
     public record TribeEvent(UUID unit, Kind kind, double x, double z) {
         public enum Kind {
             REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY, SNEEZE, DASH, LEVITATE,
-            SONIC_BOOM, BLAST
+            SONIC_BOOM, BLAST, ILLUSION, BLIND, PLAY_DEAD, WAKE, LEAP,
+            HEAL_AURA, VANISH
         }
     }
 

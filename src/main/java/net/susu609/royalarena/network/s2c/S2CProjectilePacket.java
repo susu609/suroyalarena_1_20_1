@@ -19,7 +19,8 @@ public record S2CProjectilePacket(Kind kind, float fromX, float fromY,
                                   float toZ, int ticks, float arc)
 {
     public enum Kind {
-        ARROW, FIREBALL, POTION, HEALING_POTION, SNOWBALL, TNT, SHULKER_BULLET
+        ARROW, FIREBALL, POTION, HEALING_POTION, SNOWBALL, TNT, SHULKER_BULLET,
+        WITHER_SKULL, ENDER_PEARL, WATER
     }
 
     public static void encode(S2CProjectilePacket p, FriendlyByteBuf buffer) {

@@ -127,9 +127,10 @@ public final class CombatSmokeTest {
     private static void costsFollowTheFormula() {
         for (BattleCard card : BattleCard.values()) {
             if (card.isSpell()) {
-                check(CostFormula.elixir(card.spell()) == card.cost(),
+                // A spell's own rule counts too (CostFormula.spellAbility).
+                check(CostFormula.elixir(card) == card.cost(),
                         card.id() + " cost " + card.cost() + " vs formula " +
-                                CostFormula.raw(card.spell()));
+                                CostFormula.raw(card));
                 continue;
             }
             check(CostFormula.elixir(card) == card.cost(),

@@ -60,6 +60,8 @@ public final class MobSounds {
             case "bee" -> "entity.bee.loop";
             case "guardian" -> "entity.guardian.ambient_land";
             case "turtle" -> "entity.turtle.ambient_land";
+            case "axolotl" -> "entity.axolotl.idle_air";
+            case "allay" -> "entity.allay.ambient_without_item";
             default -> "entity." + path + ".ambient";
         };
     }
@@ -109,6 +111,7 @@ public final class MobSounds {
             case "polar_bear" -> "entity.polar_bear.warning";
             case "cat" -> "entity.cat.hiss";
             case "frog" -> "entity.frog.tongue";
+            case "axolotl" -> "entity.axolotl.attack";
             default -> null;
         };
     }

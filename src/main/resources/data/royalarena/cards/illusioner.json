@@ -1,0 +1,35 @@
+{
+  "id": "illusioner",
+  "type": "troop",
+  "display_name": "Illusioner",
+  "roles": [
+    "defense",
+    "support"
+  ],
+  "body": "living",
+  "elixir": 3,
+  "entity": "minecraft:illusioner",
+  "held_item": "minecraft:bow",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 24,
+    "damage": 5,
+    "attack_interval_ticks": 30,
+    "range": 5.5,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground",
+    "mirror_images": {
+      "below_health": 0.5,
+      "count": 3,
+      "health": 1,
+      "lifetime_ticks": 80
+    },
+    "blindness": {
+      "every_nth_shot": 3,
+      "ticks": 60,
+      "range_factor": 0.6
+    }
+  }
+}

@@ -425,8 +425,10 @@ public final class BotBrain {
             boolean heal = card.spell().friendly() || card.spell().cleanse();
             List<int[]> aims = new ArrayList<>();
             for (CombatUnit aim : engine.units()) {
-                // Healing and Swiftness go on own troops, the rest on enemies.
-                if ((aim.side() == side) != heal || !aim.alive())
+                // Healing and Swiftness go on own troops, the rest on
+                // enemies; an Ender Pearl on either.
+                if (((aim.side() == side) != heal && !card.pearls()) ||
+                        !aim.alive())
                     continue;
                 // Enemies walk toward this side (own troops away from it)
                 // while the card is dragged and the spell is in flight.
@@ -515,7 +517,15 @@ public final class BotBrain {
         SpellStats spell = card.spell();
         if (spell.cleanse())
             return cleanseValue(match, engine, spell, x, z);
+        if (card.pearls())
+            return pearlValue(match, engine, spell, x, z);
+        if (card.douses())
+            return waterValue(match, engine, spell, x, z);
         double perTarget = spell.damagePerTarget();
+        // The skull's wither keeps hurting after the blast.
+        if (card.withers())
+            perTarget += BattleCard.WITHER_PER_SECOND *
+                    BattleCard.WITHER_TICKS / 20.0D;
         double seconds = Math.max(spell.freezeTicks(), spell.stunTicks()) /
                 20.0D;
         List<Double> values = new ArrayList<>();
@@ -580,6 +590,78 @@ public final class BotBrain {
         for (int i = 0; i < count; i++)
             value += values.get(i);
         return value;
+    }
+
+    /**
+     * What an Ender Pearl landing on (x, z) is worth: on an enemy hitting
+     * one of this side's towers, the damage it does not deal while it walks
+     * back (half of it: it comes again). Like the engine, it takes the
+     * troop nearest the centre; the bot does not pearl its own troops.
+     */
+    private double pearlValue(MatchInstance match, CombatEngine engine,
+            SpellStats spell, double x, double z)
+    {
+        CombatUnit best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit unit : engine.units()) {
+            BattleCard card = BattleCard.forStats(unit.stats());
+            if (!unit.alive() || (card != null && card.isBuilding()))
+                continue;
+            double d = Math.hypot(unit.x() - x, unit.z() - z);
+            if (d <= spell.radius() + unit.radius() && d < bestDistance) {
+                best = unit;
+                bestDistance = d;
+            }
+        }
+        if (best == null || best.stats().speed() <= 0.0D)
+            return 0.0D;
+        double dps = best.stats().damage() * 20.0D / best.stats().attackTicks();
+        double seconds = BattleCard.PEARL_DISTANCE / best.stats().speed();
+        // Only an enemy already hitting one of this side's towers is worth
+        // sending back: it walks in again, so half the time counts.
+        if (best.side() == side || !hittingTower(match, best))
+            return 0.0D;
+        return seconds * dps * 0.5D;
+    }
+
+    /** Whether an enemy troop is within reach of one of this side's towers. */
+    private boolean hittingTower(MatchInstance match, CombatUnit enemy) {
+        for (TowerId id : TowerId.values()) {
+            if (id.side() == side && !match.tower(id).isDestroyed() &&
+                    match.arena().distanceToTower(enemy.x(), enemy.z(), id) -
+                            enemy.radius() <= enemy.stats().range() + 0.5D)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * What a Water Bucket on (x, z) is worth: its damage on the enemies water
+     * hurts, the burn it saves own troops, and the time pushed enemies that
+     * fight this side lose. 0 below 2 units touched.
+     */
+    private double waterValue(MatchInstance match, CombatEngine engine,
+            SpellStats spell, double x, double z)
+    {
+        double total = 0.0D;
+        int touched = 0;
+        for (CombatUnit unit : engine.units()) {
+            if (!unit.alive() || Math.hypot(unit.x() - x, unit.z() - z) >
+                    spell.radius() + unit.radius())
+                continue;
+            touched++;
+            if (unit.side() == side) {
+                total += unit.burnTicks() / 20.0D;
+                continue;
+            }
+            BattleCard card = BattleCard.forStats(unit.stats());
+            if (card != null && card.hurtByWater())
+                total += Math.min(unit.health(), BattleCard.WATER_DAMAGE);
+            if (engaged(match, engine, unit) && unit.stats().speed() > 0.0D)
+                total += spell.knockback() / unit.stats().speed() *
+                        unit.stats().damage() * 20.0D / unit.stats().attackTicks();
+        }
+        return touched < 2 ? 0.0D : total;
     }
 
     /**

@@ -50,6 +50,12 @@ public final class CombatUnit {
     private boolean dashed;
     private int shots;
     private int burstShot;
+    private int witherTicks;
+    private double witherPerTick;
+    private BattleCard witherSource;
+    private int blindTicks;
+    private int playDeadTicks;
+    private boolean playedDead;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -164,6 +170,10 @@ public final class CombatUnit {
         slowTicks = 0;
         webTicks = 0;
         hasteTicks = 0;
+        witherTicks = 0;
+        witherPerTick = 0.0D;
+        witherSource = null;
+        blindTicks = 0;
     }
 
     public boolean alive() {
@@ -241,6 +251,8 @@ public final class CombatUnit {
         }
         if (teleportCooldown > 0)
             teleportCooldown--;
+        if (blindTicks > 0)
+            blindTicks--;
         // A frozen unit's attack does not charge.
         if (frozenTicks > 0)
             frozenTicks--;
@@ -292,12 +304,78 @@ public final class CombatUnit {
         return poisonPerTick;
     }
 
-    /** Heals up to the unit's starting health. */
+    /** Heals up to the unit's starting health; a withered unit heals nothing. */
     boolean heal(double amount) {
-        if (amount <= 0.0D || !alive() || health >= maxHealth)
+        if (amount <= 0.0D || !alive() || health >= maxHealth ||
+                witherTicks > 0)
             return false;
         health = Math.min(maxHealth, health + amount);
         return true;
+    }
+
+    /**
+     * Withers the unit (Wither Skull): {@code perSecond} through armour for
+     * {@code ticks}, and no healing meanwhile; a new wither replaces the old.
+     */
+    void wither(int ticks, double perSecond, BattleCard source) {
+        if (ticks <= 0)
+            return;
+        witherTicks = ticks;
+        witherPerTick = perSecond / 20.0D;
+        witherSource = source;
+    }
+
+    public boolean withered() {
+        return witherTicks > 0;
+    }
+
+    BattleCard witherSource() {
+        return witherSource;
+    }
+
+    /** Wither damage this tick (0 when not withered). */
+    double witherStep() {
+        if (witherTicks <= 0)
+            return 0.0D;
+        witherTicks--;
+        return witherPerTick;
+    }
+
+    /** Blinds the unit (an Illusioner's arrow): shorter range for a while. */
+    void blind(int ticks) {
+        blindTicks = Math.max(blindTicks, ticks);
+    }
+
+    public boolean blinded() {
+        return blindTicks > 0;
+    }
+
+    /** Its attack range now: shorter while blinded. */
+    public double range() {
+        return blinded() ? stats.range() * BattleCard.BLIND_RANGE :
+                stats.range();
+    }
+
+    /**
+     * Starts playing dead (an Axolotl), once per unit; false if it already
+     * did.
+     */
+    boolean playDead(int ticks) {
+        if (playedDead)
+            return false;
+        playedDead = true;
+        playDeadTicks = ticks;
+        return true;
+    }
+
+    /** Lying still: nothing picks it as a target, it neither walks nor hits. */
+    public boolean playingDead() {
+        return playDeadTicks > 0;
+    }
+
+    /** One tick of playing dead; true on the tick it gets up again. */
+    boolean tickPlayDead() {
+        return playDeadTicks > 0 && --playDeadTicks == 0;
     }
 
     /** Slows the unit's walk for {@code ticks}; a longer slow wins. */
@@ -370,6 +448,13 @@ public final class CombatUnit {
     /** The card whose burn is on the unit, or null. */
     BattleCard burnSource() {
         return burnSource;
+    }
+
+    /** Puts the fire out (Water Bucket). */
+    void douse() {
+        burnTicks = 0;
+        burnPerTick = 0.0D;
+        burnSource = null;
     }
 
     /** Damage the burn deals this tick (0 when not burning). */

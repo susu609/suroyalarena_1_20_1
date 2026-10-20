@@ -866,3 +866,18 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   every battle sound is heard to 48 blocks with its own fall-off;
   `BattleField` and the tower collapse in `ServerMatchSession` use it
 - `SfxSmokeTest` checks every variant
+
+## Part 74 — Batch 4 cards
+
+- `BattleCard`: Illusioner, Axolotl, Endermite, Allay, Wither Skull, Ender
+  Pearl, Water Bucket; Magma Cube reworked (2 small cubes, leap, 2 elixir)
+- `CombatEngine`: mirror images (`TickResult.spawns`), blindness
+  (`CombatUnit.range`), playing dead (untargetable), Endermite lifetime and
+  lure, Allay follow and heal aura, Magma leap, wither (no healing), pearl
+  move, water douse/push/hurt; new event kinds for the world
+- `CostFormula`: ability multipliers and `spellAbility`; `PowerCreepTest`
+  support score; `BotBrain` values the three spells
+- `BattleField`, `ProjectileRenderer` (skull, pearl, water bottle),
+  `SpellTargetHighlighter` (both sides for water and pearl), `DeckScreen`
+  lines; protocol 31
+- `MobsWave6SmokeTest`

@@ -526,6 +526,20 @@ public final class DeckScreen extends Screen {
                 lines.add(line("Heals your own troops, never towers"));
             if (s.cleanse())
                 lines.add(line("Clears every effect, good and bad, on both sides"));
+            if (card.withers())
+                lines.add(line("Wither %.0f s: %.0f a second through armour, no healing",
+                        BattleCard.WITHER_TICKS / 20.0D,
+                        BattleCard.WITHER_PER_SECOND));
+            if (card.pearls())
+                lines.add(line("Moves the troop nearest the centre %.0f blocks: " +
+                        "yours forward (not past the river), an enemy back",
+                        BattleCard.PEARL_DISTANCE));
+            if (card.douses()) {
+                lines.add(line("Puts out fire on both sides; pushes enemies %.1f blocks",
+                        s.knockback()));
+                lines.add(line("%.0f damage to Blaze, Enderman, Snow Golem, Strider",
+                        BattleCard.WATER_DAMAGE));
+            }
             if (s.poison())
                 lines.add(line("Poison: 1.5x on the living, none on golems"));
             if (s.slowTicks() > 0)
@@ -660,6 +674,29 @@ public final class DeckScreen extends Screen {
         if (card.swimsFast())
             lines.add(line("Slow on land, %.0f times as fast on the river",
                     BattleCard.RIVER_SWIM));
+        if (card.castsIllusions()) {
+            lines.add(line("Under %.0f%% health: %d mirror images draw fire for %.0f s",
+                    BattleCard.ILLUSION_BELOW * 100.0D, BattleCard.ILLUSION_COUNT,
+                    BattleCard.ILLUSION_TICKS / 20.0D));
+            lines.add(line("Every %drd arrow blinds: range cut to %.0f%% for %.0f s",
+                    BattleCard.BLIND_EVERY, BattleCard.BLIND_RANGE * 100.0D,
+                    BattleCard.BLIND_TICKS / 20.0D));
+        }
+        if (card.playsDead())
+            lines.add(line("Plays dead once under %.0f%%: untargetable %.0f s, heals %.0f%%",
+                    BattleCard.PLAY_DEAD_BELOW * 100.0D,
+                    BattleCard.PLAY_DEAD_TICKS / 20.0D,
+                    BattleCard.PLAY_DEAD_HEAL * 100.0D));
+        if (card.luresEndermen())
+            lines.add(line("Vanish after %.0f s; enemy Endermen within %.0f blocks chase them",
+                    BattleCard.ENDERMITE_TICKS / 20.0D, BattleCard.ENDERMITE_LURE));
+        if (card.healsAround())
+            lines.add(line("Never attacks: follows your troops, heals each within %.0f blocks by %.0f a second",
+                    BattleCard.ALLAY_RADIUS, s.damage() * 20.0D / s.attackTicks()));
+        if (card.leaps())
+            lines.add(line("Leaps onto an enemy within %.0f blocks (archers first): %.1fx hit, splash %.0f",
+                    BattleCard.LEAP_RANGE, BattleCard.LEAP_DAMAGE,
+                    BattleCard.LEAP_SPLASH));
         if (s.split() != null && s.split().into() != null) {
             BattleCard rider = BattleCard.forStats(s.split().into());
             if (rider != null && card != BattleCard.SPIDER_JOCKEY &&

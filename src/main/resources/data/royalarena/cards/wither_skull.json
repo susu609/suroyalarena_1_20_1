@@ -1,0 +1,17 @@
+{
+  "id": "wither_skull",
+  "type": "spell",
+  "display_name": "Wither Skull",
+  "roles": ["attack", "defense"],
+  "elixir": 2,
+  "radius": 2.0,
+  "travel_ticks": 5,
+  "flight_speed": 16,
+  "damage": 6,
+  "wither": {
+    "ticks": 100,
+    "damage_per_second": 1.0,
+    "through_armor": true,
+    "blocks_healing": true
+  }
+}

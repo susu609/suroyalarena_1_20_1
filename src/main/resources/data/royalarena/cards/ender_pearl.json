@@ -1,0 +1,15 @@
+{
+  "id": "ender_pearl",
+  "type": "spell",
+  "display_name": "Ender Pearl",
+  "roles": ["support"],
+  "elixir": 2,
+  "radius": 1.0,
+  "travel_ticks": 5,
+  "flight_speed": 20,
+  "damage": 0,
+  "tower_multiplier": 0.0,
+  "targets": "the one troop nearest the centre, either side",
+  "own_troop": "forward 5 blocks, never past the river",
+  "enemy_troop": "back 5 blocks toward its own King"
+}

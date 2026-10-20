@@ -34,7 +34,7 @@
         'ravager': 5,
         'hoglin': 3,
         'pillager': 3,
-        'magma_cube': 3,
+        'magma_cube': 2,
         'enderman': 3,
         'cave_spider': 3,
         'vex': 2,
@@ -84,6 +84,13 @@
         'shulker': 2,
         'end_crystal': 2,
         'warden': 8,
+        'illusioner': 3,
+        'axolotl': 2,
+        'endermite': 1,
+        'allay': 2,
+        'wither_skull': 2,
+        'ender_pearl': 2,
+        'water_bucket': 2,
     };
     const CARD_IDS = Object.keys(CARDS);
 

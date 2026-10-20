@@ -1,0 +1,29 @@
+{
+  "id": "axolotl",
+  "type": "troop",
+  "display_name": "Axolotl",
+  "roles": [
+    "defense"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:axolotl",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 18,
+    "damage": 4,
+    "attack_interval_ticks": 20,
+    "range": 1.0,
+    "move_speed": 1.0,
+    "flying": false,
+    "targets": "ground",
+    "river_strong": true,
+    "play_dead": {
+      "below_health": 0.3,
+      "ticks": 60,
+      "heals": 0.5,
+      "once": true
+    }
+  }
+}
