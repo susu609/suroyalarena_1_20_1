@@ -27,50 +27,150 @@
     ]
   },
   "bow_shot": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       {
-        "name": "royalarena:sfx/bow_shot"
+        "name": "royalarena:sfx/bow_shot1"
+      },
+      {
+        "name": "royalarena:sfx/bow_shot2"
+      },
+      {
+        "name": "royalarena:sfx/bow_shot3"
       }
     ]
   },
   "tower_shot": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       {
-        "name": "royalarena:sfx/tower_shot"
+        "name": "royalarena:sfx/tower_shot1"
+      },
+      {
+        "name": "royalarena:sfx/tower_shot2"
+      },
+      {
+        "name": "royalarena:sfx/tower_shot3"
       }
     ]
   },
   "volley": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       {
-        "name": "royalarena:sfx/volley"
+        "name": "royalarena:sfx/volley1"
+      },
+      {
+        "name": "royalarena:sfx/volley2"
       }
     ]
   },
-  "zap_cast": {
-    "category": "neutral",
+  "crossbow_shot": {
+    "category": "hostile",
     "sounds": [
       {
-        "name": "royalarena:sfx/zap_cast"
+        "name": "royalarena:sfx/crossbow_shot1"
+      },
+      {
+        "name": "royalarena:sfx/crossbow_shot2"
+      },
+      {
+        "name": "royalarena:sfx/crossbow_shot3"
       }
     ]
   },
-  "freeze_cast": {
-    "category": "neutral",
+  "arrow_hit": {
+    "category": "hostile",
     "sounds": [
       {
-        "name": "royalarena:sfx/freeze_cast"
+        "name": "royalarena:sfx/arrow_hit1"
+      },
+      {
+        "name": "royalarena:sfx/arrow_hit2"
+      },
+      {
+        "name": "royalarena:sfx/arrow_hit3"
+      },
+      {
+        "name": "royalarena:sfx/arrow_hit4"
       }
     ]
   },
-  "poison_cast": {
-    "category": "neutral",
+  "stone_hit": {
+    "category": "hostile",
     "sounds": [
       {
-        "name": "royalarena:sfx/poison_cast"
+        "name": "royalarena:sfx/stone_hit1"
+      },
+      {
+        "name": "royalarena:sfx/stone_hit2"
+      },
+      {
+        "name": "royalarena:sfx/stone_hit3"
+      }
+    ]
+  },
+  "spell_throw": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/spell_throw1"
+      },
+      {
+        "name": "royalarena:sfx/spell_throw2"
+      },
+      {
+        "name": "royalarena:sfx/spell_throw3"
+      }
+    ]
+  },
+  "zap": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/zap1"
+      },
+      {
+        "name": "royalarena:sfx/zap2"
+      }
+    ]
+  },
+  "freeze_hit": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/freeze_hit1"
+      },
+      {
+        "name": "royalarena:sfx/freeze_hit2"
+      }
+    ]
+  },
+  "poison_hit": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/poison_hit1"
+      },
+      {
+        "name": "royalarena:sfx/poison_hit2"
+      }
+    ]
+  },
+  "poison_bubble": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/poison_bubble1"
+      },
+      {
+        "name": "royalarena:sfx/poison_bubble2"
+      },
+      {
+        "name": "royalarena:sfx/poison_bubble3"
+      },
+      {
+        "name": "royalarena:sfx/poison_bubble4"
       }
     ]
   }

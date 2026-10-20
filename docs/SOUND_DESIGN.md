@@ -162,24 +162,35 @@ Bạn đã chọn các tiếng dưới đây trên trang nghe thử. Tên tiến
 | Thua | `block.beacon.deactivate` | ✅ |
 | Đếm vương miện ở màn kết quả | `entity.experience_orb.pickup`, cao dần | ✅ |
 
-### Tiếng bắn và phép (tự làm, `scripts/sfx/compose_sfx.py`)
+### Tiếng bắn, trúng đích và phép (tự làm, `scripts/sfx/compose_sfx.py`)
 
-Trước đây tháp và lính cung dùng tiếng vanilla ở âm lượng 0.6, và âm thanh
-vanilla chỉ vang 16 khối quanh nguồn, nên người xem đứng xa gần như không
-nghe thấy tiếng bắn. Các tiếng dưới đây phát ở âm lượng 2.5 (`ArenaSfx.RANGE_VOLUME`),
-vang tới 40 khối.
+Tổng hợp mới, không chứa file của Minecraft hay Clash Royale. Hình dạng
+từng tiếng được đo theo tiếng vanilla 1.20.1 cùng khoảnh khắc
+(`scripts/sfx/analyze.py`: độ dài, độ vào, độ sáng, năng lượng theo dải),
+rồi dựng lại cho khớp số. Mỗi tiếng có 2–4 biến thể, game chọn ngẫu nhiên
+như `bowhit1-4` của vanilla.
 
-| Khoảnh khắc | Tiếng | Mod |
+| Khoảnh khắc | Tiếng | Theo mẫu vanilla |
 |---|---|---|
-| Cung thủ, Pillager bắn | `royalarena:bow_shot` (dây cung + tiếng gió, cao độ ngẫu nhiên) | ✅ |
-| Tháp Princess bắn | `royalarena:tower_shot` (dây cung trầm, tiếng đập, gió dài) | ✅ |
-| King bắn Arrow Storm | `royalarena:volley` (5 tiếng dây cung so le, rồi tiếng vút) | ✅ |
-| Zap thả xuống | `royalarena:zap_cast` (tia điện quét xuống, tiếng lách tách) | ✅ |
-| Freeze thả xuống | `royalarena:freeze_cast` (ánh băng vút lên, tiếng tích băng) | ✅ |
-| Poison thả xuống | `royalarena:poison_cast` (bọt nổi lên, sủi) | ✅ |
+| Cung thủ bắn | `bow_shot` (3) | `random/bow`: 0.11 s, phồng 45 ms, 60% dưới 250 Hz, không ngân dây |
+| Tháp bắn | `tower_shot` (3) | cung hạ giọng 0.7 trên tiếng gõ đá (`step/stone`) |
+| Pillager bắn | `crossbow_shot` (3) | `item/crossbow/shoot`: 2 tiếng chốt rồi tiếng bật |
+| King bắn Arrow Storm | `volley` (2) | 5 tiếng cung so le |
+| Tên trúng lính | `arrow_hit` (4) | `random/bowhit`: tiếng thịch trầm rồi tiếng rung của tên |
+| Trúng tháp (tên hoặc đòn) | `stone_hit` (3) | `step/stone`, `dig/stone`: ngắn, đục |
+| Tên của Arrow Storm rơi | `arrow_hit` ở điểm ngẫu nhiên trong vòng | |
+| King ném phép | `spell_throw` (3) | vanilla ném lọ bằng tiếng cung, cao hơn |
+| Zap trúng | `zap` (2) | tia sét thu nhỏ: tiếng nứt, rền trầm, lách tách amethyst |
+| Freeze trúng | `freeze_hit` (2) | kính vỡ + powder snow + chuông amethyst |
+| Poison trúng | `poison_hit` (2) rồi `poison_bubble` (4) mỗi nhịp, ở điểm ngẫu nhiên | lọ vỡ, bọt `bubble_column` |
 
-Ghi chú: các tiếng là tổng hợp mới, không lấy âm thanh của game nào. Chưa
-nghe thử trong game: cần nghe lại bản dựng để chỉnh độ to và cao độ.
+**Tầm nghe.** Âm thanh vanilla tắt ở 16 khối, quá gần cho người xem cả
+sân. Mọi tiếng của trận (cả tiếng vanilla như lính bị đánh, chết, tháp sập)
+giờ gửi qua `S2CArenaSoundPacket`: client tự phát, to đủ trong 6 khối rồi
+nhỏ dần đến 48 khối, vẫn nghe được trái phải theo vị trí
+(`client/sound/ArenaSoundPlayer`).
+
+Chưa nghe thử trong game.
 
 ### Việc tiếp theo
 

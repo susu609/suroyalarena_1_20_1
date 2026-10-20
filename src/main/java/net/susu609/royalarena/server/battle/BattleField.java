@@ -28,6 +28,7 @@ import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.entity.monster.Guardian;
 import net.minecraft.world.entity.monster.MagmaCube;
@@ -65,6 +66,7 @@ import net.susu609.royalarena.match.PendingDeploy;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
+import net.susu609.royalarena.network.s2c.S2CArenaSoundPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
@@ -627,7 +629,7 @@ public final class BattleField {
                     sendProjectile(S2CProjectilePacket.Kind.FIREBALL, hand,
                             new double[] {tx, floor + 0.5D, tz},
                             deploy.ticksLeft(), 3.0F);
-                    level.playSound(null, hand[0], hand[1], hand[2],
+                    arenaSound(hand[0], hand[1], hand[2],
                             SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.8F,
                             1.0F);
                 }
@@ -636,9 +638,9 @@ public final class BattleField {
                     sendProjectile(S2CProjectilePacket.Kind.POTION, hand,
                             new double[] {tx, floor + 0.3D, tz},
                             deploy.ticksLeft(), 4.0F);
-                    level.playSound(null, hand[0], hand[1], hand[2],
-                            SoundEvents.SPLASH_POTION_THROW,
-                            SoundSource.HOSTILE, 0.8F, 1.2F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            ArenaSfx.SPELL_THROW.get(),
+                            SoundSource.HOSTILE, 0.8F, 1.1F);
                 }
                 case POISON_CLOUD, SWIFTNESS_POTION, COBWEB,
                         SNOWBALL_VOLLEY -> {
@@ -649,10 +651,9 @@ public final class BattleField {
                                     S2CProjectilePacket.Kind.SNOWBALL,
                             hand, new double[] {tx, floor + 0.3D, tz},
                             deploy.ticksLeft(), 4.0F);
-                    level.playSound(null, hand[0], hand[1], hand[2],
-                            potion ? SoundEvents.LINGERING_POTION_THROW :
-                                    SoundEvents.SNOWBALL_THROW,
-                            SoundSource.HOSTILE, 0.8F, 1.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            ArenaSfx.SPELL_THROW.get(), SoundSource.HOSTILE,
+                            0.8F, potion ? 0.9F : 1.0F);
                 }
                 case HEALING_POTION, FREEZE -> {
                     // The King throws a splash potion or a snowball.
@@ -661,11 +662,9 @@ public final class BattleField {
                                     S2CProjectilePacket.Kind.HEALING_POTION,
                             hand, new double[] {tx, floor + 0.3D, tz},
                             deploy.ticksLeft(), 4.0F);
-                    level.playSound(null, hand[0], hand[1], hand[2],
-                            deploy.card() == BattleCard.FREEZE ?
-                                    SoundEvents.SNOWBALL_THROW :
-                                    SoundEvents.SPLASH_POTION_THROW,
-                            SoundSource.HOSTILE, 0.8F, 1.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            ArenaSfx.SPELL_THROW.get(), SoundSource.HOSTILE,
+                            0.8F, 1.0F);
                 }
                 case TNT -> {
                     // Dropped from high above, primed and flashing.
@@ -673,19 +672,14 @@ public final class BattleField {
                             new double[] {tx, floor + 16.0D, tz},
                             new double[] {tx, floor, tz}, deploy.ticksLeft(),
                             0.0F);
-                    level.playSound(null, tx, floor + 8.0D, tz,
+                    arenaSound(tx, floor + 8.0D, tz,
                             SoundEvents.TNT_PRIMED, SoundSource.HOSTILE, 1.0F,
                             1.0F);
                 }
-                case ZAP -> {
-                    level.playSound(null, tx, floor, tz,
-                            ArenaSfx.ZAP_CAST.get(), SoundSource.HOSTILE,
-                            ArenaSfx.RANGE_VOLUME, 1.0F);
-                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK, tx,
-                            floor + 0.3D, tz, 20,
-                            deploy.card().spell().radius() * 0.5D, 0.1D,
-                            deploy.card().spell().radius() * 0.5D, 0.05D);
-                }
+                case ZAP -> level.sendParticles(
+                        ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 20,
+                        deploy.card().spell().radius() * 0.5D, 0.1D,
+                        deploy.card().spell().radius() * 0.5D, 0.05D);
                 case LIGHTNING -> level.sendParticles(
                         ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 30,
                         deploy.card().spell().radius() * 0.5D, 0.1D,
@@ -718,8 +712,8 @@ public final class BattleField {
             sendProjectile(S2CProjectilePacket.Kind.ARROW, from,
                     new double[] {tx, floor + 0.1D, tz}, ticks, 3.0F);
         }
-        level.playSound(null, king.x(), top, king.z(), ArenaSfx.VOLLEY.get(),
-                SoundSource.HOSTILE, ArenaSfx.RANGE_VOLUME, 1.0F);
+        arenaSound(king.x(), top, king.z(), ArenaSfx.VOLLEY.get(),
+                SoundSource.HOSTILE, 0.8F, 1.0F);
     }
 
     private void playSpell(TickResult.SpellPulse pulse) {
@@ -735,7 +729,7 @@ public final class BattleField {
                         z, 4, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
                 level.sendParticles(ParticleTypes.FLAME, x, floor + 0.3D, z,
                         40, radius * 0.5D, 0.2D, radius * 0.5D, 0.05D);
-                level.playSound(null, x, floor, z, SoundEvents.GENERIC_EXPLODE,
+                arenaSound(x, floor, z, SoundEvents.GENERIC_EXPLODE,
                         SoundSource.HOSTILE, 0.8F, 1.2F);
             }
             case TNT -> {
@@ -747,7 +741,7 @@ public final class BattleField {
                         z, 10, radius * 0.5D, 0.4D, radius * 0.5D, 0.0D);
                 level.sendParticles(ParticleTypes.LARGE_SMOKE, x, floor + 0.5D,
                         z, 30, radius * 0.5D, 0.3D, radius * 0.5D, 0.05D);
-                level.playSound(null, x, floor, z, SoundEvents.GENERIC_EXPLODE,
+                arenaSound(x, floor, z, SoundEvents.GENERIC_EXPLODE,
                         SoundSource.HOSTILE, 1.2F, 0.8F);
             }
             case LIGHTNING -> {
@@ -768,33 +762,30 @@ public final class BattleField {
             }
             case FREEZE -> {
                 flash(x, z, radius, S2CAoeFlashPacket.ICE);
-                if (pulse.index() == 0)
-                    level.playSound(null, x, floor, z,
-                            ArenaSfx.FREEZE_CAST.get(), SoundSource.HOSTILE,
-                            ArenaSfx.RANGE_VOLUME, 1.0F);
                 level.sendParticles(ParticleTypes.SNOWFLAKE, x, floor + 0.5D,
                         z, 60, radius * 0.5D, 0.4D, radius * 0.5D, 0.02D);
                 level.sendParticles(ParticleTypes.ITEM_SNOWBALL, x,
                         floor + 0.3D, z, 20, radius * 0.4D, 0.1D, radius * 0.4D,
                         0.1D);
-                level.playSound(null, x, floor, z, SoundEvents.GLASS_BREAK,
-                        SoundSource.HOSTILE, 0.8F, 1.4F);
-                level.playSound(null, x, floor, z, SoundEvents.POWDER_SNOW_PLACE,
-                        SoundSource.HOSTILE, 1.0F, 0.8F);
+                arenaSound(x, floor, z, ArenaSfx.FREEZE_HIT.get(),
+                        SoundSource.HOSTILE, pulse.index() == 0 ? 0.9F : 0.5F,
+                        1.0F);
             }
             case POISON_CLOUD -> {
                 flash(x, z, radius, S2CAoeFlashPacket.POISON);
-                if (pulse.index() == 0)
-                    level.playSound(null, x, floor, z,
-                            ArenaSfx.POISON_CAST.get(), SoundSource.HOSTILE,
-                            ArenaSfx.RANGE_VOLUME, 1.0F);
                 level.sendParticles(ParticleTypes.ENTITY_EFFECT, x,
                         floor + 0.4D, z, 30, radius * 0.5D, 0.3D,
                         radius * 0.5D, 1.0D);
+                // The bottle breaks once; bubbles rise somewhere in the cloud
+                // on every pulse.
                 if (pulse.index() == 0)
-                    level.playSound(null, x, floor, z,
-                            SoundEvents.SPLASH_POTION_BREAK,
-                            SoundSource.HOSTILE, 0.8F, 0.7F);
+                    arenaSound(x, floor, z,
+                            ArenaSfx.POISON_HIT.get(), SoundSource.HOSTILE,
+                            0.9F, 1.0F);
+                double[] spot = randomIn(x, z, radius);
+                arenaSound(spot[0], floor, spot[1],
+                        ArenaSfx.POISON_BUBBLE.get(), SoundSource.HOSTILE, 0.5F,
+                        0.9F + level.random.nextFloat() * 0.2F);
             }
             case COBWEB -> {
                 flash(x, z, radius, S2CAoeFlashPacket.WEB);
@@ -802,14 +793,14 @@ public final class BattleField {
                                 new ItemStack(Items.COBWEB)), x, floor + 0.2D,
                         z, 16, radius * 0.5D, 0.05D, radius * 0.5D, 0.02D);
                 if (pulse.index() == 0)
-                    level.playSound(null, x, floor, z, SoundEvents.WOOL_PLACE,
+                    arenaSound(x, floor, z, SoundEvents.WOOL_PLACE,
                             SoundSource.HOSTILE, 1.0F, 0.8F);
             }
             case SWIFTNESS_POTION -> {
                 flash(x, z, radius, S2CAoeFlashPacket.SWIFT);
                 level.sendParticles(ParticleTypes.EFFECT, x, floor + 0.3D, z,
                         40, radius * 0.5D, 0.2D, radius * 0.5D, 0.1D);
-                level.playSound(null, x, floor, z,
+                arenaSound(x, floor, z,
                         SoundEvents.SPLASH_POTION_BREAK, SoundSource.HOSTILE,
                         0.8F, 1.3F);
                 for (TickResult.Strike strike : pulse.strikes())
@@ -828,9 +819,9 @@ public final class BattleField {
                     level.sendParticles(ParticleTypes.CLOUD, strike.x(),
                             floor + 0.6D, strike.z(), 5, 0.25D, 0.2D, 0.25D,
                             0.02D);
-                level.playSound(null, x, floor, z, SoundEvents.GENERIC_DRINK,
+                arenaSound(x, floor, z, SoundEvents.GENERIC_DRINK,
                         SoundSource.HOSTILE, 1.0F, 1.0F);
-                level.playSound(null, x, floor, z,
+                arenaSound(x, floor, z,
                         SoundEvents.SPLASH_POTION_BREAK, SoundSource.HOSTILE,
                         0.8F, 1.2F);
             }
@@ -845,9 +836,8 @@ public final class BattleField {
                     level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                             strike.x(), floor + 1.0D, strike.z(), 12, 0.3D,
                             0.5D, 0.3D, 0.4D);
-                level.playSound(null, x, floor, z,
-                        SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.HOSTILE,
-                        0.4F, 2.0F);
+                arenaSound(x, floor, z, ArenaSfx.ZAP.get(),
+                        SoundSource.HOSTILE, 0.9F, 1.0F);
             }
             case SNOWBALL_VOLLEY -> {
                 flash(x, z, radius, S2CAoeFlashPacket.ICE);
@@ -856,7 +846,7 @@ public final class BattleField {
                         0.15D);
                 level.sendParticles(ParticleTypes.SNOWFLAKE, x, floor + 0.5D,
                         z, 20, radius * 0.5D, 0.3D, radius * 0.5D, 0.02D);
-                level.playSound(null, x, floor, z, SoundEvents.SNOW_BREAK,
+                arenaSound(x, floor, z, SoundEvents.SNOW_BREAK,
                         SoundSource.HOSTILE, 1.0F, 1.0F);
             }
             case HEALING_POTION -> {
@@ -865,7 +855,7 @@ public final class BattleField {
                 if (pulse.index() == 0) {
                     level.sendParticles(ParticleTypes.EFFECT, x, floor + 0.3D,
                             z, 40, radius * 0.5D, 0.2D, radius * 0.5D, 0.1D);
-                    level.playSound(null, x, floor, z,
+                    arenaSound(x, floor, z,
                             SoundEvents.SPLASH_POTION_BREAK,
                             SoundSource.HOSTILE, 0.8F, 1.0F);
                 }
@@ -884,10 +874,10 @@ public final class BattleField {
                             spell.pulseInterval());
                 level.sendParticles(ParticleTypes.CRIT, x, floor + 0.2D, z, 6,
                         radius * 0.5D, 0.05D, radius * 0.5D, 0.05D);
-                if (pulse.index() % 2 == 0)
-                    level.playSound(null, x, floor, z, SoundEvents.ARROW_HIT,
-                            SoundSource.HOSTILE, 0.5F,
-                            0.9F + level.random.nextFloat() * 0.3F);
+                double[] spot = randomIn(x, z, radius);
+                arenaSound(spot[0], floor, spot[1],
+                        ArenaSfx.ARROW_HIT.get(), SoundSource.HOSTILE, 0.6F,
+                        0.9F + level.random.nextFloat() * 0.2F);
             }
         }
     }
@@ -922,7 +912,7 @@ public final class BattleField {
             // The vanilla attack look: the angry face. Anger never runs out
             // on a NoAI bee, so it stays angry once it has stung.
             bee.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
-            level.playSound(null, from[0], from[1], from[2],
+            arenaSound(from[0], from[1], from[2],
                     SoundEvents.BEE_STING, SoundSource.HOSTILE, 0.6F, 1.0F);
             return;
         }
@@ -944,14 +934,14 @@ public final class BattleField {
             shulkerOpenAt.put(shulker.getUUID(), level.getGameTime());
             sendProjectile(S2CProjectilePacket.Kind.SHULKER_BULLET, from, to,
                     attack.flightTicks(), (float) (distance * 0.25D));
-            level.playSound(null, from[0], from[1], from[2],
+            arenaSound(from[0], from[1], from[2],
                     SoundEvents.SHULKER_SHOOT, SoundSource.HOSTILE, 0.6F, 1.0F);
             return;
         }
         if (attacker instanceof SnowGolem) {
             sendProjectile(S2CProjectilePacket.Kind.SNOWBALL, from, to,
                     attack.flightTicks(), (float) (distance * 0.15D));
-            level.playSound(null, from[0], from[1], from[2],
+            arenaSound(from[0], from[1], from[2],
                     SoundEvents.SNOW_GOLEM_SHOOT, SoundSource.HOSTILE, 0.6F,
                     1.0F);
             return;
@@ -959,7 +949,7 @@ public final class BattleField {
         if (attacker instanceof Ghast || attacker instanceof Blaze) {
             sendProjectile(S2CProjectilePacket.Kind.FIREBALL, from, to,
                     attack.flightTicks(), (float) (distance * 0.2D));
-            level.playSound(null, from[0], from[1], from[2],
+            arenaSound(from[0], from[1], from[2],
                     attacker instanceof Ghast ? SoundEvents.GHAST_SHOOT :
                             SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.6F,
                     1.0F);
@@ -968,23 +958,25 @@ public final class BattleField {
         if (attacker instanceof Drowned) {
             sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
                     attack.flightTicks(), (float) (distance * 0.12D));
-            level.playSound(null, from[0], from[1], from[2],
+            arenaSound(from[0], from[1], from[2],
                     SoundEvents.TRIDENT_THROW, SoundSource.HOSTILE, 0.6F, 1.0F);
             return;
         }
         if (attacker instanceof Witch) {
             sendProjectile(S2CProjectilePacket.Kind.POTION, from, to,
                     attack.flightTicks(), (float) (distance * 0.3D));
-            level.playSound(null, from[0], from[1], from[2],
+            arenaSound(from[0], from[1], from[2],
                     SoundEvents.WITCH_THROW, SoundSource.HOSTILE, 0.6F, 1.0F);
             return;
         }
         sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
                 attack.flightTicks(), (float) (distance * 0.12D));
-        level.playSound(null, from[0], from[1], from[2],
-                attack.attackerTower() != null ? ArenaSfx.TOWER_SHOT.get() :
-                        ArenaSfx.BOW_SHOT.get(), SoundSource.HOSTILE,
-                ArenaSfx.RANGE_VOLUME, 0.9F + level.random.nextFloat() * 0.2F);
+        SoundEvent shot = attack.attackerTower() != null ?
+                ArenaSfx.TOWER_SHOT.get() : attacker instanceof Pillager ?
+                ArenaSfx.CROSSBOW_SHOT.get() : ArenaSfx.BOW_SHOT.get();
+        arenaSound(from[0], from[1], from[2], shot,
+                SoundSource.HOSTILE, 0.8F,
+                0.92F + level.random.nextFloat() * 0.16F);
     }
 
     /**
@@ -1007,9 +999,9 @@ public final class BattleField {
             level.sendParticles(ParticleTypes.CRIT, x, floor + 0.1D, z, 1,
                     0.1D, 0.0D, 0.1D, 0.0D);
         }
-        level.playSound(null, attack.fromX(), floor, attack.fromZ(),
+        arenaSound(attack.fromX(), floor, attack.fromZ(),
                 SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 0.6F, 1.0F);
-        level.playSound(null, attack.x(), floor, attack.z(),
+        arenaSound(attack.x(), floor, attack.z(),
                 SoundEvents.EVOKER_FANGS_ATTACK, SoundSource.HOSTILE, 0.7F,
                 1.0F);
     }
@@ -1027,7 +1019,7 @@ public final class BattleField {
                     from[2] + (to[2] - from[2]) * t, 1, 0.0D, 0.0D, 0.0D,
                     0.0D);
         }
-        level.playSound(null, from[0], from[1], from[2],
+        arenaSound(from[0], from[1], from[2],
                 SoundEvents.GUARDIAN_ATTACK, SoundSource.HOSTILE, 0.6F, 1.0F);
     }
 
@@ -1058,7 +1050,7 @@ public final class BattleField {
                 at[2], 6, radius * 0.4D, 0.3D, radius * 0.4D, 0.0D);
         level.sendParticles(ParticleTypes.POOF, at[0], floor + 0.3D, at[2], 20,
                 radius * 0.5D, 0.2D, radius * 0.5D, 0.05D);
-        level.playSound(null, at[0], floor, at[2], SoundEvents.GENERIC_EXPLODE,
+        arenaSound(at[0], floor, at[2], SoundEvents.GENERIC_EXPLODE,
                 SoundSource.HOSTILE, 0.8F, 1.1F);
     }
 
@@ -1095,7 +1087,7 @@ public final class BattleField {
                 level.sendParticles(ParticleTypes.EXPLOSION, attack.x(),
                         floor + 0.3D, attack.z(), 3, attack.splash() * 0.3D,
                         0.2D, attack.splash() * 0.3D, 0.0D);
-                level.playSound(null, attack.x(), floor, attack.z(),
+                arenaSound(attack.x(), floor, attack.z(),
                         SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 0.8F,
                         1.0F);
                 return;
@@ -1104,18 +1096,22 @@ public final class BattleField {
             level.sendParticles(ParticleTypes.WITCH, attack.x(), floor + 0.3D,
                     attack.z(), 24, attack.splash() * 0.5D, 0.2D,
                     attack.splash() * 0.5D, 0.05D);
-            level.playSound(null, attack.x(), floor, attack.z(),
+            arenaSound(attack.x(), floor, attack.z(),
                     SoundEvents.SPLASH_POTION_BREAK, SoundSource.HOSTILE, 0.6F,
                     1.0F);
             return;
         }
         // A blow on a troop sounds like the troop's own hurt sound (played
-        // with its red flash); arrows and blows on towers keep a hit sound.
-        if (attack.ranged() || attack.victimUnit() == null)
-            level.playSound(null, to[0], to[1], to[2],
-                    attack.ranged() ? SoundEvents.ARROW_HIT :
-                            SoundEvents.PLAYER_ATTACK_STRONG,
-                    SoundSource.HOSTILE, 0.6F, 1.0F);
+        // with its red flash). An arrow thunks into a troop and rattles;
+        // anything on a tower knocks on its stone.
+        if (attack.victimUnit() == null)
+            arenaSound(to[0], to[1], to[2], ArenaSfx.STONE_HIT.get(),
+                    SoundSource.HOSTILE, attack.ranged() ? 0.6F : 0.8F,
+                    0.9F + level.random.nextFloat() * 0.2F);
+        else if (attack.ranged())
+            arenaSound(to[0], to[1], to[2], ArenaSfx.ARROW_HIT.get(),
+                    SoundSource.HOSTILE, 0.6F,
+                    0.9F + level.random.nextFloat() * 0.2F);
         level.sendParticles(ParticleTypes.CRIT, to[0], to[1], to[2], 3, 0.2D,
                 0.2D, 0.2D, 0.1D);
     }
@@ -1241,8 +1237,25 @@ public final class BattleField {
         SoundEvent sound = ForgeRegistries.SOUND_EVENTS.getValue(
                 RL.mc(eventId));
         if (sound != null)
-            level.playSound(null, x, y, z, sound, SoundSource.HOSTILE, volume,
+            arenaSound(x, y, z, sound, SoundSource.HOSTILE, volume,
                     pitch);
+    }
+
+    /**
+     * Every battle sound goes through here: heard across the arena (48
+     * blocks, S2CArenaSoundPacket) instead of vanilla's 16.
+     */
+    private void arenaSound(double x, double y, double z, SoundEvent sound,
+            SoundSource source, float volume, float pitch)
+    {
+        S2CArenaSoundPacket.send(level, x, y, z, sound, source, volume, pitch);
+    }
+
+    /** A random spot inside a circle (x, z). */
+    private double[] randomIn(double x, double z, double radius) {
+        double angle = level.random.nextDouble() * Math.PI * 2.0D;
+        double r = Math.sqrt(level.random.nextDouble()) * radius;
+        return new double[] {x + Math.cos(angle) * r, z + Math.sin(angle) * r};
     }
 
     /**
@@ -1354,25 +1367,25 @@ public final class BattleField {
             case TOTEM -> {
                 level.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, x, y + 1.0D, z,
                         40, 0.4D, 0.8D, 0.4D, 0.4D);
-                level.playSound(null, x, y, z, SoundEvents.TOTEM_USE,
+                arenaSound(x, y, z, SoundEvents.TOTEM_USE,
                         SoundSource.HOSTILE, 0.6F, 1.0F);
             }
             case REVIVE -> {
                 level.sendParticles(ParticleTypes.SOUL, x, y + 0.5D, z,
                         16, 0.3D, 0.5D, 0.3D, 0.03D);
-                level.playSound(null, x, y, z, SoundEvents.ZOMBIE_VILLAGER_CURE,
+                arenaSound(x, y, z, SoundEvents.ZOMBIE_VILLAGER_CURE,
                         SoundSource.HOSTILE, 0.5F, 1.4F);
             }
             case LAST_FLAME -> {
                 level.sendParticles(ParticleTypes.FLAME, x, y + 0.3D, z,
                         30, 1.0D, 0.2D, 1.0D, 0.02D);
-                level.playSound(null, x, y, z, SoundEvents.FIRECHARGE_USE,
+                arenaSound(x, y, z, SoundEvents.FIRECHARGE_USE,
                         SoundSource.HOSTILE, 0.6F, 0.9F);
             }
             case DODGE -> {
                 level.sendParticles(ParticleTypes.LARGE_SMOKE, x, y + 0.8D, z,
                         8, 0.3D, 0.4D, 0.3D, 0.01D);
-                level.playSound(null, x, y, z, SoundEvents.PHANTOM_FLAP,
+                arenaSound(x, y, z, SoundEvents.PHANTOM_FLAP,
                         SoundSource.HOSTILE, 0.5F, 1.2F);
             }
             case VOLLEY -> {
@@ -1380,13 +1393,13 @@ public final class BattleField {
             case SNEEZE -> {
                 level.sendParticles(ParticleTypes.SNEEZE, x, y + 0.8D, z, 12,
                         0.4D, 0.2D, 0.4D, 0.05D);
-                level.playSound(null, x, y, z, SoundEvents.PANDA_SNEEZE,
+                arenaSound(x, y, z, SoundEvents.PANDA_SNEEZE,
                         SoundSource.HOSTILE, 0.8F, 1.0F);
             }
             case LEVITATE -> {
                 level.sendParticles(ParticleTypes.END_ROD, x, y + 0.5D, z, 8,
                         0.25D, 0.4D, 0.25D, 0.02D);
-                level.playSound(null, x, y, z, SoundEvents.SHULKER_BULLET_HIT,
+                arenaSound(x, y, z, SoundEvents.SHULKER_BULLET_HIT,
                         SoundSource.HOSTILE, 0.6F, 1.0F);
             }
             case SONIC_BOOM -> {
@@ -1402,7 +1415,7 @@ public final class BattleField {
                                 fx + (x - fx) * t, fy + (y + 0.8D - fy) * t,
                                 fz + (z - fz) * t, 1, 0.0D, 0.0D, 0.0D, 0.0D);
                     }
-                    level.playSound(null, fx, fy, fz,
+                    arenaSound(fx, fy, fz,
                             SoundEvents.WARDEN_SONIC_BOOM, SoundSource.HOSTILE,
                             1.0F, 1.0F);
                 }
@@ -1411,13 +1424,13 @@ public final class BattleField {
                 level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, x, y + 0.5D,
                         z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
                 shake(x, z, 0.8F);
-                level.playSound(null, x, y, z, SoundEvents.GENERIC_EXPLODE,
+                arenaSound(x, y, z, SoundEvents.GENERIC_EXPLODE,
                         SoundSource.HOSTILE, 1.2F, 0.9F);
             }
             case DASH -> {
                 level.sendParticles(ParticleTypes.CLOUD, x, y + 0.2D, z, 10,
                         0.4D, 0.1D, 0.4D, 0.05D);
-                level.playSound(null, x, y, z, SoundEvents.CAMEL_DASH,
+                arenaSound(x, y, z, SoundEvents.CAMEL_DASH,
                         SoundSource.HOSTILE, 0.8F, 1.0F);
             }
         }
@@ -1433,7 +1446,7 @@ public final class BattleField {
         entity.moveTo(teleport.x(), y, teleport.z());
         level.sendParticles(ParticleTypes.PORTAL, teleport.x(), y + 1.0D,
                 teleport.z(), 24, 0.4D, 0.8D, 0.4D, 0.3D);
-        level.playSound(null, teleport.x(), y, teleport.z(),
+        arenaSound(teleport.x(), y, teleport.z(),
                 SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 1.0F);
     }
 

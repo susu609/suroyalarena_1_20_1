@@ -6,15 +6,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * The shot and spell-cast sounds (scripts/sfx): each has an Ogg of a sensible
- * size and a sounds.json entry under the id ArenaSfx registers.
+ * The shot, hit and spell sounds (scripts/sfx): every variant has an Ogg of a
+ * sensible size, and sounds.json maps the event ArenaSfx registers to them.
  */
 public final class SfxSmokeTest {
     private static final Path SOUNDS =
             Path.of("src/main/resources/assets/royalarena");
-    private static final String[] NAMES = {
-            "bow_shot", "tower_shot", "volley", "zap_cast", "freeze_cast",
-            "poison_cast"};
+    /** Event name and how many variants it has (compose_sfx.SOUNDS). */
+    private static final Object[][] SOUNDS_AND_VARIANTS = {
+            {"bow_shot", 3}, {"tower_shot", 3}, {"volley", 2},
+            {"crossbow_shot", 3}, {"arrow_hit", 4}, {"stone_hit", 3},
+            {"spell_throw", 3}, {"zap", 2}, {"freeze_hit", 2},
+            {"poison_hit", 2}, {"poison_bubble", 4}};
 
     private SfxSmokeTest() {
     }
@@ -23,18 +26,22 @@ public final class SfxSmokeTest {
         try {
             String json = Files.readString(SOUNDS.resolve("sounds.json"),
                     StandardCharsets.UTF_8);
-            for (String name : NAMES) {
-                Path ogg = SOUNDS.resolve("sounds/sfx/" + name + ".ogg");
-                check(Files.exists(ogg), name + ".ogg exists");
-                byte[] bytes = Files.readAllBytes(ogg);
-                check(bytes.length > 2_000 && bytes.length < 200_000,
-                        name + " is a short clip: " + bytes.length);
-                check(new String(bytes, 0, 4, StandardCharsets.US_ASCII)
-                        .equals("OggS"), name + " is an Ogg file");
+            for (Object[] sound : SOUNDS_AND_VARIANTS) {
+                String name = (String) sound[0];
                 check(json.contains("\"" + name + "\""),
                         name + " is in sounds.json");
-                check(json.contains("royalarena:sfx/" + name),
-                        name + " points at sounds/sfx");
+                for (int v = 1; v <= (int) sound[1]; v++) {
+                    String file = name + v;
+                    Path ogg = SOUNDS.resolve("sounds/sfx/" + file + ".ogg");
+                    check(Files.exists(ogg), file + ".ogg exists");
+                    byte[] bytes = Files.readAllBytes(ogg);
+                    check(bytes.length > 2_000 && bytes.length < 100_000,
+                            file + " is a short clip: " + bytes.length);
+                    check(new String(bytes, 0, 4, StandardCharsets.US_ASCII)
+                            .equals("OggS"), file + " is an Ogg file");
+                    check(json.contains("\"royalarena:sfx/" + file + "\""),
+                            file + " is mapped in sounds.json");
+                }
             }
         } catch (IOException e) {
             throw new AssertionError("sfx files unreadable", e);

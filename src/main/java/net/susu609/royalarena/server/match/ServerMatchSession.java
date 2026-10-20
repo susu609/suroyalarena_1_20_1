@@ -35,6 +35,7 @@ import net.susu609.royalarena.network.ModNetwork;
 import net.susu609.royalarena.network.s2c.S2CBotDragPacket;
 import net.susu609.royalarena.network.s2c.S2CMatchResultPacket;
 import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
+import net.susu609.royalarena.network.s2c.S2CArenaSoundPacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
 import net.susu609.royalarena.server.arena.ArenaBuilder;
 import net.susu609.royalarena.server.arena.ArenaReservation;
@@ -590,10 +591,10 @@ public final class ServerMatchSession {
                 point.z(), 160, 1.6D, 1.4D, 1.6D, 0.4D);
         arenaLevel.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, point.x(),
                 point.y() + 1.0D, point.z(), 20, 1.4D, 0.5D, 1.4D, 0.02D);
-        arenaLevel.playSound(null, point.x(), y, point.z(),
-                SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.5F, 0.8F);
-        arenaLevel.playSound(null, point.x(), y, point.z(),
-                SoundEvents.STONE_BREAK, SoundSource.BLOCKS, 1.5F, 0.6F);
+        S2CArenaSoundPacket.send(arenaLevel, point.x(), y, point.z(),
+                SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 0.8F);
+        S2CArenaSoundPacket.send(arenaLevel, point.x(), y, point.z(),
+                SoundEvents.STONE_BREAK, SoundSource.BLOCKS, 1.0F, 0.6F);
         ModNetwork.sendNear(arenaLevel, point.x(), y, point.z(), 96.0D,
                 new S2CShakePacket(id.kind() == TowerKind.KING ? 2.0F : 1.2F));
     }

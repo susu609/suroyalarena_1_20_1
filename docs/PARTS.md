@@ -853,3 +853,16 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `scripts/sfx/compose_sfx.py` synthesises them into `sounds/sfx/*.ogg`;
   `sounds.json` maps them; `SfxSmokeTest` checks the files
 - Not yet heard in game: check the levels and pitch in a live battle
+
+## Part 73 — Battle sounds modelled on vanilla, heard across the arena
+
+- `scripts/sfx/analyze.py`: length, attack, brightness and energy per band
+  of a sound; used to match each new sound to the vanilla 1.20.1 sound of the
+  same moment (references fetched for analysis only, never shipped)
+- `compose_sfx.py` rewritten: 11 events, 2-4 variants each
+  (bow, tower, crossbow, volley, arrow hit, stone hit, spell throw, Zap,
+  Freeze, Poison hit, Poison bubbles); `sounds.json`, `ArenaSfx`
+- `S2CArenaSoundPacket` (protocol 30) and `client/sound/ArenaSoundPlayer`:
+  every battle sound is heard to 48 blocks with its own fall-off;
+  `BattleField` and the tower collapse in `ServerMatchSession` use it
+- `SfxSmokeTest` checks every variant

@@ -9,28 +9,36 @@ import net.susu609.modlib.resource.RL;
 import net.susu609.royalarena.RoyalArena;
 
 /**
- * The mod's own shot and spell-cast sounds (scripts/sfx/compose_sfx.py,
- * sounds/sfx/*.ogg). Played at volume {@link #RANGE_VOLUME}: a variable-range
- * sound carries volume times its 16 blocks, so the shot is heard across the
- * arena instead of only up close.
+ * The mod's own shot, hit and spell sounds (scripts/sfx/compose_sfx.py,
+ * sounds/sfx/*.ogg, a few variants each in sounds.json). The battle plays
+ * them through S2CArenaSoundPacket, so they carry across the arena.
  */
 public final class ArenaSfx {
-    /** Volume 2.5 carries these sounds 40 blocks. */
-    public static final float RANGE_VOLUME = 2.5F;
-
     private static final DeferredRegister<SoundEvent> SOUNDS =
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS,
                     RoyalArena.MOD_ID);
 
-    /** An archer's or Pillager's arrow. */
-    public static final RegistryObject<SoundEvent> BOW_SHOT = register("bow_shot");
-    /** A tower's shot: heavier than a bow. */
-    public static final RegistryObject<SoundEvent> TOWER_SHOT = register("tower_shot");
-    /** The King's Arrow Storm launch: five arrows in a cluster. */
-    public static final RegistryObject<SoundEvent> VOLLEY = register("volley");
-    public static final RegistryObject<SoundEvent> ZAP_CAST = register("zap_cast");
-    public static final RegistryObject<SoundEvent> FREEZE_CAST = register("freeze_cast");
-    public static final RegistryObject<SoundEvent> POISON_CAST = register("poison_cast");
+    /** An archer's arrow: a low puff of air, like vanilla's bow. */
+    public static final RegistryObject<SoundEvent> BOW_SHOT = sound("bow_shot");
+    /** A tower's arrow: the bow pitched down, on a knock of stone. */
+    public static final RegistryObject<SoundEvent> TOWER_SHOT = sound("tower_shot");
+    /** The King's Arrow Storm: five arrows let go together. */
+    public static final RegistryObject<SoundEvent> VOLLEY = sound("volley");
+    /** A Pillager's bolt: two latch clicks and the release. */
+    public static final RegistryObject<SoundEvent> CROSSBOW_SHOT = sound("crossbow_shot");
+    /** An arrow into a troop: a thunk and the shaft's rattle. */
+    public static final RegistryObject<SoundEvent> ARROW_HIT = sound("arrow_hit");
+    /** An arrow or a blow on a tower's stone. */
+    public static final RegistryObject<SoundEvent> STONE_HIT = sound("stone_hit");
+    /** The King throws a potion, a snowball or a spell. */
+    public static final RegistryObject<SoundEvent> SPELL_THROW = sound("spell_throw");
+    public static final RegistryObject<SoundEvent> ZAP = sound("zap");
+    /** Glass, powder snow and an amethyst ring. */
+    public static final RegistryObject<SoundEvent> FREEZE_HIT = sound("freeze_hit");
+    /** A bottle breaking, then bubbles. */
+    public static final RegistryObject<SoundEvent> POISON_HIT = sound("poison_hit");
+    /** Bubbles rising in the poison cloud, on each of its pulses. */
+    public static final RegistryObject<SoundEvent> POISON_BUBBLE = sound("poison_bubble");
 
     private ArenaSfx() {
     }
@@ -39,7 +47,7 @@ public final class ArenaSfx {
         SOUNDS.register(bus);
     }
 
-    private static RegistryObject<SoundEvent> register(String name) {
+    private static RegistryObject<SoundEvent> sound(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
                 RL.of(RoyalArena.MOD_ID, name)));
     }
