@@ -71,9 +71,9 @@ public final class ArenaClientConfig {
             .define("battleMusic", true);
 
     public static final ForgeConfigSpec.BooleanValue ARENA_MUSIC = BUILDER
-            .comment("Play the mod's own tune, Arena March, in the first " +
-                    "phase of a battle (from the countdown until the elixir " +
-                    "speeds up); false keeps Pigstep all battle. Needs " +
+            .comment("Play the mod's own battle music (Arena March, Arena " +
+                    "Rush, Last Stand: a piece for each phase of the " +
+                    "match); false keeps Pigstep all battle. Needs " +
                     "battleMusic.")
             .define("arenaMusic", true);
 

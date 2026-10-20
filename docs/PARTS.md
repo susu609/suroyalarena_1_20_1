@@ -823,3 +823,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `sounds.json`, `ArenaSounds.PHASE1_MUSIC`, `ArenaClientConfig.ARENA_MUSIC`,
   `client/sound/BattleSounds.java` (own tune in phase 1, Pigstep after),
   `MusicSmokeTest`
+
+## Part 70 — Battle music for the whole match
+
+- `scripts/music/synth.py` (shared instruments, mixer, Ogg), `late_scores.py`,
+  `compose_late.py` -> `arena_rush.ogg` (60 s) and `last_stand.ogg` (120 s);
+  `export_midi.py` takes the piece; the phase 1 Ogg is bit-identical
+- `match/MusicPlan.java` (which piece when, pure Java), `ArenaSounds`
+  (`RUSH_MUSIC`, `LAST_STAND_MUSIC`), `sounds.json`, `BattleSounds.music`
+- `MusicSmokeTest`: the timeline (2:00, 2:30, 2:50, 3:00, 4:00, 4:50) and the files

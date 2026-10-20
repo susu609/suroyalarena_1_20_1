@@ -196,10 +196,12 @@ horn tổng hợp cho giai điệu lớn.
   liền mạch (đuôi vang gói về đầu). Năm đoạn 8 ô nhịp: A chuông, A đầy hơn,
   B kèn horn, A kèn và chuông, cầu nhẹ rồi quay lại.
 - **Mức âm:** -19 dBFS rms, đỉnh dưới -3 dBFS, để tiếng hiệu ứng còn rõ.
-- **Trong game:** `BattleSounds.music` phát từ lúc đếm ngược cho tới khi
-  elixir tăng tốc (x2) hay hiệp phụ, lúc đó chuyển sang Pigstep. Theo thanh
-  Music; tắt bằng `arenaMusic = false` (giữ Pigstep cả trận) hoặc
-  `battleMusic = false` (không nhạc).
+- **Trong game:** `BattleSounds.music` theo đồng hồ trận (`MusicPlan`):
+  Arena March từ lúc đếm ngược tới 2:00; **Arena Rush** 2:00-3:00 (còn 60 s,
+  30 s, 10 s); **Last Stand** hiệp phụ 3:00-5:00 (còn 60 s ở 4:00, 10 s ở
+  4:50). Mỗi bản bắt đầu đúng lúc pha bắt đầu và dài đúng bằng pha. Theo
+  thanh Music; tắt bằng `arenaMusic = false` (Pigstep cả trận) hoặc
+  `battleMusic = false` (không nhạc). Chi tiết: docs/MUSIC.md.
 - **Kiểm tra:** `MusicSmokeTest` (file có thật, mapping trong sounds.json).
   Chất lượng nghe thật phải nghe bằng tai.
 - **Bản nhạc, MIDI, phối khí thật và prompt cho app AI:** docs/MUSIC.md.

@@ -24,6 +24,10 @@ public final class ArenaSounds {
      * by scripts/music/compose_phase1.py.
      */
     public static final String PHASE1_MUSIC = "music.arena_phase1";
+    /** 2:00 to 3:00 (the last minute of regulation, x2 elixir): 60 s, once. */
+    public static final String RUSH_MUSIC = "music.arena_rush";
+    /** Sudden death, 3:00 to 5:00 of a full match: 120 s, once. */
+    public static final String LAST_STAND_MUSIC = "music.last_stand";
 
     // Cards and the deck (client)
     public static final String CARD_REFUSED = "block.note_block.bass";

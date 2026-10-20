@@ -3,6 +3,34 @@
 The mod's own music, its score, and how to turn it into a fuller recording.
 Sound effects are in docs/SOUND_DESIGN.md.
 
+## The whole battle: three pieces on the match's clock
+
+A match is 3:00 of regulation and 2:00 of sudden death. Each piece starts
+when its phase starts and is exactly as long (`match/MusicPlan.java`,
+checked by `MusicSmokeTest`). The timeline came from the user's reference
+of a mobile strategy game's battle cues (only the times; no audio or
+melody was taken):
+
+| Match time | What happens | Piece | Length |
+|---|---|---|---|
+| 0:00 (countdown) | start | **Arena March** (C major, 128 bpm), looped | 75 s loop |
+| 2:00 | 60 s left, x2 elixir | **Arena Rush** (A minor, 144 bpm) | 60 s, once |
+| 2:30 | 30 s left | (inside Rush, bar 19: more layers, bells, timpani, tom fills) | |
+| 2:50 | 10 s countdown | (inside Rush, bar 31: bass pedal, ticks, brass stabs, snare roll, riser) | |
+| 3:00 | sudden death | **Last Stand** (D minor, 144 bpm) | 120 s, once |
+| 4:00 | 60 s left (x3 elixir) | (inside Last Stand, bar 37: octave up, busier) | |
+| 4:50 | 10 s countdown | (inside Last Stand, bar 67: countdown as above, darker) | |
+
+At 144 bpm one bar is 5/3 s, so every boundary falls on a bar line. A match
+that ends early (a King falls, a tower in sudden death) just stops the
+music. The sandbox has no clock, so it stays on Arena March.
+
+| | Scripts |
+|---|---|
+| Notes | `scripts/music/arena_march.py` (phase 1), `late_scores.py` (Rush, Last Stand) |
+| Sounds and Ogg encoding | `synth.py`; run `compose_phase1.py` and `compose_late.py` |
+| MIDI | `python3 scripts/music/export_midi.py march|rush|last_stand [out.mid]` |
+
 ## Arena March (phase 1)
 
 An original tune composed for this mod (no melody or audio from any other

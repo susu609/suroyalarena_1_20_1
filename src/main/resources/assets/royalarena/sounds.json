@@ -4,5 +4,17 @@
     "sounds": [
       {"name": "royalarena:music/arena_phase1", "stream": true}
     ]
+  },
+  "music.arena_rush": {
+    "category": "music",
+    "sounds": [
+      {"name": "royalarena:music/arena_rush", "stream": true}
+    ]
+  },
+  "music.last_stand": {
+    "category": "music",
+    "sounds": [
+      {"name": "royalarena:music/last_stand", "stream": true}
+    ]
   }
 }

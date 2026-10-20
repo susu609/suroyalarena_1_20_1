@@ -13,6 +13,7 @@ import net.susu609.royalarena.client.state.ClientMatchState;
 import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.ArenaSounds;
 import net.susu609.royalarena.match.MatchState;
+import net.susu609.royalarena.match.MusicPlan;
 import net.susu609.royalarena.match.SoundCues;
 
 /**
@@ -24,8 +25,8 @@ import net.susu609.royalarena.match.SoundCues;
 public final class BattleSounds {
     private static SoundCues.Frame last = SoundCues.Frame.NONE;
     private static SoundInstance music;
-    /** Which track {@link #music} plays: true for the mod's own tune. */
-    private static boolean musicIsOwn;
+    /** Name of the track {@link #music} plays (a MusicPlan.Track or PIGSTEP). */
+    private static String musicName;
     /** Ticks since the music was started (a stream takes a moment to begin). */
     private static int musicAge;
 
@@ -66,36 +67,51 @@ public final class BattleSounds {
         }
     }
 
-    /** Battle music while the battle runs; vanilla's own music waits. */
+    /**
+     * Battle music while the battle runs; vanilla's own music waits. The
+     * mod's own pieces follow the match ({@link MusicPlan}); with
+     * {@code arenaMusic} off it is Pigstep all battle.
+     */
     private static void music(SoundCues.Frame now) {
         Minecraft mc = Minecraft.getInstance();
-        // The first phase (x1 elixir, from the countdown) has the mod's own
-        // tune; once the elixir speeds up or overtime begins, Pigstep.
-        boolean own = ArenaClientConfig.ARENA_MUSIC.get() &&
-                now.elixirRate() == 1 && !now.overtime();
-        boolean wanted = now.active() && ArenaClientConfig.BATTLE_MUSIC.get()
-                && (now.state() == MatchState.BATTLE ||
-                now.state() == MatchState.COUNTDOWN && own);
-        if (music != null && wanted && own != musicIsOwn) {
-            // The phase changed: the other track starts.
+        boolean enabled = now.active() && ArenaClientConfig.BATTLE_MUSIC.get();
+        MusicPlan.Track plan = enabled ? MusicPlan.trackFor(now.state(),
+                now.ticksRemaining(), now.overtime()) : null;
+        boolean own = ArenaClientConfig.ARENA_MUSIC.get();
+        // Pigstep plays through the battle only, not the countdown.
+        if (plan != null && !own && now.state() != MatchState.BATTLE)
+            plan = null;
+        // One name per track: the plan's piece, or Pigstep.
+        String wanted = plan == null ? null : own ? plan.name() : "PIGSTEP";
+        if (music != null && !java.util.Objects.equals(wanted, musicName)) {
+            // The phase changed (or the battle ended): stop what plays.
             mc.getSoundManager().stop(music);
             music = null;
+            musicName = null;
         }
-        if (!wanted) {
-            if (music != null) {
-                mc.getSoundManager().stop(music);
-                music = null;
-            }
+        if (wanted == null) {
+            // Nothing plays: forget the last track too (a piece that played
+            // once and ended is still remembered until now).
+            music = null;
+            musicName = null;
             return;
         }
         mc.getMusicManager().stopPlaying();
         musicAge++;
-        if (music != null &&
-                (musicAge < 40 || mc.getSoundManager().isActive(music)))
-            return;
+        boolean loops = !own || plan.loops();
+        if (music != null) {
+            // A piece that plays once and has ended is not restarted.
+            if (!loops || musicAge < 40 ||
+                    mc.getSoundManager().isActive(music))
+                return;
+        }
         ResourceLocation track;
         if (own) {
-            track = RL.of(RoyalArena.MOD_ID, ArenaSounds.PHASE1_MUSIC);
+            track = RL.of(RoyalArena.MOD_ID, switch (plan) {
+                case PHASE1 -> ArenaSounds.PHASE1_MUSIC;
+                case RUSH -> ArenaSounds.RUSH_MUSIC;
+                case LAST_STAND -> ArenaSounds.LAST_STAND_MUSIC;
+            });
         } else {
             SoundEvent vanilla = ClientSounds.event(ArenaSounds.BATTLE_MUSIC);
             if (vanilla == null)
@@ -103,9 +119,9 @@ public final class BattleSounds {
             track = vanilla.getLocation();
         }
         music = new SimpleSoundInstance(track, SoundSource.MUSIC,
-                1.0F, 1.0F, RandomSource.create(), true, 0,
+                1.0F, 1.0F, RandomSource.create(), loops, 0,
                 SoundInstance.Attenuation.NONE, 0.0D, 0.0D, 0.0D, true);
-        musicIsOwn = own;
+        musicName = wanted;
         mc.getSoundManager().play(music);
         musicAge = 0;
     }
