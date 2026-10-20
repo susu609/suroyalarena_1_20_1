@@ -31,7 +31,6 @@ import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.entity.monster.Guardian;
 import net.minecraft.world.entity.monster.MagmaCube;
-import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.monster.Spider;
@@ -69,6 +68,7 @@ import net.susu609.royalarena.network.s2c.S2CAoeFlashPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
+import net.susu609.royalarena.sound.ArenaSfx;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
 import org.joml.Vector3f;
@@ -677,10 +677,15 @@ public final class BattleField {
                             SoundEvents.TNT_PRIMED, SoundSource.HOSTILE, 1.0F,
                             1.0F);
                 }
-                case ZAP -> level.sendParticles(
-                        ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 20,
-                        deploy.card().spell().radius() * 0.5D, 0.1D,
-                        deploy.card().spell().radius() * 0.5D, 0.05D);
+                case ZAP -> {
+                    level.playSound(null, tx, floor, tz,
+                            ArenaSfx.ZAP_CAST.get(), SoundSource.HOSTILE,
+                            ArenaSfx.RANGE_VOLUME, 1.0F);
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK, tx,
+                            floor + 0.3D, tz, 20,
+                            deploy.card().spell().radius() * 0.5D, 0.1D,
+                            deploy.card().spell().radius() * 0.5D, 0.05D);
+                }
                 case LIGHTNING -> level.sendParticles(
                         ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 30,
                         deploy.card().spell().radius() * 0.5D, 0.1D,
@@ -713,8 +718,8 @@ public final class BattleField {
             sendProjectile(S2CProjectilePacket.Kind.ARROW, from,
                     new double[] {tx, floor + 0.1D, tz}, ticks, 3.0F);
         }
-        level.playSound(null, king.x(), top, king.z(), SoundEvents.ARROW_SHOOT,
-                SoundSource.HOSTILE, 0.6F, 0.8F);
+        level.playSound(null, king.x(), top, king.z(), ArenaSfx.VOLLEY.get(),
+                SoundSource.HOSTILE, ArenaSfx.RANGE_VOLUME, 1.0F);
     }
 
     private void playSpell(TickResult.SpellPulse pulse) {
@@ -763,6 +768,10 @@ public final class BattleField {
             }
             case FREEZE -> {
                 flash(x, z, radius, S2CAoeFlashPacket.ICE);
+                if (pulse.index() == 0)
+                    level.playSound(null, x, floor, z,
+                            ArenaSfx.FREEZE_CAST.get(), SoundSource.HOSTILE,
+                            ArenaSfx.RANGE_VOLUME, 1.0F);
                 level.sendParticles(ParticleTypes.SNOWFLAKE, x, floor + 0.5D,
                         z, 60, radius * 0.5D, 0.4D, radius * 0.5D, 0.02D);
                 level.sendParticles(ParticleTypes.ITEM_SNOWBALL, x,
@@ -775,6 +784,10 @@ public final class BattleField {
             }
             case POISON_CLOUD -> {
                 flash(x, z, radius, S2CAoeFlashPacket.POISON);
+                if (pulse.index() == 0)
+                    level.playSound(null, x, floor, z,
+                            ArenaSfx.POISON_CAST.get(), SoundSource.HOSTILE,
+                            ArenaSfx.RANGE_VOLUME, 1.0F);
                 level.sendParticles(ParticleTypes.ENTITY_EFFECT, x,
                         floor + 0.4D, z, 30, radius * 0.5D, 0.3D,
                         radius * 0.5D, 1.0D);
@@ -969,10 +982,9 @@ public final class BattleField {
         sendProjectile(S2CProjectilePacket.Kind.ARROW, from, to,
                 attack.flightTicks(), (float) (distance * 0.12D));
         level.playSound(null, from[0], from[1], from[2],
-                attack.attackerTower() != null || attacker instanceof Pillager ?
-                        SoundEvents.CROSSBOW_SHOOT :
-                        SoundEvents.ARROW_SHOOT, SoundSource.HOSTILE, 0.6F,
-                1.0F);
+                attack.attackerTower() != null ? ArenaSfx.TOWER_SHOT.get() :
+                        ArenaSfx.BOW_SHOT.get(), SoundSource.HOSTILE,
+                ArenaSfx.RANGE_VOLUME, 0.9F + level.random.nextFloat() * 0.2F);
     }
 
     /**

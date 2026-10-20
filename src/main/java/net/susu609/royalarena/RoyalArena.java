@@ -9,6 +9,7 @@ import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.entity.ArenaEntityTypes;
 import net.susu609.royalarena.network.ModNetwork;
+import net.susu609.royalarena.sound.ArenaSfx;
 import org.slf4j.Logger;
 
 @Mod(RoyalArena.MOD_ID) public final class RoyalArena {
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
     public RoyalArena(FMLJavaModLoadingContext context) {
         IEventBus modBus = context.getModEventBus();
         ArenaEntityTypes.register(modBus);
+        ArenaSfx.register(modBus);
         ModNetwork.register();
         context.registerConfig(ModConfig.Type.CLIENT,
                 ArenaClientConfig.SPEC, MOD_ID + "-client.toml");

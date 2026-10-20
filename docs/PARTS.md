@@ -844,3 +844,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - Levels -20.5 / -18.5 / -17.5 dBFS rms; Rush and Last Stand open on a hit
 - `client/sound/FadingMusic`: the old piece fades over 1 s when the phase
   changes (`BattleSounds.music`)
+
+## Part 72 — Shot and cast sounds
+
+- Towers and archers were quiet: vanilla arrow sounds at volume 0.6 carry 16
+  blocks only. Now `ArenaSfx` (sound registry) plays `bow_shot`, `tower_shot`,
+  `volley`, `zap_cast`, `freeze_cast`, `poison_cast` at volume 2.5 (40 blocks)
+- `scripts/sfx/compose_sfx.py` synthesises them into `sounds/sfx/*.ogg`;
+  `sounds.json` maps them; `SfxSmokeTest` checks the files
+- Not yet heard in game: check the levels and pitch in a live battle

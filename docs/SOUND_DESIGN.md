@@ -162,6 +162,25 @@ Bạn đã chọn các tiếng dưới đây trên trang nghe thử. Tên tiến
 | Thua | `block.beacon.deactivate` | ✅ |
 | Đếm vương miện ở màn kết quả | `entity.experience_orb.pickup`, cao dần | ✅ |
 
+### Tiếng bắn và phép (tự làm, `scripts/sfx/compose_sfx.py`)
+
+Trước đây tháp và lính cung dùng tiếng vanilla ở âm lượng 0.6, và âm thanh
+vanilla chỉ vang 16 khối quanh nguồn, nên người xem đứng xa gần như không
+nghe thấy tiếng bắn. Các tiếng dưới đây phát ở âm lượng 2.5 (`ArenaSfx.RANGE_VOLUME`),
+vang tới 40 khối.
+
+| Khoảnh khắc | Tiếng | Mod |
+|---|---|---|
+| Cung thủ, Pillager bắn | `royalarena:bow_shot` (dây cung + tiếng gió, cao độ ngẫu nhiên) | ✅ |
+| Tháp Princess bắn | `royalarena:tower_shot` (dây cung trầm, tiếng đập, gió dài) | ✅ |
+| King bắn Arrow Storm | `royalarena:volley` (5 tiếng dây cung so le, rồi tiếng vút) | ✅ |
+| Zap thả xuống | `royalarena:zap_cast` (tia điện quét xuống, tiếng lách tách) | ✅ |
+| Freeze thả xuống | `royalarena:freeze_cast` (ánh băng vút lên, tiếng tích băng) | ✅ |
+| Poison thả xuống | `royalarena:poison_cast` (bọt nổi lên, sủi) | ✅ |
+
+Ghi chú: các tiếng là tổng hợp mới, không lấy âm thanh của game nào. Chưa
+nghe thử trong game: cần nghe lại bản dựng để chỉnh độ to và cao độ.
+
 ### Việc tiếp theo
 
 1. Nghe lại trong game: âm lượng tháp bị đánh, tiếng đếm 10 giây cuối, nhạc Pigstep.

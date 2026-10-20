@@ -2,19 +2,76 @@
   "music.arena_phase1": {
     "category": "music",
     "sounds": [
-      {"name": "royalarena:music/arena_phase1", "stream": true}
+      {
+        "name": "royalarena:music/arena_phase1",
+        "stream": true
+      }
     ]
   },
   "music.arena_rush": {
     "category": "music",
     "sounds": [
-      {"name": "royalarena:music/arena_rush", "stream": true}
+      {
+        "name": "royalarena:music/arena_rush",
+        "stream": true
+      }
     ]
   },
   "music.last_stand": {
     "category": "music",
     "sounds": [
-      {"name": "royalarena:music/last_stand", "stream": true}
+      {
+        "name": "royalarena:music/last_stand",
+        "stream": true
+      }
+    ]
+  },
+  "bow_shot": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/bow_shot"
+      }
+    ]
+  },
+  "tower_shot": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/tower_shot"
+      }
+    ]
+  },
+  "volley": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/volley"
+      }
+    ]
+  },
+  "zap_cast": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/zap_cast"
+      }
+    ]
+  },
+  "freeze_cast": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/freeze_cast"
+      }
+    ]
+  },
+  "poison_cast": {
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "royalarena:sfx/poison_cast"
+      }
     ]
   }
 }
