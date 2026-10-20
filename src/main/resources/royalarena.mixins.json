@@ -6,7 +6,8 @@
   "refmap": "royalarena.refmap.json",
   "mixins": [
     "MobDespawnMixin",
-    "MobSunBurnMixin"
+    "MobSunBurnMixin",
+    "ShulkerAccessor"
   ],
   "client": [
     "LivingEntityRendererMixin"

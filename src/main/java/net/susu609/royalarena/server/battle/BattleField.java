@@ -145,7 +145,8 @@ public final class BattleField {
                 return false;
             if (level.getEntity(open.getKey()) instanceof
                     net.minecraft.world.entity.monster.Shulker shulker)
-                shulker.setRawPeekAmount(0);
+                ((net.susu609.royalarena.mixin.ShulkerAccessor) shulker)
+                        .royalarena$setRawPeekAmount(0);
             return true;
         });
     }
@@ -925,7 +926,8 @@ public final class BattleField {
         double distance = Math.hypot(to[0] - from[0], to[2] - from[2]);
         if (attacker instanceof net.minecraft.world.entity.monster.Shulker shulker) {
             // It opens its shell to shoot a homing bullet.
-            shulker.setRawPeekAmount(100);
+            ((net.susu609.royalarena.mixin.ShulkerAccessor) shulker)
+                    .royalarena$setRawPeekAmount(100);
             shulkerOpenAt.put(shulker.getUUID(), level.getGameTime());
             sendProjectile(S2CProjectilePacket.Kind.SHULKER_BULLET, from, to,
                     attack.flightTicks(), (float) (distance * 0.25D));
