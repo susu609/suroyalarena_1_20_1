@@ -185,6 +185,7 @@ public final class BattleField {
         double spacing = Math.max(0.8D, stats.radius() * 2.0D + 0.3D);
         double[][] offsets = Formation.offsets(stats.count(), spacing);
         int sign = ArenaLayout.sideSign(deploy.side());
+        Entity first = null;
         for (double[] offset : offsets) {
             ArenaWaypoint spot = arena.clampSpawn(
                     deploy.x() + 0.5D + offset[0],
@@ -194,8 +195,13 @@ public final class BattleField {
             if (entity != null) {
                 engine.add(entity.getUUID(), deploy.side(), stats, spot.x(),
                         spot.z());
+                if (first == null)
+                    first = entity;
             }
         }
+        // The troop announces itself once (a swarm does not shout 4 times).
+        if (first != null)
+            mobSound(first, MobSounds.summon(entityId(first), tiny(first)));
         sound(ArenaSounds.TROOP_APPEARS, deploy.x() + 0.5D,
                 arena.floorY() + 1.0D, deploy.z() + 0.5D, 0.7F, 1.0F);
     }
@@ -392,6 +398,27 @@ public final class BattleField {
         towerHealth.clear();
         towerSoundAt.clear();
         cracked.clear();
+    }
+
+    /**
+     * The winners cheer: a few of the winning side's troops still standing
+     * play their celebration (illagers' raid cheer, the rest their idle
+     * sound), a little apart.
+     */
+    public void celebrate(TeamSide winner) {
+        int cheers = 0;
+        for (CombatUnit unit : engine.units()) {
+            if (unit.side() != winner || !unit.alive() || cheers >= 6)
+                continue;
+            Entity entity = level.getEntity(unit.id());
+            if (entity == null)
+                continue;
+            String id = MobSounds.celebrate(entityId(entity));
+            if (id == null)
+                continue;
+            mobSound(entity, id);
+            cheers++;
+        }
     }
 
     /** Discards every troop mob. */

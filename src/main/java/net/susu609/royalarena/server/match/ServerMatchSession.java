@@ -468,6 +468,8 @@ public final class ServerMatchSession {
         if (match.state() == MatchState.FINISHED) {
             finishedTicks++;
             if (finishedTicks == 1) {
+                if (match.winner() != null)
+                    battle.celebrate(match.winner());
                 logMatch();
                 sync(server);
                 sendResult(server);

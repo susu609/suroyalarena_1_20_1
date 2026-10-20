@@ -48,6 +48,54 @@ public final class MobSounds {
     }
 
     /**
+     * The mob's idle sound (vanilla's ambient), or null for a mob that has
+     * none (Creeper, Iron Golem, slimes, End Crystal). Vanilla still plays
+     * it now and then on its own; this is for when a troop appears.
+     */
+    public static String ambient(String entityId) {
+        String path = mob(entityId);
+        return switch (path) {
+            case "creeper", "iron_golem", "slime", "magma_cube", "end_crystal" ->
+                    null;
+            case "bee" -> "entity.bee.loop";
+            case "guardian" -> "entity.guardian.ambient_land";
+            case "turtle" -> "entity.turtle.ambient_land";
+            default -> "entity." + path + ".ambient";
+        };
+    }
+
+    /**
+     * What a troop says when it is summoned: its idle sound, or what vanilla
+     * plays when that mob comes into the world (the Warden digs out, the
+     * Shulker opens, a slime lands); null for none.
+     */
+    public static String summon(String entityId, boolean tiny) {
+        String path = mob(entityId);
+        return switch (path) {
+            case "warden" -> "entity.warden.emerge";
+            case "shulker" -> "entity.shulker.open";
+            case "slime", "magma_cube" ->
+                    "entity." + path + ".squish" + small(path, tiny);
+            case "iron_golem" -> "entity.iron_golem.repair";
+            case "creeper" -> "entity.creeper.primed";
+            default -> ambient(entityId);
+        };
+    }
+
+    /**
+     * The cheer of a troop whose side won: vanilla's raid celebration for
+     * illagers, witches and piglins, the idle sound for the rest.
+     */
+    public static String celebrate(String entityId) {
+        String path = mob(entityId);
+        return switch (path) {
+            case "pillager", "vindicator", "evoker", "ravager", "witch",
+                    "piglin" -> "entity." + path + ".celebrate";
+            default -> ambient(entityId);
+        };
+    }
+
+    /**
      * The mob's own sound for a melee blow, or null when vanilla has none
      * (most mobs: the victim's hurt sound is the hit).
      */

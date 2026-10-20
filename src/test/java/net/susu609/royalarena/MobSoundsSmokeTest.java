@@ -43,6 +43,14 @@ public final class MobSoundsSmokeTest {
             String attack = MobSounds.attack(card.entityId());
             if (attack != null)
                 known(events, attack, card);
+            for (String id : new String[] {
+                    MobSounds.ambient(card.entityId()),
+                    MobSounds.summon(card.entityId(), false),
+                    MobSounds.summon(card.entityId(), true),
+                    MobSounds.celebrate(card.entityId())}) {
+                if (id != null)
+                    known(events, id, card);
+            }
         }
         check(MobSounds.hurt("minecraft:cave_spider", false)
                 .equals("entity.spider.hurt"), "a Cave Spider sounds like a Spider");
@@ -50,6 +58,12 @@ public final class MobSoundsSmokeTest {
                 .equals("entity.slime.death_small"), "a tiny slime sounds small");
         check(MobSounds.hurt("minecraft:zombie", true)
                 .equals("entity.zombie.hurt"), "only slimes have small sounds");
+        check("entity.warden.emerge".equals(MobSounds.summon(
+                "minecraft:warden", false)), "the Warden digs out");
+        check("entity.pillager.celebrate".equals(MobSounds.celebrate(
+                "minecraft:pillager")), "a Pillager cheers like after a raid");
+        check(MobSounds.ambient("minecraft:creeper") == null,
+                "a Creeper has no idle sound");
         System.out.println("RoyalArena mob sounds tests: PASS");
     }
 

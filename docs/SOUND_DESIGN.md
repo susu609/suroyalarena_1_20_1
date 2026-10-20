@@ -168,3 +168,16 @@ Bạn đã chọn các tiếng dưới đây trên trang nghe thử. Tên tiến
 2. Shulker, Ender Pearl, Warden: gắn tiếng khi làm các thẻ này.
 3. Poison Cloud: chọn tiếng khi làm thẻ.
 4. Emote: cần làm tính năng emote trước, sau đó gắn tiếng.
+
+## Tiếng của từng mob (`card/MobSounds.java`)
+
+| Lúc | Âm thanh | Ghi chú |
+|---|---|---|
+| Thả quân | `MobSounds.summon`: tiếng idle của mob (`entity.X.ambient`), riêng Warden `entity.warden.emerge`, Shulker `entity.shulker.open`, slime và magma `squish`, Iron Golem `repair`, Creeper `primed` | Mỗi lần thả chỉ kêu một lần, cả bầy cũng vậy |
+| Đứng hoặc đi | Vanilla tự phát tiếng idle ngẫu nhiên và tiếng bước chân (mob NoAI vẫn chạy `baseTick`) | Không cần code |
+| Bị đánh | `MobSounds.hurt` (slime nhỏ dùng tiếng nhỏ, Guardian trên cạn dùng tiếng cạn) | Có từ trước |
+| Đánh | `MobSounds.attack` (Iron Golem, Ravager, Hoglin, mèo hiss, ếch tongue...) | Có từ trước |
+| Chết | `MobSounds.death` | Có từ trước |
+| Thắng trận | `MobSounds.celebrate`: tối đa 6 quân còn sống của bên thắng; illager, phù thủy, piglin dùng tiếng ăn mừng raid (`entity.X.celebrate`), còn lại dùng tiếng idle | `BattleField.celebrate` |
+
+`MobSoundsSmokeTest` kiểm mọi id có thật trong 1.20.1.
