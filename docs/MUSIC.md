@@ -60,6 +60,20 @@ game), heard from the countdown until the elixir speeds up.
 Edit the notes in `arena_march.py`, then run both scripts: the Ogg and the
 MIDI stay in step.
 
+## Demos: five 30-second directions
+
+`python3 scripts/music/demos.py [out_dir]` (default `build/music/demos`)
+writes five original 30 s demos, to pick a direction before writing a full
+piece. Same instruments and accompaniment as the in-game music.
+
+| Demo | Mood | Tempo, key | Instruments |
+|---|---|---|---|
+| 1 Bridge Charge | heroic march | 120 bpm, Bb major | horn tune with bells, brass B section, march snare, fanfare bar and cadence |
+| 2 Goblin Gold | playful | 96 bpm, F major | plucked (pizzicato) bass and harp, staccato bells, woodblock |
+| 3 Tower Siege | tense battle | 144 bpm, D minor | 16th harp ostinato, strings, brass and horn, timpani, riser |
+| 4 Tavern Jig | swung dance | 128 bpm, G major | plucky lead, harp, claps, bells and horn on the repeat |
+| 5 Crown Fanfare | victory | 160 bpm, C major | brass call, tune twice (second with strings and timpani) |
+
 ## Orchestrating it for real
 
 The synthesised version is light (note blocks); a real orchestration gets
