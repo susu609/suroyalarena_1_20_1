@@ -73,6 +73,7 @@ piece. Same instruments and accompaniment as the in-game music.
 | 3 Tower Siege | tense battle | 144 bpm, D minor | 16th harp ostinato, strings, brass and horn, timpani, riser |
 | 4 Tavern Jig | swung dance | 128 bpm, G major | plucky lead, harp, claps, bells and horn on the repeat |
 | 5 Crown Fanfare | victory | 160 bpm, C major | brass call, tune twice (second with strings and timpani) |
+| 6-8 One theme, three phases | same tune staged as normal, double elixir, sudden death | 128 bpm, A minor (my choice, not measured from any game) | 6: horn and bells, march kit. 7: brass and horn, 16th harp, strings, driving drums, timpani. 8: low brass, relentless 16ths, dark drums, ticks, riser and snare roll in the last two bars. Levels rise -21, -18.5, -17 dBFS rms |
 
 ## Orchestrating it for real
 

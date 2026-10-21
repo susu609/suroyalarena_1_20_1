@@ -11,6 +11,8 @@ before a full piece is written. Original tunes, no game's audio or melody.
   3 Tower Siege     tense battle          144 bpm  D minor   18 bars
   4 Tavern Jig      swung tavern dance    128 bpm  G major   16 bars
   5 Crown Fanfare   victory fanfare       160 bpm  C major   20 bars
+  6-8 one theme in three phases (normal, double elixir, sudden death):
+                    128 bpm  A minor  16 bars each
 
 Every demo is exactly 30 s. Same instruments as the in-game music
 (synth.py) and the same accompaniment patterns (arranger.py).
@@ -318,12 +320,97 @@ def crown_fanfare():
     return bpm, out
 
 
+# ----------------------------------------------- one theme in three phases
+# "Same mould, new melody": one 128 bpm A-minor march scored three ways, the
+# way a battle theme is staged (normal, double elixir, sudden death). The
+# tempo, key and instruments are my choices, not measured from any game.
+MINOR_A = {
+    "Am": chord("A2", "A3", "C4", "E4"),
+    "F": chord("F2", "F3", "A3", "C4"),
+    "G": chord("G2", "G3", "B3", "D4"),
+    "Dm": chord("D2", "D3", "F3", "A3"),
+    "E7": chord("E2", "E3", "G#3", "B3", "D4"),
+    "C": chord("C3", "C4", "E4", "G4"),
+    "Em": chord("E2", "E3", "G3", "B3"),
+}
+PHASE_BPM = 128
+PHASE_PROG = ["Am", "Am", "F", "G", "Am", "Am", "Dm", "E7",
+              "C", "G", "Am", "F", "Dm", "E7", "Am", "Am"]
+# Eight bars of tune (played twice in 16 bars): a pickup and a leap to a
+# long note, a falling answer, a rising sequence, a turn into the cadence.
+PHASE_TUNE = [
+    [(0, "A4", 2), (2, "A4", 2), (4, "E5", 6), (10, "D5", 2), (12, "C5", 4)],
+    [(0, "A4", 2), (2, "C5", 2), (4, "F5", 6), (10, "E5", 2), (12, "D5", 4)],
+    [(0, "G4", 2), (2, "B4", 2), (4, "D5", 4), (8, "G5", 4), (12, "F5", 2), (14, "D5", 2)],
+    [(0, "E5", 8), (8, "B4", 4), (12, "G#4", 4)],
+    [(0, "A4", 2), (2, "A4", 2), (4, "E5", 6), (10, "G5", 2), (12, "E5", 4)],
+    [(0, "F5", 2), (2, "E5", 2), (4, "D5", 4), (8, "A5", 4), (12, "F5", 4)],
+    [(0, "E5", 4), (4, "C5", 2), (6, "E5", 2), (8, "G#5", 4), (12, "B5", 4)],
+    [(0, "A5", 8), (8, "E5", 8)],
+]
+
+
+def _phase_chords(prog):
+    return chords_of(MINOR_A, prog, 0)
+
+
+def phase_normal():
+    """Phase 1, x1 elixir: light march, horn and bells, arp, no strings."""
+    step = 60.0 / PHASE_BPM / 4.0
+    out = []
+    section(out, 0, _phase_chords(PHASE_PROG[:15]), step, PHASE_TUNE,
+            (("lead_horn", 0, 1.0), ("lead_bell", 1, 0.45)), 0, arp=2,
+            drums="march", crash=True, dyn=0.9)
+    ending(out, 15, MINOR_A["Am"], step, hits=(0, 4, 8))
+    return PHASE_BPM, out
+
+
+def phase_double():
+    """Phase 2, x2 elixir: the same tune a step fuller and driving."""
+    step = 60.0 / PHASE_BPM / 4.0
+    out = []
+    section(out, 0, _phase_chords(PHASE_PROG[:15]), step, PHASE_TUNE,
+            (("lead_brass", 0, 1.0), ("lead_horn", 0, 0.6),
+             ("lead_bell", 1, 0.5)), 0, bass="drive", arp=1, arp_secs=0.35,
+            strings=True, drums="drive", crash=True, timp=True, dyn=1.05)
+    ending(out, 15, MINOR_A["Am"], step, hits=(0, 4, 8))
+    return PHASE_BPM, out
+
+
+def phase_sudden_death():
+    """Phase 3, sudden death: darker, sparse tune low, relentless 16ths."""
+    step = 60.0 / PHASE_BPM / 4.0
+    prog = ["Am", "Am", "F", "E7", "Am", "Am", "Dm", "E7",
+            "F", "G", "Am", "E7", "Dm", "F", "E7", "E7"]
+    low = [[(st, n[:-1] + str(int(n[-1]) - 1), ln) for st, n, ln in bar]
+           for bar in PHASE_TUNE]
+    out = []
+    section(out, 0, _phase_chords(prog[:14]), step, low,
+            (("lead_brass", 0, 1.0),), 0, bass="drive", arp=1, arp_secs=0.3,
+            strings=True, drums="dark", timp=True, crash=True, dyn=1.0)
+    # The last two bars: the countdown feel (ticks, riser, snare roll).
+    section(out, 14, _phase_chords(prog[14:]), step, None, (), 0,
+            bass="drive", strings=True, timp=True, dyn=1.1)
+    for bar in range(14, 16):
+        for st in (0, 4, 8, 12):
+            out.append(ev("tick", 88 if st else 95, bar * BAR_STEPS + st, 1,
+                          None, 0.7, 90))
+    out.append(ev("riser", None, 14 * BAR_STEPS, 1, 2 * BAR_STEPS * step, 0.7,
+                  100))
+    roll(out, 15, step, start=4)
+    out.append(ev("crash", None, 15 * BAR_STEPS + 15, 1, None, 0.5, 110))
+    return PHASE_BPM, out
+
+
 DEMOS = [
     ("demo1_bridge_charge", bridge_charge),
     ("demo2_goblin_gold", goblin_gold),
     ("demo3_tower_siege", tower_siege),
     ("demo4_tavern_jig", tavern_jig),
     ("demo5_crown_fanfare", crown_fanfare),
+    ("demo6_phase1_normal", phase_normal),
+    ("demo7_phase2_double_elixir", phase_double),
+    ("demo8_phase3_sudden_death", phase_sudden_death),
 ]
 
 
@@ -336,7 +423,11 @@ def main():
         mix = Mix(SECONDS, tail=2.0)
         mix.play(events, step)
         # Demos for listening, not game files: a little more headroom.
-        finish(mix, target / f"{name}.ogg", loop=False, rms_db=-19.0,
+        # The three phases of one theme get louder in order, like the game.
+        level = {"demo6_phase1_normal": -21.0,
+                 "demo7_phase2_double_elixir": -18.5,
+                 "demo8_phase3_sudden_death": -17.0}.get(name, -19.0)
+        finish(mix, target / f"{name}.ogg", loop=False, rms_db=level,
                peak_db=-1.0)
 
 
