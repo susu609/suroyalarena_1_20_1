@@ -46,7 +46,7 @@ panel, increase `lookAhead`.
 	menuHint = true        # "Press M to open Royal Arena" in the top left corner outside a match
 ```
 
-## `royalarena-common.toml`: troops, bot, debug
+## `royalarena-common.toml`: troops, bot, debug, arena world
 
 ```toml
 [troops]
@@ -64,6 +64,9 @@ panel, increase `lookAhead`.
 
 [stats]
 	recordMatches = true    # one line per finished match in royalarena/matches.jsonl (docs/MATCH_LOG.md)
+
+[arenaWorld]
+	purgeArenaWorldOnStart = false  # delete the arena dimension's folder at every start and stop (docs/ARENA.md)
 ```
 
 Bot difficulty, roughly:

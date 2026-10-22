@@ -21,9 +21,12 @@ public final class ArenaDimension {
     private ArenaDimension() {
     }
 
-    /** The arena dimension, or the overworld if it is missing. */
+    /**
+     * The arena dimension once the mod has checked and stamped it (see
+     * {@link ArenaWorld}), or null: never the overworld.
+     */
     public static ServerLevel level(MinecraftServer server) {
-        return VoidWorlds.level(server, KEY);
+        return ArenaWorld.level(server);
     }
 
     public static boolean is(Level level) {

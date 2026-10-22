@@ -115,8 +115,39 @@ the arena's 64-block slot. Troops in a match are never despawned, whatever
 the difficulty (`MobDespawnMixin`); sumodlib's dev world is now created on
 normal difficulty.
 
-If the dimension is missing (an old jar of sumodlib), matches fall back to
-the sky above the overworld spawn as before.
+### The arena world's stamp
+
+The mod only builds in an arena dimension it can vouch for (`ArenaWorld`,
+`arena/ArenaWorldCheck`). When the server has started it checks
+`royalarena:arena`:
+
+| What it finds | Verdict | Matches |
+|---|---|---|
+| no such dimension | `MISSING` | refused |
+| not the void generator | `NOT_VOID` | refused |
+| no stamp, no block at the first 16 arena slots' floor centres | `NEW_STAMP` | stamped, then allowed |
+| no stamp, but blocks there | `UNSTAMPED_BLOCKS` | refused |
+| a stamp with an empty code | `UNREADABLE_STAMP` | refused |
+| a stamp from another world seed (a copied folder) | `FOREIGN_WORLD` | refused |
+| its own stamp | `READY` | allowed |
+
+The stamp is the dimension's saved data `royalarena_arena_world`
+(`dimensions/royalarena/arena/data/royalarena_arena_world.dat`): a random
+code, the world seed, the mod version and the highest arena slot used.
+There is no fallback into the overworld any more: a refused world logs an
+error with the reason and the fix, and players asking for a match get "No
+match: <reason>" in chat.
+
+**Refresh at start.** A vouched world is refreshed before the first match:
+every arena slot used before (a crash or a stop mid-match leaves its blocks
+and mobs) is cleared and every non-player entity in it removed; a new mod
+version is noted in the stamp.
+
+**Wipe** (`purgeArenaWorldOnStart`, off by default). Deletes the whole
+dimension folder as the server starts (before it loads) and again when it
+stops, so each start is a fresh, newly stamped void. Only ever the folder
+`dimensions/royalarena/arena` inside the running world; symbolic links are
+deleted, never followed. The same setting fixes a refused world.
 
 For testing, `runClient` opens the Void world "Royal Arena Test" straight
 away (sumodlib's `sumodlib.devWorld` property in `build.gradle`; `client2`

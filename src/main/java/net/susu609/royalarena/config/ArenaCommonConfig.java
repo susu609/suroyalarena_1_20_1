@@ -60,6 +60,22 @@ public final class ArenaCommonConfig {
 
     static {
         BUILDER.pop();
+        BUILDER.comment("The arena world (the royalarena:arena dimension).")
+                .push("arenaWorld");
+    }
+
+    public static final ForgeConfigSpec.BooleanValue PURGE_ARENA_WORLD_ON_START =
+            BUILDER.comment("Delete the arena dimension's whole save folder " +
+                            "(dimensions/royalarena/arena) every time the " +
+                            "server starts (and when it stops), so it is " +
+                            "always brand new. Only that folder of this " +
+                            "world is ever touched. Without it, arenas left " +
+                            "over from earlier matches are still cleared at " +
+                            "start.")
+                    .define("purgeArenaWorldOnStart", false);
+
+    static {
+        BUILDER.pop();
         BUILDER.comment("Debugging aids.").push("debug");
     }
 

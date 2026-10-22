@@ -7,12 +7,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.susu609.royalarena.RoyalArena;
 import net.susu609.royalarena.command.RoyalArenaCommand;
 import net.susu609.royalarena.server.arena.ArenaDimension;
+import net.susu609.royalarena.server.arena.ArenaWorld;
 import net.susu609.royalarena.server.match.MatchManager;
 import net.susu609.royalarena.server.match.MatchQueue;
 
@@ -67,5 +71,25 @@ public final class CommonForgeEvents {
     public static void onServerStopping(ServerStoppingEvent event) {
         MatchQueue.INSTANCE.clear();
         MatchManager.INSTANCE.shutdown(event.getServer());
+    }
+
+    /** With purgeArenaWorldOnStart, the arena dimension starts brand new. */
+    @SubscribeEvent
+    public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+        if (ArenaWorld.purgeRequested())
+            ArenaWorld.purgeFiles(event.getServer(), false);
+    }
+
+    /** Check, stamp and refresh the arena dimension before any match. */
+    @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        ArenaWorld.prepare(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        ArenaWorld.forget();
+        if (ArenaWorld.purgeRequested())
+            ArenaWorld.purgeFiles(event.getServer(), true);
     }
 }

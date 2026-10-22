@@ -15,6 +15,7 @@ import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.TeamSide;
 import net.susu609.royalarena.match.WatchSetup;
 import net.susu609.royalarena.server.arena.ArenaAllocator;
+import net.susu609.royalarena.server.arena.ArenaWorld;
 import net.susu609.royalarena.server.arena.ArenaDimension;
 import net.susu609.royalarena.server.arena.ArenaReservation;
 import net.susu609.royalarena.server.deck.DeckStorage;
@@ -146,6 +147,21 @@ public final class MatchManager {
         if (server == null)
             return false;
         ServerLevel level = ArenaDimension.level(server);
+        if (level == null) {
+            // The arena world could not be vouched for (see ArenaWorld):
+            // never build a match anywhere else.
+            Component why = Component.translatable(
+                    "chat.royalarena.arena_unavailable",
+                    String.valueOf(ArenaWorld.refusal()))
+                    .withStyle(ChatFormatting.RED);
+            for (UUID id : new UUID[] {blueId, redId}) {
+                ServerPlayer p = id == null ? null :
+                        server.getPlayerList().getPlayer(id);
+                if (p != null)
+                    p.sendSystemMessage(why);
+            }
+            return false;
+        }
         ArenaReservation reservation = ArenaAllocator.INSTANCE.allocate(level);
         UUID matchId = UUID.randomUUID();
         // Saved decks, shuffled for this match; the bot draws a random

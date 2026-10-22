@@ -3,6 +3,7 @@
   "key.royalarena.open_matching": "Open Matching",
   "chat.royalarena.bot_personality": "Your opponent plays %s",
   "chat.royalarena.watching": "Watching: %s (blue) against %s (red)",
+  "chat.royalarena.arena_unavailable": "No match: %s. An admin can see the server log.",
   "hud.royalarena.watching": "WATCHING",
   "hud.royalarena.open_hint": "Press %s to open Royal Arena",
   "key.royalarena.card_1": "Select Card 1",

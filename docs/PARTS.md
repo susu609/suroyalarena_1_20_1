@@ -898,3 +898,16 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - Riders are troops of their own (`addRider`, `seatRider`): two lives
 - `BattleField.fallDead`: a dead troop tips over red for a second (not
   slimes: vanilla would split them)
+
+## Part 76 — Arena world stamp, refresh and wipe
+
+- `arena/ArenaWorldCheck` (pure): the verdicts in docs/ARENA.md
+- `arena/ArenaGrid` (pure): the 64-block arena slot grid
+- `server/arena/ArenaWorld`: the stamp (saved data), the check when the
+  server starts, the refresh of earlier arena slots, the folder wipe
+- `ArenaAllocator` only allocates in the vouched arena dimension; the
+  overworld fallback is gone; `MatchManager` tells both players why
+- `ArenaCommonConfig`: `[arenaWorld] purgeArenaWorldOnStart` (default off)
+- `CommonForgeEvents`: about-to-start (wipe), started (check), stopped
+  (forget, wipe)
+- `ArenaWorldSmokeTest`
