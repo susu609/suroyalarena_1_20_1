@@ -20,20 +20,25 @@ next step) and each troop's tooltip names its tribes.
 
 | Tribe | Cards | 2 | 3 | 4 | 5 (special) | 6 |
 |---|---|---|---|---|---|---|
-| Zombie | Zombie, Husk, Drowned, Zombie Villager, Zombified Piglin, Phantom, Zoglin, Chicken Jockey | +5% health | heals 0.15 a second | heals 5% of the damage it deals | **Rise again**: a fallen Zombie-tribe troop gets up with 25% health (one for the side every 20 s; souls, cure sound) | +5% health |
+| Zombie | Zombie, Husk, Drowned, Zombie Villager, Zombified Piglin, Phantom, Zoglin, Chicken Jockey, Giant | +5% health | heals 0.15 a second | heals 5% of the damage it deals | **Rise again**: a fallen Zombie-tribe troop gets up with 25% health (one for the side every 20 s; souls, cure sound) | +5% health |
 | Skeleton | Skeleton Archer, Skeletons, Stray, Wither Skeleton, Skeleton Rider, Spider Jockey | +5% damage | attacks 5% faster | hits ignore armour | **Volley**: every 3rd shot also hits a second enemy in range for half | +5% damage |
 | Illager | Vindicator, Pillager, Evoker, Vex, Witch, Ravager, Illusioner | +5% damage | +10% damage to towers | walks 5% faster | **Totem of Undying**: a killing blow leaves it at 1 health, unhurt for 0.5 s (one for the side every 20 s) | +5% damage |
 | Nether | Piglin Brute, Blaze, Ghast, Hoglin, Magma Cube, Wither Skeleton, Zombified Piglin, Strider, Piglin, Zoglin | +5% health | hits burn 0.5 a second for 2 s | +1 armour | **Last flame**: when it dies, enemies within 2 blocks burn 1 a second for 3 s | +5% health |
 | Arthropod | Spider, Cave Spider, Silverfish, Bee, Spider Jockey, Endermite | walks 10% faster | hits poison 0.5 a second for 2 s | attacks 10% faster | **Silk**: its hits slow the target's walk for 0.5 s | +5% health and damage |
-| Beast | Wolves, Fox, Polar Bear, Hoglin, Bee, Ravager, Strider, Goat, Llama, Cat, Piglets, Killer Rabbits, Panda, Camel | +5% damage | heals 10% of the damage it deals | walks 5% faster | **Pack**: +5% damage for each other Beast within 4 blocks (up to 3) | +5% damage |
+| Beast | Wolves, Fox, Polar Bear, Hoglin, Bee, Ravager, Strider, Goat, Llama, Cat, Piglets, Killer Rabbits, Panda, Camel, Sniffer | +5% damage | heals 10% of the damage it deals | walks 5% faster | **Pack**: +5% damage for each other Beast within 4 blocks (up to 3) | +5% damage |
 | Night | Zombie, Phantom, Skeleton Archer, Witch, Spider, Creeper, Enderman, Big Slime, Warden | +2% health and damage | its first hit freezes the target 0.1 s | +1 armour | **Shadow**: an arrow or shot that would hit it misses (one for the side every 16 s) | +2% health and damage |
 | Golem | Iron Golem, Snow Golem, Allay | +2 armour | | | | |
 | Slime | Big Slime, Magma Cube | +15% health | | | | |
 | Aquatic | Drowned, Guardian, Frog, Turtle, Axolotl | +25% damage from the river | | | | |
 | End | Enderman, Shulker, End Crystal, Endermite | attacks 10% faster | | | | |
+| Village | Villager, Wandering Trader, Iron Golem | +10% health | | | | |
 
 Arthropod reached 6 cards with the Endermite, so its step 6 is open. The
-Allay is in Golem (a helper, like the golems, not a fighter).
+Allay is in Golem (a helper, like the golems, not a fighter). Village (batch
+5) has one step; the Iron Golem is in it too (it guards villages). The Golem
+the Villagers call gets the Iron Golem's own tribes (Golem, Village), the
+Zombie Villager a Villager turns into gets the zombie side's Zombie tribe,
+and a Wandering Trader's llamas get no tribe (they are no card).
 
 ## Rules
 

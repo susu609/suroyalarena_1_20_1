@@ -1,0 +1,27 @@
+{
+  "id": "villager",
+  "type": "troop",
+  "display_name": "Villager",
+  "roles": ["attack", "support"],
+  "body": "living",
+  "elixir": 3,
+  "entity": "minecraft:villager",
+  "model_scale": 1.0,
+  "count": 3,
+  "unit": {
+    "health": 10,
+    "damage": 1,
+    "attack_interval_ticks": 20,
+    "range": 0.8,
+    "move_speed": 0.8,
+    "flying": false,
+    "targets": "ground",
+    "calls_golem": {
+      "after_ticks": 120,
+      "villagers_standing": 2,
+      "golem": "iron_golem",
+      "golem_health_share": 0.4
+    },
+    "zombies_convert": ["zombie", "husk", "drowned", "zombie_villager"]
+  }
+}

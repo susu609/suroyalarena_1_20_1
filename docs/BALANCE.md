@@ -101,6 +101,7 @@ config page gets it inside `traitMod`):
 | Endermite | lives 10 s (x0.7), lures Endermen (x1.1) | x0.77 |
 | Allay | its damage is a heal on every own troop within 2 blocks | x2.0 |
 | Magma Cube | leap with a splash | x1.2 |
+| Sniffer | its damage is a heal (flowers); every enemy and tower goes for it | x1.55 |
 | Warden | Sonic Boom as extra damage per second (sqrt), hearing x1.3 | about x1.45 |
 
 Buildings (speed 0) get x0.8: they never move and last 30 s.
@@ -236,3 +237,23 @@ A spell's own rule adds elixir on top of the spell formula
 `PowerCreepTest` checks spells with that full cost, and measures the Allay
 (a support troop that does not fight) by what it adds to a Zombie's fights,
 its own losses counted (`supportScore`).
+
+## Batch 5 in the cost
+
+- **Villager**: its 3 bodies, plus half (the chance two of three stand 6 s)
+  of an Iron Golem at 40% health: 3.13.
+- **Wandering Trader**: it never attacks, so its cost is its two llamas'
+  fire over their bodies and its own (x1.5: it goes invisible when hit),
+  with the llamas' range and slow: 4.34.
+- **Sniffer**: 60 HP, its flower heal (4 every 5 s) as its damage, x1.55 for
+  drawing fire: 1.99. At x3.6 (5 elixir, the first idea) it lost 3 elixir a
+  push; `PowerCreepTest.tankScore` measures it walking in front of a Witch.
+
+| Spell | Rule | Adds |
+|---|---|---|
+| Anvil | half the armour ignored (4% more on a 2-point troop) on one target | +0.03 |
+| Dragon's Breath | half the armour on 10 pulses, healing blocked (1.5), x radius / 20.8 | +0.34 |
+| Bell | 2 s walking to the bell (1 a second) + reveals (0.3), x radius / 20.8 | +0.66 |
+
+`Sim` counts the units a card brings (llamas, the called Golem) in its
+health, and a side keeps at most all of its card.

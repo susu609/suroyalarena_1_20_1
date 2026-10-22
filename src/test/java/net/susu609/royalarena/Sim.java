@@ -109,9 +109,18 @@ final class Sim {
         }
     }
 
-    /** Health of a whole card, split children included. */
+    /**
+     * Health of a whole card, split children included, and the units it
+     * brings along (a Wandering Trader's llamas, the Golem Villagers call).
+     */
     static double cardHealth(BattleCard card) {
-        return CardRole.bodyHealth(card.stats()) * card.stats().count();
+        double health = CardRole.bodyHealth(card.stats()) * card.stats().count();
+        if (card.bringsLlamas())
+            health += BattleCard.TRADER_LLAMA.health() * BattleCard.TRADER_LLAMAS;
+        if (card.callsGolem())
+            health += BattleCard.IRON_GOLEM.stats().health() *
+                    BattleCard.CALLED_GOLEM_HEALTH;
+        return health;
     }
 
     static double healthLeft(CombatEngine engine, TeamSide side) {
@@ -149,9 +158,10 @@ final class Sim {
                     healthLeft(engine, TeamSide.BLUE) <= 0.0D)
                 break;
         }
-        double keptA = healthLeft(engine, TeamSide.BLUE) /
-                cardHealth(attacker);
-        double keptD = healthLeft(engine, TeamSide.RED) / cardHealth(defender);
+        double keptA = Math.min(1.0D, healthLeft(engine, TeamSide.BLUE) /
+                cardHealth(attacker));
+        double keptD = Math.min(1.0D, healthLeft(engine, TeamSide.RED) /
+                cardHealth(defender));
         return defender.cost() * (1.0D - keptD) +
                 (towersBefore - towerHealth(match)) / TOWER_HP_PER_ELIXIR -
                 attacker.cost() * (1.0D - keptA);
@@ -193,7 +203,8 @@ final class Sim {
         }
         keptA = Math.min(1.0D, keptA / cardHealth(attacker));
         keptH = Math.min(1.0D, keptH / cardHealth(helper));
-        double keptD = healthLeft(engine, TeamSide.RED) / cardHealth(defender);
+        double keptD = Math.min(1.0D, healthLeft(engine, TeamSide.RED) /
+                cardHealth(defender));
         return defender.cost() * (1.0D - keptD) +
                 (towersBefore - towerHealth(match)) / TOWER_HP_PER_ELIXIR -
                 attacker.cost() * (1.0D - keptA) - helper.cost() * (1.0D - keptH);

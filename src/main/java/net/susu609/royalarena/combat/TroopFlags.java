@@ -19,6 +19,10 @@ public final class TroopFlags {
     public static final int ILLUSION = 1 << 7;
     public static final int LEVITATING = 1 << 8;
     public static final int BUILDING = 1 << 9;
+    /** Invisible (a Wandering Trader's potion): drawn faint. */
+    public static final int HIDDEN = 1 << 10;
+    /** Healing blocked (Dragon's Breath). */
+    public static final int HEAL_BLOCKED = 1 << 11;
 
     private TroopFlags() {
     }
@@ -47,6 +51,10 @@ public final class TroopFlags {
             flags |= ILLUSION;
         if (card != null && card.isBuilding())
             flags |= BUILDING;
+        if (unit.hidden())
+            flags |= HIDDEN;
+        if (unit.healBlocked())
+            flags |= HEAL_BLOCKED;
         return flags;
     }
 

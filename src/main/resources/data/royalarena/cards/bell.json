@@ -1,0 +1,16 @@
+{
+  "id": "bell",
+  "type": "spell",
+  "display_name": "Bell",
+  "roles": ["defense", "support"],
+  "elixir": 2,
+  "radius": 6.0,
+  "travel_ticks": 10,
+  "damage": 0,
+  "stun_ticks": 10,
+  "tower_multiplier": 0.0,
+  "lure_ticks": 40,
+  "reveals": ["invisible", "playing_dead", "mirror_images"],
+  "shadow_dodge_off_ticks": 100,
+  "warden_hears_within": 12.0
+}

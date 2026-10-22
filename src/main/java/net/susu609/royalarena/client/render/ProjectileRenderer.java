@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.PrimedTnt;
@@ -107,6 +108,9 @@ public final class ProjectileRenderer {
             } else if (f.kind() == Kind.WATER) {
                 mc.level.addParticle(ParticleTypes.FALLING_WATER, p.x, p.y, p.z,
                         0.0D, 0.0D, 0.0D);
+            } else if (f.kind() == Kind.DRAGON_FIREBALL) {
+                mc.level.addParticle(ParticleTypes.DRAGON_BREATH, p.x, p.y, p.z,
+                        0.0D, 0.01D, 0.0D);
             }
         }
     }
@@ -174,6 +178,8 @@ public final class ProjectileRenderer {
             case WITHER_SKULL -> EntityType.WITHER_SKULL;
             case ENDER_PEARL -> EntityType.ENDER_PEARL;
             case WATER -> EntityType.POTION;
+            case ANVIL -> EntityType.FALLING_BLOCK;
+            case DRAGON_FIREBALL -> EntityType.DRAGON_FIREBALL;
         };
         Entity entity = type.create(level);
         if (entity != null)
@@ -181,6 +187,14 @@ public final class ProjectileRenderer {
         if (kind == Kind.HEALING_POTION && entity instanceof ThrownPotion potion)
             potion.setItem(PotionUtils.setPotion(
                     new ItemStack(Items.SPLASH_POTION), Potions.HEALING));
+        // The Anvil falls as a falling anvil block.
+        if (kind == Kind.ANVIL && entity != null) {
+            CompoundTag tag = new CompoundTag();
+            CompoundTag state = new CompoundTag();
+            state.putString("Name", "minecraft:anvil");
+            tag.put("BlockState", state);
+            entity.load(tag);
+        }
         // Water Bucket flies as a splash bottle of water.
         if (kind == Kind.WATER && entity instanceof ThrownPotion potion)
             potion.setItem(PotionUtils.setPotion(

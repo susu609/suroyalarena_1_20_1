@@ -911,3 +911,24 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `CommonForgeEvents`: about-to-start (wipe), started (check), stopped
   (forget, wipe)
 - `ArenaWorldSmokeTest`
+
+## Part 77 — Batch 5 cards
+
+- `BattleCard`: Giant, Villager, Sniffer, Wandering Trader (with
+  `TRADER_LLAMA`), Anvil, Dragon's Breath, Bell; `Tribe.VILLAGE`
+- `CombatEngine`: Golem call per play of Villagers, zombie conversion
+  (`TickResult.spawns`), zombies' and everyone's priorities (Villager,
+  Sniffer), towers shoot a Sniffer first, flowers, escorts that appear on the
+  next tick, invisibility (`CombatUnit.untargetable`), Anvil's one target,
+  half armour, healing blocked, Bell stun, lure, reveals, Shadow off,
+  Warden call; event kinds GOLEM_CALL, CONVERT, FLOWER, HIDE, REVEAL
+- `CostFormula`: Villager's Golem, Trader's llamas, Sniffer taunt, spell
+  rules; `PowerCreepTest.tankScore`; `Sim` counts brought units
+- `BotBrain`: Anvil and Bell values
+- `MobSounds`: Giant (hostile, zombie groan and door bang), Trader Llama
+  (llama), Sniffer
+- `TroopFlags.HIDDEN`, `HEAL_BLOCKED` (faint, lilac); `ProjectileRenderer`
+  ANVIL (falling anvil), DRAGON_FIREBALL; `BattleField` sounds and particles;
+  `DeckScreen` lines; `SpellTargetHighlighter` (Anvil: one troop);
+  protocol 33
+- `MobsWave7SmokeTest`

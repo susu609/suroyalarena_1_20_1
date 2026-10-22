@@ -86,6 +86,10 @@ Bear). The Guardian is the one exception, kept as it was built (it swims
 - [x] Batch 4 (by hand): Illusioner (images, blindness), Axolotl (plays
   dead), Endermite (lures Endermen), Allay (heals around), Magma Cube rework
   (two small cubes that leap), Wither Skull, Ender Pearl, Water Bucket.
+- [x] Batch 5 (by hand): Giant (slow splash), Villager (calls an Iron
+  Golem, turned by zombies), Sniffer (draws fire, flowers), Wandering Trader
+  (two Trader Llamas, invisibility), Anvil, Dragon's Breath, Bell; Village
+  tribe.
 - [ ] Villager professions (by hand, later): each profession its own card
   (ideas so far: Armorer +2 armour aura, Librarian +20% damage aura, bell
   ringer that reveals enemies). Ask the user before making them.

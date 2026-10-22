@@ -506,3 +506,21 @@ card. The cost adds the rider's damage to the mount's (`CostFormula`).
 | Skeleton Rider | 3 | skeleton horse 20 HP (was 15), kicks 2, towers only | Skeleton Archer, shoots only buildings while mounted | 50% |
 | Chicken Jockey | 2 | chicken 4 HP, pecks 1 | baby Zombie | 51% |
 | Camel | **3** (2) | camel 32 HP, 2.5 and its dash | Husk | 43% (was 62-64% at 2) |
+
+## Batch 5: Giant, Villager, Sniffer, Wandering Trader, three spells
+
+| Card | Elixir | Stats | Rule | Win rate |
+|---|---|---|---|---|
+| Giant | 6 | 120 HP, 12 every 2 s, range 1.5, splash 1, walks 0.6; drawn at 0.4 of vanilla's giant; Zombie | Hits everything in its way, troops and towers; every slam splashes 1 block. | 58% |
+| Villager | 3 | 3 of them, 10 HP, a 1 punch every 1 s; Village | **Golem call**: 6 s after they come, if 2 of the 3 still stand, an Iron Golem (40% health) appears where they are, once. **Turned**: a Villager killed by a Zombie, Husk, Drowned or Zombie Villager gets up as that side's Zombie Villager. Zombies go for Villagers first. | 56% |
+| Sniffer | 2 | 60 HP, walks 0.5, never attacks; Beast | **Draws fire**: every enemy troop and tower that can reach it goes for it first. **Flowers**: every 5 s it digs one up and each other own troop within 2 blocks heals 4. | 54% |
+| Wandering Trader | 4 | 20 HP, never attacks, 2 Trader Llamas (22 HP, spit 3 every 1.5 s from 4.5 blocks, slowing); Village | The first time it is hurt it **drinks invisibility**: for 3 s nothing can pick it (spells still hit it). | 47% |
+| Anvil | 2 | spell, radius 1.5, falls from the sky (1.2 s) with its shadow on the floor | Falls on the **one enemy troop nearest the centre**: 45 damage through half its armour, stun 1 s; towers in the circle take 30%. | 58% |
+| Dragon's Breath | 4 | spell, radius 3, thrown (a dragon fireball), 5 s | 2 every 0.5 s through half the armour; enemies inside **heal nothing**; towers take 30%. | 41% |
+| Bell | 2 | spell, radius 6, rings after 0.5 s, no damage | Enemies in it are stunned 0.5 s, then **walk to the bell** for 2 s attacking nothing; invisible troops are seen, an Axolotl playing dead gets up, mirror images break; the enemy side's **Shadow** dodge is off 5 s; an enemy **Warden** within 12 blocks comes to the bell. | 42% |
+
+Win rates from 4000 bot matches. Changes from the first numbers: the
+Villager won 62% with 12 HP and a 50% Golem (now 10 HP, 40%), the Anvil
+60% at 50 damage (now 45; radius 1.5, not 1, so the formula gives it 2
+elixir, not 1.5), the Sniffer is 2 elixir, not 5 (see docs/BALANCE.md). The
+Iron Golem is in the new Village tribe.

@@ -115,8 +115,9 @@ public final class SpellTargetHighlighter {
                 health.add((double) living.getHealth());
             }
         }
-        // An Ender Pearl moves only the troop nearest where it lands.
-        if (card.pearls() && hits.size() > 1) {
+        // An Ender Pearl moves, and an Anvil crushes, only the troop
+        // nearest where it lands.
+        if ((card.pearls() || card.dropsOnOne()) && hits.size() > 1) {
             Entity nearest = hits.get(0);
             for (Entity e : hits) {
                 if (Math.hypot(e.getX() - x, e.getZ() - z) <

@@ -1,0 +1,26 @@
+{
+  "id": "sniffer",
+  "type": "troop",
+  "display_name": "Sniffer",
+  "roles": ["attack", "support"],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:sniffer",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 60,
+    "damage": 4,
+    "attack_interval_ticks": 100,
+    "range": 0.5,
+    "move_speed": 0.5,
+    "flying": false,
+    "targets": "none",
+    "draws_fire": true,
+    "digs_flowers": {
+      "every_ticks": 100,
+      "heals_own_troops_within": 2.0,
+      "heal": 4
+    }
+  }
+}

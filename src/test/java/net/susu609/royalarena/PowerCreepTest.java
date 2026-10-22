@@ -19,6 +19,8 @@ import java.util.Locale;
  * walk in alone (they need support against defenders, so pushes alone would
  * call them weak);</li>
  * <li>support troops (Allay): what they add to a Zombie's fights;</li>
+ * <li>tanks that do not fight (Sniffer): what they add in front of a
+ * Witch;</li>
  * <li>spells: cost formula value per elixir paid.</li>
  * </ul>
  */
@@ -47,6 +49,14 @@ public final class PowerCreepTest {
                 line = String.format(Locale.ROOT, "%-16s spell value/elixir %.2f",
                         card.id(), value);
                 if (value < MIN_SPELL || value > MAX_SPELL)
+                    problems.add(line);
+            } else if (card.digsFlowers()) {
+                // A tank that does not fight: what it adds walking in front
+                // of a Witch, its own cost included.
+                double score = tankScore(card);
+                line = String.format(Locale.ROOT, "%-16s tank score %+.2f",
+                        card.id(), score);
+                if (score < MIN_SCORE || score > MAX_SCORE)
                     problems.add(line);
             } else if (card.healsAround()) {
                 // A support troop does not fight: it is measured by what it
@@ -88,7 +98,7 @@ public final class PowerCreepTest {
     /** A troop that fights both ways: no spell, building or support. */
     static boolean fights(BattleCard card) {
         return !card.isSpell() && !card.stats().traits().buildingsOnly() &&
-                !card.isBuilding() && !card.healsAround();
+                !card.isBuilding() && !card.healsAround() && !card.digsFlowers();
     }
 
     /**
@@ -104,6 +114,23 @@ public final class PowerCreepTest {
                 continue;
             gain += Sim.pushWith(BattleCard.ZOMBIE, card, other) -
                     Sim.push(BattleCard.ZOMBIE, other);
+            fights++;
+        }
+        return gain / fights;
+    }
+
+    /**
+     * Elixir a tank that does not fight (the Sniffer) adds walking in front
+     * of a Witch into each fighting troop, over the Witch alone.
+     */
+    static double tankScore(BattleCard card) {
+        double gain = 0.0D;
+        int fights = 0;
+        for (BattleCard other : BattleCard.values()) {
+            if (!fights(other))
+                continue;
+            gain += Sim.pushWith(card, BattleCard.WITCH, other) -
+                    Sim.push(BattleCard.WITCH, other);
             fights++;
         }
         return gain / fights;

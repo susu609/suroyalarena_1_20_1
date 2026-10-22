@@ -548,9 +548,24 @@ public final class DeckScreen extends Screen {
             if (s.hasteTicks() > 0)
                 lines.add(line("Your troops walk 50%% and attack 75%% faster " +
                         "for %.0f s", s.hasteTicks() / 20.0D));
-            if (s.maxTargets() > 0)
+            if (card.dropsOnOne())
+                lines.add(line("Falls on the enemy troop nearest the centre"));
+            else if (s.maxTargets() > 0)
                 lines.add(line("Strikes the %d targets with the most health",
                         s.maxTargets()));
+            if (card.halfArmor())
+                lines.add(line("Goes through half of a troop's armour"));
+            if (card.blocksHealing())
+                lines.add(line("Enemies inside heal nothing"));
+            if (card.rings()) {
+                lines.add(line("Enemies walk to the bell for %.0f s, attacking nothing",
+                        BattleCard.BELL_LURE_TICKS / 20.0D));
+                lines.add(line("Shows invisible troops, wakes the playing dead, " +
+                        "breaks mirror images"));
+                lines.add(line("Enemy Shadow dodge off %.0f s; an enemy Warden " +
+                        "within %.0f blocks comes", BattleCard.BELL_DODGE_OFF_TICKS /
+                        20.0D, BattleCard.BELL_WARDEN_RANGE));
+            }
             if (s.stunTicks() > 0)
                 lines.add(line("Stuns for %.1f s", s.stunTicks() / 20.0D));
             if (s.freezeTicks() > 0)
@@ -693,6 +708,27 @@ public final class DeckScreen extends Screen {
         if (card.healsAround())
             lines.add(line("Never attacks: follows your troops, heals each within %.0f blocks by %.0f a second",
                     BattleCard.ALLAY_RADIUS, s.damage() * 20.0D / s.attackTicks()));
+        if (card.callsGolem()) {
+            lines.add(line("After %.0f s with %d still up: they call an Iron Golem (%.0f%% health)",
+                    BattleCard.VILLAGER_CALL_TICKS / 20.0D,
+                    BattleCard.VILLAGER_CALL_ALIVE,
+                    BattleCard.CALLED_GOLEM_HEALTH * 100.0D));
+            lines.add(line("Killed by a zombie: rises as the enemy's Zombie Villager"));
+        }
+        if (card.infects())
+            lines.add(line("Goes for Villagers first; turns those it kills"));
+        if (card.digsFlowers())
+            lines.add(line("Never attacks: enemies and towers go for it first; " +
+                    "every %.0f s a flower heals your troops within %.0f blocks by %.0f",
+                    s.attackTicks() / 20.0D, BattleCard.FLOWER_RADIUS, s.damage()));
+        if (card.bringsLlamas()) {
+            TroopStats llama = BattleCard.TRADER_LLAMA;
+            lines.add(line("Never attacks; %d Trader Llamas (%.0f health) spit %.0f at %.1f blocks, slowing",
+                    BattleCard.TRADER_LLAMAS, llama.health(), llama.damage(),
+                    llama.range()));
+            lines.add(line("Hurt once: drinks invisibility, untargetable %.0f s",
+                    BattleCard.HIDE_TICKS / 20.0D));
+        }
         if (card.leaps())
             lines.add(line("Leaps onto an enemy within %.0f blocks (archers first): %.1fx hit, splash %.0f",
                     BattleCard.LEAP_RANGE, BattleCard.LEAP_DAMAGE,

@@ -61,6 +61,15 @@ public final class CombatUnit {
     private int levitateTicks;
     /** The unit this one rides (a jockey's rider), or null on foot. */
     private UUID mount;
+    /** Invisible (a Wandering Trader's potion): nothing picks it. */
+    private int hiddenTicks;
+    private boolean hid;
+    /** Healing blocked (Dragon's Breath). */
+    private int noHealTicks;
+    /** Walking to a ringing Bell, not attacking. */
+    private int lureTicks;
+    private double lureX;
+    private double lureZ;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -181,6 +190,9 @@ public final class CombatUnit {
         blindTicks = 0;
         stunTicks = 0;
         levitateTicks = 0;
+        hiddenTicks = 0;
+        noHealTicks = 0;
+        lureTicks = 0;
     }
 
     public boolean alive() {
@@ -264,6 +276,12 @@ public final class CombatUnit {
             stunTicks--;
         if (levitateTicks > 0)
             levitateTicks--;
+        if (hiddenTicks > 0)
+            hiddenTicks--;
+        if (noHealTicks > 0)
+            noHealTicks--;
+        if (lureTicks > 0)
+            lureTicks--;
         // A frozen unit's attack does not charge.
         if (frozenTicks > 0)
             frozenTicks--;
@@ -318,7 +336,7 @@ public final class CombatUnit {
     /** Heals up to the unit's starting health; a withered unit heals nothing. */
     boolean heal(double amount) {
         if (amount <= 0.0D || !alive() || health >= maxHealth ||
-                witherTicks > 0)
+                witherTicks > 0 || noHealTicks > 0)
             return false;
         health = Math.min(maxHealth, health + amount);
         return true;
@@ -391,6 +409,63 @@ public final class CombatUnit {
     /** Lying still: nothing picks it as a target, it neither walks nor hits. */
     public boolean playingDead() {
         return playDeadTicks > 0;
+    }
+
+    /** Gets up at once (a Bell rings): no longer playing dead. */
+    void wake() {
+        playDeadTicks = 0;
+    }
+
+    /** Goes invisible for {@code ticks}, once per unit; false if it already did. */
+    boolean hideOnce(int ticks) {
+        if (hid)
+            return false;
+        hid = true;
+        hiddenTicks = ticks;
+        return true;
+    }
+
+    /** Invisible: nothing picks it as a target (spells still hit it). */
+    public boolean hidden() {
+        return hiddenTicks > 0;
+    }
+
+    /** Seen again (a Bell rings). */
+    void reveal() {
+        hiddenTicks = 0;
+    }
+
+    /** Playing dead or invisible: troops and towers do not pick it. */
+    public boolean untargetable() {
+        return playingDead() || hidden();
+    }
+
+    /** Heals nothing for {@code ticks} (Dragon's Breath); a longer block wins. */
+    void blockHeal(int ticks) {
+        noHealTicks = Math.max(noHealTicks, ticks);
+    }
+
+    public boolean healBlocked() {
+        return noHealTicks > 0;
+    }
+
+    /** Walks to (x, z) for {@code ticks} without attacking (a Bell). */
+    void lure(int ticks, double x, double z) {
+        lureTicks = Math.max(lureTicks, ticks);
+        lureX = x;
+        lureZ = z;
+    }
+
+    public boolean lured() {
+        return lureTicks > 0;
+    }
+
+    double lureX() {
+        return lureX;
+    }
+
+    double lureZ() {
+        return lureZ;
     }
 
     /** One tick of playing dead; true on the tick it gets up again. */

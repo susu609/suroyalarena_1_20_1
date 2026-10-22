@@ -1,0 +1,21 @@
+{
+  "id": "giant",
+  "type": "troop",
+  "display_name": "Giant",
+  "roles": ["attack"],
+  "body": "undead",
+  "elixir": 6,
+  "entity": "minecraft:giant",
+  "model_scale": 0.4,
+  "count": 1,
+  "unit": {
+    "health": 120,
+    "damage": 12,
+    "attack_interval_ticks": 40,
+    "range": 1.5,
+    "move_speed": 0.6,
+    "flying": false,
+    "targets": "ground",
+    "splash_radius": 1.0
+  }
+}

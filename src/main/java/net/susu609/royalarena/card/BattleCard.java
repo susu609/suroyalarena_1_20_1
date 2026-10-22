@@ -166,6 +166,16 @@ public enum BattleCard {
     ALLAY("Allay", 2, "minecraft:allay", null, 0,
             new TroopStats(1, 16, 2, 20, 0.5D, 1.3D, 0.3D,
                     TroopTraits.hovering(1.0D, true, false, false))),
+    GIANT("Giant", 6, "minecraft:giant", null, 0,
+            new TroopStats(1, 120, 12, 40, 1.5D, 0.6D, 1.0D,
+                    new TroopTraits(1.0D, false, 0.0D))),
+    VILLAGER("Villager", 3, "minecraft:villager", null, 0,
+            new TroopStats(3, 10, 1, 20, 0.8D, 0.8D, 0.3D)),
+    SNIFFER("Sniffer", 2, "minecraft:sniffer", null, 0,
+            new TroopStats(1, 60, 4, 100, 0.5D, 0.5D, 0.9D)),
+    WANDERING_TRADER("Wandering Trader", 4, "minecraft:wandering_trader",
+            null, 0,
+            new TroopStats(1, 20, 0, 20, 0.5D, 0.9D, 0.3D)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(2.3D, 6, 3, 8, 7.0D, 0.5D, 0.0D, 0.0D, 0)
                     .thrownAt(24.0D)),
@@ -211,7 +221,16 @@ public enum BattleCard {
                     .thrownAt(20.0D)),
     WATER_BUCKET("Water Bucket", 2, "minecraft:water_bucket",
             new SpellStats(2.5D, 5, 1, 1, 0.0D, 0.0D, 1.5D, 0.0D, 0)
-                    .thrownAt(16.0D));
+                    .thrownAt(16.0D)),
+    ANVIL("Anvil", 2, "minecraft:anvil",
+            new SpellStats(1.5D, 24, 1, 1, 45.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0, 1, 20, 0, false)),
+    DRAGONS_BREATH("Dragon's Breath", 4, "minecraft:dragon_breath",
+            new SpellStats(3.0D, 5, 10, 10, 2.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0).thrownAt(16.0D)),
+    BELL("Bell", 2, "minecraft:bell",
+            new SpellStats(6.0D, 10, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 10,
+                    0, false));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;
@@ -327,6 +346,9 @@ public enum BattleCard {
             case MAGMA_CUBE -> EnumSet.of(Tribe.NETHER, Tribe.SLIME);
             case SPIDER -> EnumSet.of(Tribe.ARTHROPOD, Tribe.NIGHT);
             case CAVE_SPIDER, SILVERFISH -> EnumSet.of(Tribe.ARTHROPOD);
+            case GIANT -> EnumSet.of(Tribe.ZOMBIE);
+            case VILLAGER, WANDERING_TRADER -> EnumSet.of(Tribe.VILLAGE);
+            case SNIFFER -> EnumSet.of(Tribe.BEAST);
             case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
             case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA, CAT, PIGLETS,
                     KILLER_RABBITS, PANDA, CAMEL ->
@@ -341,7 +363,8 @@ public enum BattleCard {
             case ENDERMAN -> EnumSet.of(Tribe.NIGHT, Tribe.END);
             case SHULKER, END_CRYSTAL -> EnumSet.of(Tribe.END);
             case BIG_SLIME -> EnumSet.of(Tribe.NIGHT, Tribe.SLIME);
-            case IRON_GOLEM, SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
+            case IRON_GOLEM -> EnumSet.of(Tribe.GOLEM, Tribe.VILLAGE);
+            case SNOW_GOLEM -> EnumSet.of(Tribe.GOLEM);
             case GUARDIAN -> EnumSet.of(Tribe.AQUATIC);
             default -> EnumSet.noneOf(Tribe.class);
         };
@@ -369,6 +392,7 @@ public enum BattleCard {
             case ZOMBIE_VILLAGER -> 0.85F;
             case WITHER_SKELETON -> 0.85F;
             case POLAR_BEAR -> 0.8F;
+            case GIANT -> 0.4F;
             default -> 1.0F;
         };
     }
@@ -385,16 +409,18 @@ public enum BattleCard {
                     ENDERMITE ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
-                    SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP, ILLUSIONER, WATER_BUCKET ->
+                    SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP, ILLUSIONER, WATER_BUCKET,
+                    WANDERING_TRADER, BELL ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, ZOGLIN,
                     CHICKEN_JOCKEY, CAMEL, WARDEN, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
-                    PIGLIN_BRUTE, PHANTOM, LIGHTNING ->
+                    PIGLIN_BRUTE, PHANTOM, LIGHTNING, GIANT ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
-                    FIREBALL, TNT, POISON_CLOUD, WITHER_SKULL ->
+                    FIREBALL, TNT, POISON_CLOUD, WITHER_SKULL, ANVIL,
+                    DRAGONS_BREATH ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.DEFENSE);
-            case DROWNED, BLAZE, FREEZE ->
+            case DROWNED, BLAZE, FREEZE, VILLAGER, SNIFFER ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.SUPPORT);
             case HEALING_POTION, SWIFTNESS_POTION, MILK_BUCKET, ALLAY,
                     ENDER_PEARL ->
@@ -413,7 +439,7 @@ public enum BattleCard {
             case ZOMBIE, SKELETON_ARCHER, SKELETONS,
                     STRAY, ZOMBIFIED_PIGLIN, HUSK,
                     WITHER_SKELETON, DROWNED, PHANTOM,
-                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER, ZOGLIN ->
+                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER, ZOGLIN, GIANT ->
                     Body.UNDEAD;
             default -> Body.LIVING;
         };
@@ -653,6 +679,101 @@ public enum BattleCard {
         return this == BLAZE || this == ENDERMAN || this == SNOW_GOLEM ||
                 this == STRIDER;
     }
+    /**
+     * Villagers: {@link #VILLAGER_CALL_TICKS} after they are played, if at
+     * least {@link #VILLAGER_CALL_ALIVE} of the three still stand, they call
+     * one Iron Golem (with {@link #CALLED_GOLEM_HEALTH} of a played Golem's
+     * health) where they are. A Villager killed by a zombie
+     * ({@link #infects}) gets up as the zombie side's Zombie Villager.
+     */
+    public boolean callsGolem() {
+        return this == VILLAGER;
+    }
+
+    public static final int VILLAGER_CALL_TICKS = 120;
+    public static final int VILLAGER_CALL_ALIVE = 2;
+    public static final double CALLED_GOLEM_HEALTH = 0.4D;
+
+    /**
+     * Zombies turn the Villagers they kill into Zombie Villagers, and go for
+     * a Villager before anything else in sight.
+     */
+    public boolean infects() {
+        return this == ZOMBIE || this == HUSK || this == DROWNED ||
+                this == ZOMBIE_VILLAGER;
+    }
+
+    /**
+     * A Sniffer never attacks: every enemy troop and tower that can reach
+     * it goes for it first, and every {@code attackTicks} it digs up a
+     * flower that heals each other own troop within {@link #FLOWER_RADIUS}
+     * by its damage.
+     */
+    public boolean digsFlowers() {
+        return this == SNIFFER;
+    }
+
+    public static final double FLOWER_RADIUS = 2.0D;
+
+    /**
+     * A Wandering Trader never attacks. Two Trader Llamas
+     * ({@link #TRADER_LLAMA}) come with it, spitting slowing spit; the
+     * first time it is hurt it drinks invisibility and cannot be picked as
+     * a target for {@link #HIDE_TICKS}.
+     */
+    public boolean bringsLlamas() {
+        return this == WANDERING_TRADER;
+    }
+
+    public static final int TRADER_LLAMAS = 2;
+    public static final int HIDE_TICKS = 60;
+
+    /** A Trader Llama, the Wandering Trader's escort (not a card of its own). */
+    public static final TroopStats TRADER_LLAMA = new TroopStats(1, 22, 3, 30,
+            4.5D, 0.9D, 0.45D, TroopTraits.slowing(15));
+
+    /** Troops that never attack (they walk, heal or draw fire). */
+    public boolean peaceful() {
+        return this == SNIFFER || this == WANDERING_TRADER;
+    }
+
+    /**
+     * Anvil and Dragon's Breath go through half of a troop's armour. The
+     * Anvil falls on the one enemy troop nearest where it lands (towers in
+     * its circle take their share too).
+     */
+    public boolean halfArmor() {
+        return this == ANVIL || this == DRAGONS_BREATH;
+    }
+
+    public boolean dropsOnOne() {
+        return this == ANVIL;
+    }
+
+    /** Enemies inside Dragon's Breath heal nothing for this long after a pulse. */
+    public boolean blocksHealing() {
+        return this == DRAGONS_BREATH;
+    }
+
+    public static final int BREATH_HEAL_BLOCK_TICKS = 15;
+
+    /**
+     * Bell: every enemy in its circle is stunned for its stun time and then
+     * walks to the bell for {@link #BELL_LURE_TICKS} without attacking;
+     * invisible troops are seen again, an Axolotl stops playing dead,
+     * mirror images vanish; the enemy side's Shadow dodge is off for
+     * {@link #BELL_DODGE_OFF_TICKS}; an enemy Warden within
+     * {@link #BELL_WARDEN_RANGE} comes to the bell.
+     */
+    public boolean rings() {
+        return this == BELL;
+    }
+
+    public static final int BELL_LURE_TICKS = 40;
+    public static final int BELL_DODGE_OFF_TICKS = 100;
+    public static final double BELL_WARDEN_RANGE = 12.0D;
+    public static final int BELL_WARDEN_TICKS = 60;
+
     public static final double HEAR_RANGE = 8.0D;
     public static final int BOOM_TICKS = 20 * 15;
     public static final double BOOM_RANGE = 6.0D;

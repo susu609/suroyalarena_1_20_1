@@ -12,10 +12,19 @@ public final class MobSounds {
     private MobSounds() {
     }
 
-    /** {@code minecraft:zombie} -> {@code zombie}; the Cave Spider -> spider. */
+    /**
+     * {@code minecraft:zombie} -> {@code zombie}; the Cave Spider -> spider,
+     * a Trader Llama -> llama, and the Giant, which has no sounds of its own
+     * in vanilla, -> hostile.
+     */
     private static String mob(String entityId) {
         String path = entityId.substring(entityId.indexOf(':') + 1);
-        return path.equals("cave_spider") ? "spider" : path;
+        return switch (path) {
+            case "cave_spider" -> "spider";
+            case "trader_llama" -> "llama";
+            case "giant" -> "hostile";
+            default -> path;
+        };
     }
 
     private static String small(String path, boolean tiny) {
@@ -55,8 +64,9 @@ public final class MobSounds {
     public static String ambient(String entityId) {
         String path = mob(entityId);
         return switch (path) {
-            case "creeper", "iron_golem", "slime", "magma_cube", "end_crystal" ->
-                    null;
+            case "creeper", "iron_golem", "slime", "magma_cube", "end_crystal",
+                    "hostile" -> null;
+            case "sniffer" -> "entity.sniffer.idle";
             case "bee" -> "entity.bee.loop";
             case "guardian" -> "entity.guardian.ambient_land";
             case "turtle" -> "entity.turtle.ambient_land";
@@ -80,6 +90,9 @@ public final class MobSounds {
                     "entity." + path + ".squish" + small(path, tiny);
             case "iron_golem" -> "entity.iron_golem.repair";
             case "creeper" -> "entity.creeper.primed";
+            // The Giant: a deep zombie groan.
+            case "hostile" -> "entity.zombie.ambient";
+            case "sniffer" -> "entity.sniffer.scenting";
             default -> ambient(entityId);
         };
     }
@@ -112,6 +125,8 @@ public final class MobSounds {
             case "cat" -> "entity.cat.hiss";
             case "frog" -> "entity.frog.tongue";
             case "axolotl" -> "entity.axolotl.attack";
+            // The Giant's slam: a zombie's bang on a door.
+            case "hostile" -> "entity.zombie.attack_wooden_door";
             default -> null;
         };
     }

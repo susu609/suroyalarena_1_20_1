@@ -91,6 +91,13 @@
         'wither_skull': 2,
         'ender_pearl': 2,
         'water_bucket': 2,
+        'giant': 6,
+        'villager': 3,
+        'sniffer': 2,
+        'wandering_trader': 4,
+        'anvil': 2,
+        'dragons_breath': 4,
+        'bell': 2,
     };
     const CARD_IDS = Object.keys(CARDS);
 

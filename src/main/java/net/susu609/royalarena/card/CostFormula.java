@@ -180,6 +180,8 @@ public final class CostFormula {
             case ALLAY -> 2.0D;
             // Leaps onto an archer and splashes where it lands.
             case MAGMA_CUBE -> 1.2D;
+            // Draws every troop's and tower's fire; its flowers heal.
+            case SNIFFER -> TAUNT;
             default -> 1.0D;
         };
     }
@@ -203,6 +205,17 @@ public final class CostFormula {
             case WATER_BUCKET -> (s.knockback() * PUSH_VALUE_PER_BLOCK +
                     DOUSE_VALUE + BattleCard.WATER_DAMAGE * 0.25D) *
                     s.radius() / SPELL_COST_DIVISOR;
+            // Half the armour ignored: on an average 2-point troop, 4% more.
+            case ANVIL -> s.damagePerPulse() * HALF_ARMOR_GAIN *
+                    s.radius() * 0.25D / SPELL_COST_DIVISOR;
+            case DRAGONS_BREATH -> (s.damagePerPulse() * s.pulses() *
+                    HALF_ARMOR_GAIN + HEAL_BLOCK_VALUE) * s.radius() /
+                    SPELL_COST_DIVISOR;
+            // Each enemy walks to the bell for 2 s instead of fighting; the
+            // reveals (invisible, playing dead, images, Shadow) are a bonus.
+            case BELL -> (BattleCard.BELL_LURE_TICKS / 20.0D *
+                    SpellStats.SLOW_VALUE_PER_SECOND + REVEAL_VALUE) *
+                    s.radius() / SPELL_COST_DIVISOR;
             default -> 0.0D;
         };
     }
@@ -216,13 +229,55 @@ public final class CostFormula {
     /** Putting one target's fire out, in damage. */
     public static final double DOUSE_VALUE = 1.0D;
 
+    /** Going through half the armour, as extra damage on a 2-point troop. */
+    public static final double HALF_ARMOR_GAIN = 0.04D;
+    /** What a Bell's reveals are worth per target, in damage. */
+    public static final double REVEAL_VALUE = 0.3D;
+    /** Drawing every enemy's fire (the Sniffer). */
+    public static final double TAUNT = 1.55D;
+    /**
+     * Chance the Villagers call their Golem (two of three must stand for
+     * 6 s): what the called Golem counts for in their cost.
+     */
+    public static final double GOLEM_CALL_CHANCE = 0.5D;
+    /** A Wandering Trader's body counts this much: it vanishes when hit. */
+    public static final double TRADER_DECOY = 1.5D;
+
     /** Hearing only enemies that make a sound (the Warden). */
     public static final double HEARING = 1.3D;
 
     /** A troop card's unrounded cost: its stats, traits and abilities. */
     public static double raw(BattleCard card) {
-        return card.isSpell() ? raw(card.spell()) + spellAbility(card) :
-                raw(card.stats()) * abilityModifier(card);
+        if (card.isSpell())
+            return raw(card.spell()) + spellAbility(card);
+        if (card.bringsLlamas())
+            return traderRaw(card.stats());
+        double raw = raw(card.stats()) * abilityModifier(card);
+        // The Golem the Villagers may call, at its called health.
+        if (card.callsGolem()) {
+            TroopStats g = BattleCard.IRON_GOLEM.stats();
+            raw += GOLEM_CALL_CHANCE * raw(new TroopStats(g.count(),
+                    g.health() * BattleCard.CALLED_GOLEM_HEALTH, g.damage(),
+                    g.attackTicks(), g.range(), g.speed(), g.radius(),
+                    g.split(), g.traits(), g.armor()));
+        }
+        return raw;
+    }
+
+    /**
+     * A Wandering Trader does not fight: its two llamas' fire, over their
+     * bodies and its own (worth {@link #TRADER_DECOY} times its health),
+     * with the llamas' range and slow.
+     */
+    private static double traderRaw(TroopStats trader) {
+        TroopStats llama = BattleCard.TRADER_LLAMA;
+        int n = BattleCard.TRADER_LLAMAS;
+        double health = llama.effectiveHealth() * n +
+                trader.effectiveHealth() * TRADER_DECOY;
+        double dps = llama.damage() / (llama.attackTicks() / 20.0D) * n;
+        double modifier = traitModifier(llama) * RANGED *
+                (1.0D + RANGE_STEP * (llama.range() - 4.0D)) * 0.93D;
+        return Math.sqrt(health * dps) * modifier / COST_DIVISOR;
     }
 
     public static int elixir(BattleCard card) {

@@ -1,0 +1,30 @@
+{
+  "id": "wandering_trader",
+  "type": "troop",
+  "display_name": "Wandering Trader",
+  "roles": ["defense", "support"],
+  "body": "living",
+  "elixir": 4,
+  "entity": "minecraft:wandering_trader",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 0,
+    "attack_interval_ticks": 20,
+    "range": 0.5,
+    "move_speed": 0.9,
+    "flying": false,
+    "targets": "none",
+    "invisible_when_first_hurt_ticks": 60,
+    "escorts": {
+      "entity": "minecraft:trader_llama",
+      "count": 2,
+      "unit_health": 22,
+      "spit_damage": 3,
+      "spit_interval_ticks": 30,
+      "spit_range": 4.5,
+      "spit_slows_ticks": 15
+    }
+  }
+}

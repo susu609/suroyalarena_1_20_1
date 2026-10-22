@@ -73,7 +73,9 @@ public enum Tribe {
     AQUATIC("Aquatic", "Biển",
             step(TribeBonus.riverDamage(1.25D), "+25% damage from the river")),
     END("End", "End",
-            step(TribeBonus.attackSpeed(1.10D), "attacks 10% faster"));
+            step(TribeBonus.attackSpeed(1.10D), "attacks 10% faster")),
+    VILLAGE("Village", "Làng",
+            step(TribeBonus.health(1.10D), "+10% health"));
 
     /** Different cards of a tribe a deck needs for each step. */
     public static final int[] THRESHOLDS = {2, 3, 4, 5, 6};

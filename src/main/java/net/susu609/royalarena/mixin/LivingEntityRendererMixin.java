@@ -95,7 +95,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
         return royalarena$channel(value, 3);
     }
 
-    /** A mirror image is drawn with a see-through render type. */
+    /** A mirror image or an invisible troop: a see-through render type. */
     @Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true,
             require = 0)
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -103,7 +103,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
             boolean bodyVisible, boolean translucent, boolean glowing,
             CallbackInfoReturnable<RenderType> cir)
     {
-        if (bodyVisible && TroopStatus.illusion(entity))
+        if (bodyVisible && TroopStatus.seeThrough(entity))
             cir.setReturnValue(RenderType.itemEntityTranslucentCull(
                     ((EntityRenderer) (Object) this).getTextureLocation(entity)));
     }

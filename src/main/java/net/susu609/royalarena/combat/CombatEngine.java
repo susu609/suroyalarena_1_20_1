@@ -99,6 +99,13 @@ public final class CombatEngine {
     private final Set<UUID> illusionsCast = new HashSet<>();
     /** When each Magma Cube may leap again (engine tick). */
     private final Map<UUID, Integer> leapReady = new HashMap<>();
+    /** Units to appear on the next tick (a Wandering Trader's llamas). */
+    private final List<ChildSpawn> pendingSpawns = new ArrayList<>();
+    /** The Villagers of each play (side and tick), until they call a Golem. */
+    private final Map<String, List<UUID>> villages = new HashMap<>();
+    private final Map<String, Integer> villageBorn = new HashMap<>();
+    /** Villagers killed by a zombie, and the side they rise for. */
+    private final Map<UUID, TeamSide> converted = new HashMap<>();
 
     private static final class FirePatch {
         final TeamSide side;
@@ -286,9 +293,109 @@ public final class CombatEngine {
 
     private CombatUnit register(CombatUnit unit) {
         units.add(unit);
-        cardOf.put(unit.id(), BattleCard.forStats(unit.stats()));
+        BattleCard card = BattleCard.forStats(unit.stats());
+        cardOf.put(unit.id(), card);
         bornAt.put(unit.id(), now);
+        if (card != null && card.bringsLlamas() && unit.generation() == 0)
+            escorts(unit);
+        if (card != null && card.callsGolem() && unit.generation() == 0) {
+            String key = unit.side() + ":" + now;
+            villages.computeIfAbsent(key, k -> new ArrayList<>()).add(unit.id());
+            villageBorn.putIfAbsent(key, now);
+        }
         return unit;
+    }
+
+    /**
+     * A Wandering Trader's two Trader Llamas, one at each side of it; they
+     * appear on the next tick and fight for the Wandering Trader card.
+     */
+    private void escorts(CombatUnit trader) {
+        TroopStats llama = BattleCard.TRADER_LLAMA;
+        int sign = ArenaLayout.sideSign(trader.side());
+        for (int i = 0; i < BattleCard.TRADER_LLAMAS; i++) {
+            double dx = (i % 2 == 0 ? -1.0D : 1.0D) * (0.9D + 0.4D * (i / 2));
+            ArenaWaypoint spot = arena.clampSpawn(trader.x() + dx,
+                    trader.z() + sign * 0.4D, sign);
+            ChildSpawn child = new ChildSpawn(trader.side(), llama, 1,
+                    llama.health(), llama.damage(), llama.radius(), spot.x(),
+                    spot.z(), 0, trader.lockedTower());
+            riderCredit.put(child, BattleCard.WANDERING_TRADER);
+            pendingSpawns.add(child);
+        }
+    }
+
+    /**
+     * Villagers that have stood {@link BattleCard#VILLAGER_CALL_TICKS} call
+     * an Iron Golem if enough of them are still up.
+     */
+    private void villageCalls() {
+        var it = villages.entrySet().iterator();
+        while (it.hasNext()) {
+            var entry = it.next();
+            if (now - villageBorn.get(entry.getKey()) <
+                    BattleCard.VILLAGER_CALL_TICKS)
+                continue;
+            it.remove();
+            villageBorn.remove(entry.getKey());
+            List<CombatUnit> standing = new ArrayList<>();
+            for (UUID id : entry.getValue()) {
+                CombatUnit villager = unit(id);
+                if (villager != null && villager.alive())
+                    standing.add(villager);
+            }
+            if (standing.size() < BattleCard.VILLAGER_CALL_ALIVE)
+                continue;
+            double x = 0.0D;
+            double z = 0.0D;
+            for (CombatUnit villager : standing) {
+                x += villager.x() / standing.size();
+                z += villager.z() / standing.size();
+            }
+            CombatUnit first = standing.get(0);
+            TroopStats golem = BattleCard.IRON_GOLEM.stats();
+            TribeBonus bonus = tribeBonus(BattleCard.IRON_GOLEM, first.side());
+            ArenaWaypoint spot = arena.clampSpawn(x, z,
+                    ArenaLayout.sideSign(first.side()));
+            ChildSpawn child = new ChildSpawn(first.side(), golem, 0,
+                    golem.health() * BattleCard.CALLED_GOLEM_HEALTH *
+                            bonus.health(), golem.damage() * bonus.damage(),
+                    golem.radius(), spot.x(), spot.z(), 0,
+                    first.lockedTower());
+            riderCredit.put(child, creditOf(first.id()));
+            spawns.add(child);
+            tribeEvents.add(new TribeEvent(first.id(),
+                    TribeEvent.Kind.GOLEM_CALL, spot.x(), spot.z()));
+        }
+    }
+
+    /**
+     * Every Sniffer digs up a flower once per its attack interval: each
+     * other own troop within {@link BattleCard#FLOWER_RADIUS} heals by its
+     * damage.
+     */
+    private void snifferFlowers() {
+        for (CombatUnit sniffer : units) {
+            BattleCard card = cardOf.get(sniffer.id());
+            int age = now - bornAt.getOrDefault(sniffer.id(), now);
+            if (card == null || !card.digsFlowers() || !sniffer.alive() ||
+                    sniffer.frozen() || age <= 0 ||
+                    age % sniffer.stats().attackTicks() != 0)
+                continue;
+            for (CombatUnit other : units) {
+                if (other == sniffer || other.side() != sniffer.side() ||
+                        !other.alive() || Math.hypot(other.x() - sniffer.x(),
+                                other.z() - sniffer.z()) >
+                                BattleCard.FLOWER_RADIUS + other.radius())
+                    continue;
+                double before = other.health();
+                if (other.heal(sniffer.damage()))
+                    stats.healing(sniffer.side(), creditOf(sniffer.id()),
+                            other.health() - before);
+            }
+            tribeEvents.add(new TribeEvent(sniffer.id(),
+                    TribeEvent.Kind.FLOWER, sniffer.x(), sniffer.z()));
+        }
     }
 
     /** What each card has done so far this match. */
@@ -327,6 +434,8 @@ public final class CombatEngine {
         teleports.clear();
         tribeEvents.clear();
         spawns.clear();
+        spawns.addAll(pendingSpawns);
+        pendingSpawns.clear();
         now++;
         seatRiders();
         List<Move> moves = new ArrayList<>();
@@ -359,10 +468,12 @@ public final class CombatEngine {
         applyDamage(landed, destroyed, pushes);
         applyBurns();
         allayAuras();
+        snifferFlowers();
         applySpellHits(hits, destroyed, pushes);
         applyBooms(destroyed);
         sneezes(pushes);
         decayBuildings();
+        villageCalls();
         List<Death> deaths = collectDeaths();
         return new TickResult(moves, attacks, deaths, destroyed, pulses,
                 pushes, landed, List.copyOf(teleports),
@@ -407,6 +518,20 @@ public final class CombatEngine {
         // An End Crystal only waits to be broken.
         if (self != null && self.explodesOnDeath())
             return;
+        // Called by a Bell: it walks there and attacks nothing.
+        if (unit.lured()) {
+            unit.setTarget(null);
+            if (unit.mount() == null && stats.speed() > 0.0D &&
+                    Math.hypot(unit.lureX() - unit.x(),
+                            unit.lureZ() - unit.z()) > 0.5D) {
+                ArenaWaypoint waypoint = arena.route(unit.x(), unit.z(),
+                        unit.lureX(), unit.lureZ());
+                moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
+                        stats.speedPerTick() * speedMultiplier *
+                                unit.tribe().speed()));
+            }
+            return;
+        }
         // An Allay only follows its troops (it heals in allayAuras).
         if (self != null && self.healsAround()) {
             followTroops(unit, moves);
@@ -429,7 +554,9 @@ public final class CombatEngine {
                     stats.speedPerTick() * speedMultiplier));
             return;
         }
-        CombatUnit enemy = pickEnemy(unit);
+        // A Sniffer or a Wandering Trader picks no one: it walks on.
+        CombatUnit enemy = self != null && self.peaceful() ? null :
+                pickEnemy(unit);
         unit.setTarget(enemy == null ? null : enemy.id());
 
         double targetX;
@@ -477,6 +604,8 @@ public final class CombatEngine {
         }
         // Mirror images draw fire; they do not fight.
         if (self != null && self.castsIllusions() && unit.generation() > 0)
+            return;
+        if (self != null && self.peaceful())
             return;
         TroopTraits traits = stats.traits();
         // A Guardian first locks on to a new target.
@@ -567,7 +696,7 @@ public final class CombatEngine {
     private CombatUnit heard(CombatUnit unit) {
         CombatUnit current = unit.target() == null ? null :
                 unit(unit.target());
-        if (current != null && current.alive() && !current.playingDead() &&
+        if (current != null && current.alive() && !current.untargetable() &&
                 current.side() != unit.side() && canTarget(unit, current) &&
                 distance(unit, current) <= BattleCard.HEAR_RANGE * LEASH_FACTOR)
             return current;
@@ -575,7 +704,7 @@ public final class CombatEngine {
         double bestDistance = BattleCard.HEAR_RANGE + EPSILON;
         for (CombatUnit other : units) {
             if (other.side() == unit.side() || !other.alive() ||
-                    other.playingDead() || !canTarget(unit, other) ||
+                    other.untargetable() || !canTarget(unit, other) ||
                     now - lastAttackAt.getOrDefault(other.id(), -1000) >
                             BattleCard.NOISE_TICKS)
                 continue;
@@ -745,9 +874,18 @@ public final class CombatEngine {
                 return mite;
         }
         double sight = unit.stats().sight();
+        // A zombie goes for a Villager first; everyone goes for a Sniffer.
+        if (self != null && self.infects()) {
+            CombatUnit villager = nearestOf(unit, BattleCard.VILLAGER, sight);
+            if (villager != null)
+                return villager;
+        }
+        CombatUnit sniffer = nearestOf(unit, BattleCard.SNIFFER, sight);
+        if (sniffer != null)
+            return sniffer;
         CombatUnit current = unit.target() == null ? null :
                 unit(unit.target());
-        if (current != null && current.alive() && !current.playingDead() &&
+        if (current != null && current.alive() && !current.untargetable() &&
                 current.side() != unit.side() && canTarget(unit, current) &&
                 distance(unit, current) <= sight * LEASH_FACTOR)
             return current;
@@ -756,10 +894,30 @@ public final class CombatEngine {
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit other : units) {
             if (other.side() == unit.side() || !other.alive() ||
-                    other.playingDead() || !canTarget(unit, other))
+                    other.untargetable() || !canTarget(unit, other))
                 continue;
             double d = distance(unit, other);
             if (d <= sight && d < bestDistance) {
+                best = other;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    /** The nearest enemy of {@code card} within {@code sight} it can go for. */
+    private CombatUnit nearestOf(CombatUnit unit, BattleCard card,
+            double sight)
+    {
+        CombatUnit best = null;
+        double bestDistance = sight + EPSILON;
+        for (CombatUnit other : units) {
+            if (other.side() == unit.side() || !other.alive() ||
+                    other.untargetable() || cardOf.get(other.id()) != card ||
+                    !canTarget(unit, other))
+                continue;
+            double d = distance(unit, other);
+            if (d <= bestDistance) {
                 best = other;
                 bestDistance = d;
             }
@@ -857,20 +1015,32 @@ public final class CombatEngine {
         double range = id.kind().range();
         UUID currentId = towerTarget.get(id);
         CombatUnit current = currentId == null ? null : unit(currentId);
-        if (current != null && current.alive() && !current.playingDead() &&
-                edgeDistanceToTower(current, id) <= range + EPSILON)
-            return current;
+        // A Sniffer in range draws the tower's shots first.
+        CombatUnit sniffer = null;
+        double snifferDistance = Double.MAX_VALUE;
         CombatUnit best = null;
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit unit : units) {
-            if (unit.side() == id.side() || !unit.alive() || unit.playingDead())
+            if (unit.side() == id.side() || !unit.alive() || unit.untargetable())
                 continue;
             double d = edgeDistanceToTower(unit, id);
-            if (d <= range + EPSILON && d < bestDistance) {
+            if (d > range + EPSILON)
+                continue;
+            if (cardOf.get(unit.id()) == BattleCard.SNIFFER &&
+                    d < snifferDistance) {
+                sniffer = unit;
+                snifferDistance = d;
+            }
+            if (d < bestDistance) {
                 best = unit;
                 bestDistance = d;
             }
         }
+        if (sniffer != null)
+            return sniffer;
+        if (current != null && current.alive() && !current.untargetable() &&
+                edgeDistanceToTower(current, id) <= range + EPSILON)
+            return current;
         return best;
     }
 
@@ -891,8 +1061,12 @@ public final class CombatEngine {
                 continue;
             }
             SpellStats spell = active.card.spell();
+            if (active.card.rings() && active.pulsesDone == 0)
+                ringFar(active);
             List<Hit> pulseHits = spell.cleanse() ? cleanseTargets(active) :
                     active.card.pearls() ? pearlTarget(active) :
+                    active.card.dropsOnOne() ? anvilTargets(active) :
+                    active.card.rings() ? bellTargets(active) :
                     active.card.douses() ? waterTargets(active) :
                     spell.friendly() ? healTargets(active) :
                     spellTargets(active);
@@ -989,6 +1163,92 @@ public final class CombatEngine {
     }
 
     /**
+     * The Anvil: the one enemy troop nearest where it lands, and every enemy
+     * tower whose footprint touches its circle.
+     */
+    private List<Hit> anvilTargets(ActiveSpell active) {
+        SpellStats spell = active.card.spell();
+        CombatUnit best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit unit : units) {
+            if (unit.side() == active.side || !unit.alive())
+                continue;
+            double d = Math.hypot(unit.x() - active.x, unit.z() - active.z);
+            if (d <= spell.radius() + unit.radius() + EPSILON &&
+                    d < bestDistance) {
+                best = unit;
+                bestDistance = d;
+            }
+        }
+        List<Hit> hits = new ArrayList<>();
+        if (best != null)
+            hits.add(new Hit(best, null, spell.damagePerPulse(), active));
+        for (TowerId id : TowerId.values()) {
+            if (id.side() != active.side && !match.tower(id).isDestroyed() &&
+                    distanceToTower(active.x, active.z, id) <=
+                            spell.radius() + EPSILON)
+                hits.add(new Hit(null, id, spell.damagePerPulse() *
+                        spell.towerMultiplier(), active));
+        }
+        return hits;
+    }
+
+    /** Every enemy troop whose body touches a Bell's circle. */
+    private List<Hit> bellTargets(ActiveSpell active) {
+        double radius = active.card.spell().radius();
+        List<Hit> hits = new ArrayList<>();
+        for (CombatUnit unit : units) {
+            if (unit.side() != active.side && unit.alive() &&
+                    Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
+                            radius + unit.radius() + EPSILON)
+                hits.add(new Hit(unit, null, 0.0D, active));
+        }
+        return hits;
+    }
+
+    /**
+     * What a Bell does beyond its circle, once: the enemy side's Shadow
+     * dodge is off for a while, and an enemy Warden in earshot comes.
+     */
+    private void ringFar(ActiveSpell active) {
+        TeamSide enemy = active.side.opponent();
+        dodgeReady.merge(enemy, now + BattleCard.BELL_DODGE_OFF_TICKS,
+                Math::max);
+        for (CombatUnit unit : units) {
+            BattleCard card = cardOf.get(unit.id());
+            if (unit.side() == enemy && unit.alive() && card != null &&
+                    card.hearsNoise() && Math.hypot(unit.x() - active.x,
+                            unit.z() - active.z) <= BattleCard.BELL_WARDEN_RANGE)
+                unit.lure(BattleCard.BELL_WARDEN_TICKS, active.x, active.z);
+        }
+    }
+
+    /**
+     * A Bell rings over an enemy troop: a short stun, then it walks to the
+     * bell; it is seen again if invisible, gets up if playing dead, and a
+     * mirror image vanishes.
+     */
+    private void ring(CombatUnit unit, ActiveSpell bell) {
+        BattleCard card = cardOf.get(unit.id());
+        if (card != null && card.castsIllusions() && unit.generation() > 0) {
+            unit.expire();
+            tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.VANISH,
+                    unit.x(), unit.z()));
+            return;
+        }
+        if (unit.hidden() || unit.playingDead()) {
+            unit.reveal();
+            unit.wake();
+            tribeEvents.add(new TribeEvent(unit.id(), TribeEvent.Kind.REVEAL,
+                    unit.x(), unit.z()));
+        }
+        int stun = bell.card.spell().stunTicks();
+        unit.stun(stun);
+        if (unit.stats().speed() > 0.0D)
+            unit.lure(stun + BattleCard.BELL_LURE_TICKS, bell.x, bell.z);
+    }
+
+    /**
      * Every unit of both sides whose body touches the circle, and every
      * standing tower whose footprint does (Milk Bucket).
      */
@@ -1031,6 +1291,10 @@ public final class CombatEngine {
                 douse(hit, pushes);
                 continue;
             }
+            if (hit.spell().card.rings()) {
+                ring(hit.unit(), hit.spell());
+                continue;
+            }
             if (hit.tower() != null) {
                 hitTower(hit.tower(), hit.damage(), destroyed,
                         hit.spell().side, hit.spell().card);
@@ -1064,11 +1328,17 @@ public final class CombatEngine {
                     unit.stats().traits().frostWeak();
             double damage = frostWeak ? hit.damage() *
                     TroopTraits.FROST_WEAKNESS : hit.damage();
+            // Anvil and Dragon's Breath go through half the armour.
+            boolean half = hit.spell().card.halfArmor();
+            if (half)
+                damage *= 0.5D + 0.5D * unit.armorFactor();
+            if (hit.spell().card.blocksHealing() && unit.alive())
+                unit.blockHeal(BattleCard.BREATH_HEAL_BLOCK_TICKS);
             // A spell that only slows (Cobweb) deals nothing; a poison that
             // a golem shrugs off does nothing at all.
             if (damage > 0.0D) {
                 if (!damageUnit(unit, damage, hit.spell().side,
-                        hit.spell().card, spell.poison()))
+                        hit.spell().card, spell.poison() || half))
                     continue;
             } else if (spell.damagePerPulse() > 0.0D || !unit.alive()) {
                 continue;
@@ -1368,7 +1638,7 @@ public final class CombatEngine {
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit other : units) {
             if (other == first || other.side() == unit.side() || !other.alive() ||
-                    other.playingDead() || unit.stats().traits().buildingsOnly())
+                    other.untargetable() || unit.stats().traits().buildingsOnly())
                 continue;
             double d = distance(unit, other);
             if (d <= unit.stats().range() + unit.radius() + other.radius() &&
@@ -1440,6 +1710,11 @@ public final class CombatEngine {
             return false;
         if (!victim.alive())
             cheatDeath(victim);
+        // A Villager a zombie kills rises as one of the zombies.
+        if (!victim.alive() && hit != null && hit.callsGolem() &&
+                source != null && source.infects() && by != null &&
+                by != victim.side())
+            converted.put(victim.id(), by);
         stats.troopDamage(by, source, before - victim.health(),
                 !victim.alive());
         if (victim.alive())
@@ -1459,6 +1734,15 @@ public final class CombatEngine {
                 victim.health() < victim.maxHealth() * BattleCard.ILLUSION_BELOW &&
                 illusionsCast.add(victim.id()))
             castIllusions(victim);
+        if (card.bringsLlamas() && victim.hideOnce(BattleCard.HIDE_TICKS)) {
+            for (CombatUnit other : units) {
+                if (victim.id().equals(other.target()))
+                    other.setTarget(null);
+            }
+            towerTarget.values().removeIf(victim.id()::equals);
+            tribeEvents.add(new TribeEvent(victim.id(), TribeEvent.Kind.HIDE,
+                    victim.x(), victim.z()));
+        }
         if (card.playsDead() &&
                 victim.health() < victim.maxHealth() * BattleCard.PLAY_DEAD_BELOW &&
                 victim.playDead(BattleCard.PLAY_DEAD_TICKS)) {
@@ -1538,7 +1822,7 @@ public final class CombatEngine {
         double bestDistance = Double.MAX_VALUE;
         for (CombatUnit other : units) {
             if (other.side() == cube.side() || !other.alive() ||
-                    other.playingDead() || !canTarget(cube, other))
+                    other.untargetable() || !canTarget(cube, other))
                 continue;
             double d = edgeDistance(cube, other);
             if (d > BattleCard.LEAP_RANGE + EPSILON)
@@ -1808,10 +2092,26 @@ public final class CombatEngine {
             BattleCard dead = cardOf.get(unit.id());
             if (dead != null && dead.explodesOnDeath())
                 blast(unit);
+            TeamSide zombies = converted.remove(unit.id());
+            if (zombies != null)
+                rise(unit, zombies);
             deaths.add(new Death(unit.id(), unit.x(), unit.z(),
                     childrenOf(unit)));
         }
         return deaths;
+    }
+
+    /** A Villager killed by a zombie gets up as a Zombie Villager of its side. */
+    private void rise(CombatUnit villager, TeamSide side) {
+        TroopStats zombie = BattleCard.ZOMBIE_VILLAGER.stats();
+        TribeBonus bonus = tribeBonus(BattleCard.ZOMBIE_VILLAGER, side);
+        ArenaWaypoint spot = arena.clampSpawn(villager.x(), villager.z(),
+                ArenaLayout.sideSign(side));
+        spawns.add(new ChildSpawn(side, zombie, 0,
+                zombie.health() * bonus.health(), zombie.damage() * bonus.damage(),
+                zombie.radius(), spot.x(), spot.z(), 6, null));
+        tribeEvents.add(new TribeEvent(villager.id(), TribeEvent.Kind.CONVERT,
+                spot.x(), spot.z()));
     }
 
     /** Nether tribe step 5: a dying troop sets the enemies near it burning. */

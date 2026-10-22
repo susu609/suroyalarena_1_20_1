@@ -1,0 +1,16 @@
+{
+  "id": "dragons_breath",
+  "type": "spell",
+  "display_name": "Dragon's Breath",
+  "roles": ["attack", "defense"],
+  "elixir": 4,
+  "radius": 3.0,
+  "travel_ticks": 5,
+  "flight_speed": 16,
+  "duration_ticks": 100,
+  "pulse_interval_ticks": 10,
+  "damage_per_pulse": 2,
+  "armor_ignored_share": 0.5,
+  "blocks_healing_ticks": 15,
+  "tower_multiplier": 0.3
+}

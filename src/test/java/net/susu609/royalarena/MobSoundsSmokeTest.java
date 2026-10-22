@@ -62,6 +62,10 @@ public final class MobSoundsSmokeTest {
                 "minecraft:warden", false)), "the Warden digs out");
         check("entity.pillager.celebrate".equals(MobSounds.celebrate(
                 "minecraft:pillager")), "a Pillager cheers like after a raid");
+        check(MobSounds.hurt("minecraft:trader_llama", false)
+                .equals("entity.llama.hurt"), "a Trader Llama sounds like a Llama");
+        check(MobSounds.hurt(BattleCard.GIANT.entityId(), false)
+                .equals("entity.hostile.hurt"), "the Giant has vanilla's monster sounds");
         check(MobSounds.ambient("minecraft:creeper") == null,
                 "a Creeper has no idle sound");
         System.out.println("RoyalArena mob sounds tests: PASS");

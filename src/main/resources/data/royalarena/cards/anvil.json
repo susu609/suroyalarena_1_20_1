@@ -1,0 +1,15 @@
+{
+  "id": "anvil",
+  "type": "spell",
+  "display_name": "Anvil",
+  "roles": ["attack", "defense"],
+  "elixir": 2,
+  "radius": 1.5,
+  "travel_ticks": 24,
+  "damage": 45,
+  "max_targets": 1,
+  "targets": "the enemy troop nearest the centre",
+  "armor_ignored_share": 0.5,
+  "stun_ticks": 20,
+  "tower_multiplier": 0.3
+}

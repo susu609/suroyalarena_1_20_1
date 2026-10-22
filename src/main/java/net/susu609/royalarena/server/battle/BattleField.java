@@ -104,6 +104,11 @@ public final class BattleField {
             new DustParticleOptions(new Vector3f(0.15F, 0.12F, 0.15F), 1.0F);
     /** Dark grey for a Wither Skull's circle. */
     private static final int WITHER_FLASH = 0x2A2A2A;
+    /** The Anvil's shadow on the floor before it lands. */
+    private static final int ANVIL_SHADOW = 0x303030;
+    /** Purple for Dragon's Breath, gold for a Bell. */
+    private static final int BREATH_FLASH = 0xB050E0;
+    private static final int BELL_FLASH = 0xFFD54A;
     /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
     private static final int VOLLEY_ARROWS = 5;
     /** Fewest ticks between two red hurt flashes of one troop. */
@@ -232,10 +237,17 @@ public final class BattleField {
 
     private void spawnChild(ChildSpawn child) {
         BattleCard card = cardOf(child.stats());
-        if (card == null)
+        Entity entity;
+        // A Wandering Trader's llamas are no card of their own.
+        if (card == null && child.stats() == BattleCard.TRADER_LLAMA)
+            entity = createMob(BattleCard.WANDERING_TRADER,
+                    "minecraft:trader_llama", "Trader Llama", child.side(),
+                    child.generation(), child.health(), child.x(), child.z());
+        else if (card == null)
             return;
-        Entity entity = createMob(card, child.side(), child.generation(),
-                child.health(), child.x(), child.z());
+        else
+            entity = createMob(card, child.side(), child.generation(),
+                    child.health(), child.x(), child.z());
         if (entity != null)
             engine.add(entity.getUUID(), child);
     }
@@ -251,19 +263,27 @@ public final class BattleField {
     private Entity createMob(BattleCard card, TeamSide side, int generation,
             double health, double x, double z)
     {
+        return createMob(card, card.entityId(), card.displayName(), side,
+                generation, health, x, z);
+    }
+
+    /** A troop mob of {@code card} shown as {@code entityId}, named {@code name}. */
+    private Entity createMob(BattleCard card, String entityId, String name,
+            TeamSide side, int generation, double health, double x, double z)
+    {
         EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(
-                RL.require(card.entityId()));
+                RL.require(entityId));
         Entity entity = type == null ? null : type.create(level);
         if (entity == null) {
             RoyalArena.LOGGER.warn("Card {} could not create entity {}",
-                    card.id(), card.entityId());
+                    card.id(), entityId);
             return null;
         }
         double hover = card.stats().traits().hover();
         entity.setNoGravity(hover > 0.0D);
         entity.moveTo(x, arena.floorY() + 1.0D + hover, z,
                 side == TeamSide.BLUE ? 180.0F : 0.0F, 0.0F);
-        entity.setCustomName(Component.literal(card.displayName()).withStyle(
+        entity.setCustomName(Component.literal(name).withStyle(
                 side == TeamSide.BLUE ? ChatFormatting.BLUE :
                         ChatFormatting.RED));
         entity.addTag("royalarena_troop");
@@ -294,7 +314,7 @@ public final class BattleField {
         }
         if (!level.addFreshEntity(entity)) {
             RoyalArena.LOGGER.warn("Could not add {} for card {}",
-                    card.entityId(), card.id());
+                    entityId, card.id());
             return null;
         }
         return entity;
@@ -720,6 +740,24 @@ public final class BattleField {
                             ArenaSfx.SPELL_THROW.get(), SoundSource.HOSTILE,
                             0.8F, 1.0F);
                 }
+                case ANVIL -> {
+                    // Falls from the sky; its shadow marks where it lands.
+                    flash(tx, tz, deploy.card().spell().radius(), ANVIL_SHADOW);
+                    sendProjectile(S2CProjectilePacket.Kind.ANVIL,
+                            new double[] {tx, floor + 16.0D, tz},
+                            new double[] {tx, floor, tz}, deploy.ticksLeft(),
+                            0.0F);
+                }
+                case DRAGONS_BREATH -> {
+                    sendProjectile(S2CProjectilePacket.Kind.DRAGON_FIREBALL,
+                            hand, new double[] {tx, floor + 0.5D, tz},
+                            deploy.ticksLeft(), 2.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            SoundEvents.ENDER_DRAGON_SHOOT, SoundSource.HOSTILE,
+                            0.6F, 1.2F);
+                }
+                case BELL -> level.sendParticles(ParticleTypes.NOTE, tx,
+                        floor + 1.5D, tz, 6, 0.4D, 0.3D, 0.4D, 1.0D);
                 case ZAP -> level.sendParticles(
                         ParticleTypes.ELECTRIC_SPARK, tx, floor + 0.3D, tz, 20,
                         deploy.card().spell().radius() * 0.5D, 0.1D,
@@ -896,6 +934,47 @@ public final class BattleField {
             case ENDER_PEARL -> level.sendParticles(ParticleTypes.PORTAL, x,
                     floor + 0.5D, z, 30, radius * 0.5D, 0.4D, radius * 0.5D,
                     0.4D);
+            case ANVIL -> {
+                shake(x, z, 0.4F);
+                level.sendParticles(new net.minecraft.core.particles
+                                .BlockParticleOption(ParticleTypes.BLOCK,
+                                net.minecraft.world.level.block.Blocks.ANVIL
+                                        .defaultBlockState()), x, floor + 0.2D,
+                        z, 30, radius * 0.4D, 0.1D, radius * 0.4D, 0.1D);
+                level.sendParticles(ParticleTypes.CRIT, x, floor + 0.8D, z, 12,
+                        0.3D, 0.3D, 0.3D, 0.2D);
+                arenaSound(x, floor, z, SoundEvents.ANVIL_LAND,
+                        SoundSource.HOSTILE, 1.0F, 1.0F);
+            }
+            case DRAGONS_BREATH -> {
+                if (pulse.index() == 0) {
+                    flash(x, z, radius, BREATH_FLASH);
+                    arenaSound(x, floor, z, SoundEvents.DRAGON_FIREBALL_EXPLODE,
+                            SoundSource.HOSTILE, 0.8F, 1.0F);
+                }
+                level.sendParticles(ParticleTypes.DRAGON_BREATH, x,
+                        floor + 0.3D, z, 40, radius * 0.5D, 0.15D,
+                        radius * 0.5D, 0.01D);
+            }
+            case BELL -> {
+                // The bell rings: notes ring out over everyone it calls.
+                flash(x, z, radius, BELL_FLASH);
+                arenaSound(x, floor + 1.0D, z, SoundEvents.BELL_BLOCK,
+                        SoundSource.HOSTILE, 1.4F, 1.0F);
+                arenaSound(x, floor + 1.0D, z, SoundEvents.BELL_RESONATE,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+                for (int i = 0; i < 16; i++) {
+                    double angle = Math.PI * 2.0D * i / 16.0D;
+                    level.sendParticles(ParticleTypes.NOTE,
+                            x + Math.cos(angle) * radius * 0.6D, floor + 1.0D,
+                            z + Math.sin(angle) * radius * 0.6D, 1, 0.0D, 0.0D,
+                            0.0D, i / 16.0D);
+                }
+                for (TickResult.Strike strike : pulse.strikes())
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
+                            strike.x(), floor + 1.6D, strike.z(), 4, 0.2D,
+                            0.1D, 0.2D, 0.05D);
+            }
             case WATER_BUCKET -> {
                 flash(x, z, radius, S2CAoeFlashPacket.ICE);
                 level.sendParticles(ParticleTypes.SPLASH, x, floor + 0.3D, z,
@@ -1540,6 +1619,49 @@ public final class BattleField {
             }
             case VANISH -> level.sendParticles(ParticleTypes.POOF, x, y + 0.4D,
                     z, 6, 0.2D, 0.2D, 0.2D, 0.02D);
+            case GOLEM_CALL -> {
+                level.sendParticles(ParticleTypes.HAPPY_VILLAGER, x, y + 1.0D,
+                        z, 20, 0.8D, 0.8D, 0.8D, 0.0D);
+                arenaSound(x, y, z, SoundEvents.VILLAGER_CELEBRATE,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+                arenaSound(x, y, z, SoundEvents.IRON_GOLEM_REPAIR,
+                        SoundSource.HOSTILE, 1.0F, 1.0F);
+            }
+            case CONVERT -> {
+                level.sendParticles(ParticleTypes.ANGRY_VILLAGER, x, y + 1.2D,
+                        z, 4, 0.3D, 0.3D, 0.3D, 0.0D);
+                arenaSound(x, y, z, SoundEvents.ZOMBIE_VILLAGER_CONVERTED,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
+            case FLOWER -> {
+                level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM,
+                                new ItemStack(level.random.nextBoolean() ?
+                                        Items.TORCHFLOWER : Items.PINK_PETALS)),
+                        x, y + 0.3D, z, 10, 0.4D, 0.1D, 0.4D, 0.05D);
+                level.sendParticles(ParticleTypes.HAPPY_VILLAGER, x, y + 0.6D,
+                        z, 10, BattleCard.FLOWER_RADIUS * 0.5D, 0.3D,
+                        BattleCard.FLOWER_RADIUS * 0.5D, 0.0D);
+                arenaSound(x, y, z, SoundEvents.SNIFFER_DIGGING,
+                        SoundSource.HOSTILE, 0.7F, 1.0F);
+            }
+            case HIDE -> {
+                level.sendParticles(ParticleTypes.EFFECT, x, y + 1.0D, z, 16,
+                        0.3D, 0.6D, 0.3D, 0.05D);
+                arenaSound(x, y, z, SoundEvents.WANDERING_TRADER_DRINK_POTION,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+                arenaSound(x, y, z, SoundEvents.WANDERING_TRADER_DISAPPEARED,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
+            case REVEAL -> {
+                // A Bell gets a playing-dead Axolotl up again.
+                if (level.getEntity(event.unit()) instanceof
+                        net.minecraft.world.entity.animal.axolotl.Axolotl axolotl)
+                    axolotl.setPlayingDead(false);
+                level.sendParticles(ParticleTypes.FLASH, x, y + 1.0D, z, 1,
+                        0.0D, 0.0D, 0.0D, 0.0D);
+                arenaSound(x, y, z, SoundEvents.WANDERING_TRADER_REAPPEARED,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
         }
     }
 

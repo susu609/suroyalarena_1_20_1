@@ -521,6 +521,10 @@ public final class BotBrain {
             return pearlValue(match, engine, spell, x, z);
         if (card.douses())
             return waterValue(match, engine, spell, x, z);
+        if (card.dropsOnOne())
+            return anvilValue(match, engine, spell, x, z);
+        if (card.rings())
+            return bellValue(match, engine, spell, x, z);
         double perTarget = spell.damagePerTarget();
         // The skull's wither keeps hurting after the blast.
         if (card.withers())
@@ -622,6 +626,64 @@ public final class BotBrain {
         if (best.side() == side || !hittingTower(match, best))
             return 0.0D;
         return seconds * dps * 0.5D;
+    }
+
+    /**
+     * What an Anvil on (x, z) is worth: like the engine, it falls on the
+     * enemy troop nearest the centre; the damage it takes off (half the
+     * armour ignored) and, on a troop that is fighting, the stun.
+     */
+    private double anvilValue(MatchInstance match, CombatEngine engine,
+            SpellStats spell, double x, double z)
+    {
+        CombatUnit best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (CombatUnit unit : engine.units()) {
+            if (unit.side() == side || !unit.alive())
+                continue;
+            double d = Math.hypot(unit.x() - x, unit.z() - z);
+            if (d <= spell.radius() + unit.radius() && d < bestDistance) {
+                best = unit;
+                bestDistance = d;
+            }
+        }
+        if (best == null)
+            return 0.0D;
+        double dps = best.stats().damage() * 20.0D / best.stats().attackTicks();
+        double hit = spell.damagePerPulse() *
+                (0.5D + 0.5D * best.stats().armorFactor());
+        return Math.min(best.health(), hit) +
+                (engaged(match, engine, best) ?
+                        spell.stunTicks() / 20.0D * dps : 0.0D);
+    }
+
+    /**
+     * What a Bell on (x, z) is worth: for each enemy in it that is fighting,
+     * the damage it does not deal while stunned and walking to the bell;
+     * an invisible or playing-dead troop seen again, a mirror image gone.
+     * 0 below 2 enemies.
+     */
+    private double bellValue(MatchInstance match, CombatEngine engine,
+            SpellStats spell, double x, double z)
+    {
+        double total = 0.0D;
+        int touched = 0;
+        double seconds = (spell.stunTicks() + BattleCard.BELL_LURE_TICKS) /
+                20.0D;
+        for (CombatUnit unit : engine.units()) {
+            if (unit.side() == side || !unit.alive() ||
+                    Math.hypot(unit.x() - x, unit.z() - z) >
+                            spell.radius() + unit.radius())
+                continue;
+            touched++;
+            double dps = unit.stats().damage() * 20.0D /
+                    unit.stats().attackTicks();
+            if (engaged(match, engine, unit))
+                total += seconds * dps;
+            if (unit.untargetable())
+                total += unit.health() * 0.25D;
+        }
+        return touched < 2 ? 0.0D : total;
     }
 
     /** Whether an enemy troop is within reach of one of this side's towers. */

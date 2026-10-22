@@ -14,8 +14,9 @@ import java.util.Map;
  * What the server says about each troop's state (S2CTroopStatePacket), and
  * how it is drawn: a colour over the whole model (light blue frozen, pale
  * yellow stunned, green poisoned, grey withered, warm gold hastened, a gold
- * shimmer while invulnerable, purple for a raging Zoglin), a mirror image
- * see-through, a lifted troop drawn higher. Vanilla's red hurt tint still
+ * shimmer while invulnerable, purple for a raging Zoglin, lilac while
+ * Dragon's Breath blocks healing), a mirror image see-through, an invisible
+ * troop almost gone, a lifted troop drawn higher. Vanilla's red hurt tint still
  * shows over the colour.
  */
 public final class TroopStatus {
@@ -26,6 +27,8 @@ public final class TroopStatus {
     private static final float RAGE_GROWTH = 0.25F;
     /** See-through share of a mirror image. */
     private static final float IMAGE_ALPHA = 0.45F;
+    /** What is left to see of an invisible troop. */
+    private static final float HIDDEN_ALPHA = 0.18F;
 
     private TroopStatus() {
     }
@@ -54,6 +57,11 @@ public final class TroopStatus {
     /** A mirror image of an Illusioner, drawn see-through. */
     public static boolean illusion(Entity entity) {
         return has(entity, TroopFlags.ILLUSION);
+    }
+
+    /** Drawn see-through: a mirror image, or an invisible troop. */
+    public static boolean seeThrough(Entity entity) {
+        return has(entity, TroopFlags.ILLUSION) || has(entity, TroopFlags.HIDDEN);
     }
 
     /** How far up to draw the troop (a Shulker bullet lifts it). */
@@ -99,6 +107,8 @@ public final class TroopStatus {
             r = 0.6F; g = 1.0F; b = 0.5F;
         } else if (TroopFlags.has(flags, TroopFlags.HASTED)) {
             r = 1.0F; g = 0.92F; b = 0.6F;
+        } else if (TroopFlags.has(flags, TroopFlags.HEAL_BLOCKED)) {
+            r = 0.85F; g = 0.6F; b = 1.0F;
         } else {
             float rage = rage(entity);
             r = 1.0F - 0.15F * rage;
@@ -110,7 +120,8 @@ public final class TroopStatus {
             g *= 1.0F - 0.08F * pulse;
             b *= 1.0F - 0.45F * pulse;
         }
-        float a = TroopFlags.has(flags, TroopFlags.ILLUSION) ? IMAGE_ALPHA : 1.0F;
+        float a = TroopFlags.has(flags, TroopFlags.HIDDEN) ? HIDDEN_ALPHA :
+                TroopFlags.has(flags, TroopFlags.ILLUSION) ? IMAGE_ALPHA : 1.0F;
         return new float[] {r, g, b, a};
     }
 }
