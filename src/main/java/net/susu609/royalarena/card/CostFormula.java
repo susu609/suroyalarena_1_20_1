@@ -62,9 +62,16 @@ public final class CostFormula {
         // A burst (Piglin) fires its shots within one attack interval.
         double dps = perHit * s.traits().shots() / (s.attackTicks() / 20.0D) *
                 s.count();
+        // A jockey's rider fights from the saddle too, from the start.
+        double range = s.range();
+        if (s.split() != null && s.split().into() != null) {
+            TroopStats rider = s.split().into();
+            dps += rider.damage() / (rider.attackTicks() / 20.0D) * s.count();
+            range = Math.max(range, rider.range());
+        }
         double modifier = traitModifier(s);
-        if (s.range() >= 4.0D)
-            modifier *= RANGED * (1.0D + RANGE_STEP * (s.range() - 4.0D));
+        if (range >= 4.0D)
+            modifier *= RANGED * (1.0D + RANGE_STEP * (range - 4.0D));
         if (s.speed() >= 1.33D)
             modifier *= 1.1D;
         // A building stands still and lives 30 s.

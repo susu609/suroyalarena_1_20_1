@@ -10,8 +10,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.susu609.royalarena.arena.ArenaPoint;
+import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.hud.CrownFlights;
 import net.susu609.royalarena.client.state.ClientMatchState;
+import net.susu609.royalarena.combat.TroopFlags;
 import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.tower.TowerId;
 import org.joml.Matrix4f;
@@ -37,6 +39,7 @@ public final class DamageNumbers {
     private static final int TOWER_DAMAGE = 0xFFB040;
     private static final int HEAL = 0x50FF70;
     private static final int FROZEN = 0x9FE4FF;
+    private static final int STUNNED = 0xFFF070;
     /** Losses below this wait (up to {@link #GATHER_TICKS}) to add up. */
     private static final float MIN_SHOWN = 1.0F;
     private static final int GATHER_TICKS = 10;
@@ -100,7 +103,12 @@ public final class DamageNumbers {
         Float before = HEALTH.put(id, health);
         Vec3 head = troop.position().add(0.0D,
                 troop.getBbHeight() * TroopVisuals.scale(troop) + 0.3D, 0.0D);
-        if (before != null && health < before) {
+        // A building loses its health over its lifetime on its own: only
+        // what goes beyond that (a hit) is a number.
+        float decay = TroopStatus.has(troop, TroopFlags.BUILDING) ?
+                troop.getMaxHealth() / BattleCard.BUILDING_LIFETIME_TICKS * 3.0F :
+                0.0F;
+        if (before != null && health < before && before - health > decay) {
             GATHERED.merge(id, before - health, Float::sum);
             GATHER_START.putIfAbsent(id, ticks);
         } else if (before != null && health > before) {
@@ -114,10 +122,12 @@ public final class DamageNumbers {
             GATHERED.remove(id);
             GATHER_START.remove(id);
         }
-        boolean frozen = troop.isFullyFrozen();
-        if (frozen && FROZEN_SHOWN.add(id))
-            add(head.add(0.0D, 0.3D, 0.0D), "Frozen", FROZEN, 0.9F);
-        else if (!frozen)
+        boolean frozen = TroopStatus.has(troop, TroopFlags.FROZEN);
+        boolean stunned = TroopStatus.has(troop, TroopFlags.STUNNED);
+        if ((frozen || stunned) && FROZEN_SHOWN.add(id))
+            add(head.add(0.0D, 0.3D, 0.0D), stunned ? "Stunned" : "Frozen",
+                    stunned ? STUNNED : FROZEN, 0.9F);
+        else if (!frozen && !stunned)
             FROZEN_SHOWN.remove(id);
     }
 

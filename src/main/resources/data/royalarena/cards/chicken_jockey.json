@@ -12,12 +12,13 @@
   "count": 1,
   "unit": {
     "health": 4,
-    "damage": 3,
+    "damage": 1,
     "attack_interval_ticks": 20,
-    "range": 1.2,
+    "range": 1.0,
     "move_speed": 1.8,
     "flying": false,
     "targets": "ground"
   },
-  "splits_into": "zombie"
+  "rider": "zombie",
+  "rider_rule": "a baby zombie carried from the start: two lives"
 }

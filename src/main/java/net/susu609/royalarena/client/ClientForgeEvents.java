@@ -31,6 +31,7 @@ import net.susu609.royalarena.client.render.DeployPreviewRenderer;
 import net.susu609.royalarena.client.render.ProjectileRenderer;
 import net.susu609.royalarena.client.render.SpellTargetHighlighter;
 import net.susu609.royalarena.client.render.TroopEffects;
+import net.susu609.royalarena.client.render.TroopStatus;
 import net.susu609.royalarena.client.render.TroopVisuals;
 import net.susu609.royalarena.client.render.WorldHealthBar;
 import net.susu609.royalarena.client.render.entity.KingFigure;
@@ -68,6 +69,7 @@ public final class ClientForgeEvents {
         AoeFlashRenderer.tick();
         BurnEffects.tick();
         BotDragRenderer.tick();
+        TroopStatus.tick();
         DamageNumbers.tick();
         TroopEffects.tick();
         CameraShake.tick();
@@ -145,12 +147,17 @@ public final class ClientForgeEvents {
         CameraShake.apply(event);
     }
 
-    /** Small troops (the three Skeletons, the four Spiders) drawn smaller. */
+    /**
+     * Small troops (the three Skeletons, the four Spiders) drawn smaller, a
+     * raging Zoglin bigger, and a troop a Shulker bullet lifted drawn higher.
+     */
     @SubscribeEvent
     public static void onRenderLivingPre(RenderLivingEvent.Pre<?, ?> event) {
         float scale = TroopVisuals.scale(event.getEntity());
-        if (scale != 1.0F) {
+        double lift = TroopStatus.lift(event.getEntity());
+        if (scale != 1.0F || lift > 0.0D) {
             event.getPoseStack().pushPose();
+            event.getPoseStack().translate(0.0D, lift, 0.0D);
             event.getPoseStack().scale(scale, scale, scale);
         }
     }
@@ -158,7 +165,7 @@ public final class ClientForgeEvents {
     @SubscribeEvent
     public static void onRenderLiving(RenderLivingEvent.Post<?, ?> event) {
         float scale = TroopVisuals.scale(event.getEntity());
-        if (scale != 1.0F)
+        if (scale != 1.0F || TroopStatus.lift(event.getEntity()) > 0.0D)
             event.getPoseStack().popPose();
         WorldHealthBar.renderTroop(
                 event.getEntity(), event.getPoseStack(),

@@ -37,6 +37,7 @@ public final class MobsWave6SmokeTest {
         waterBucketDousesPushesAndHurts();
         magmaCubeLeapsOntoTheArcher();
         abilitiesCountInTheCost();
+        jockeysHaveTwoLives();
         System.out.println("RoyalArena wave 6 mobs smoke tests: PASS");
     }
 
@@ -276,6 +277,48 @@ public final class MobsWave6SmokeTest {
             check(CostFormula.spellAbility(card) > 0.0D &&
                             CostFormula.elixir(card) == card.cost(),
                     card.id() + "'s rule is in its cost");
+    }
+
+    /**
+     * A jockey carries its rider from the start: the rider shoots from the
+     * saddle and never walks; whichever dies first, the other goes on.
+     */
+    private static void jockeysHaveTwoLives() {
+        CombatEngine engine = new CombatEngine(battle());
+        CombatUnit chicken = unit(engine, BattleCard.CHICKEN_JOCKEY,
+                TeamSide.BLUE, 0.0D, 2.2D);
+        CombatUnit baby = engine.addRider(UUID.randomUUID(), chicken);
+        TickResult first = engine.tick();
+        check(baby.mount() != null && first.moves().stream().noneMatch(m ->
+                        m.unit().equals(baby.id())),
+                "the rider sits on its mount, it does not walk");
+        engine.castSpell(TeamSide.RED, BattleCard.ZAP, 0.0D, 2.2D);
+        TickResult zapped = engine.tick();
+        check(!chicken.alive() && baby.alive(),
+                "a Zap downs the chicken, not the baby zombie");
+        check(zapped.deaths().stream().allMatch(d -> d.children().isEmpty()),
+                "no second zombie appears: the rider was already there");
+        // (once the Zap's stun wears off)
+        boolean walks = false;
+        for (int t = 0; t < 15 && !walks; t++)
+            walks = engine.tick().moves().stream().anyMatch(m ->
+                    m.unit().equals(baby.id()));
+        check(baby.mount() == null && walks, "the baby zombie walks on alone");
+
+        CombatEngine other = new CombatEngine(battle());
+        CombatUnit camel = unit(other, BattleCard.CAMEL, TeamSide.BLUE, 0.0D,
+                2.2D);
+        CombatUnit husk = other.addRider(UUID.randomUUID(), camel);
+        for (int i = 0; i < 8 && husk.alive(); i++) {
+            other.castSpell(TeamSide.RED, BattleCard.ZAP, 0.0D, 2.2D);
+            for (int t = 0; t < 10; t++)
+                other.tick();
+        }
+        check(!husk.alive() && camel.alive(),
+                "the Husk falls first; the Camel lives on");
+        check(other.tick().moves().stream().anyMatch(m ->
+                        m.unit().equals(camel.id())),
+                "and keeps walking to the towers");
     }
 
     private static void check(boolean condition, String name) {

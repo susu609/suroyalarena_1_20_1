@@ -38,9 +38,13 @@ public final class TroopVisuals {
         return null;
     }
 
-    /** How big the troop is drawn (1 for anything that is not a troop). */
+    /**
+     * How big the troop is drawn (1 for anything that is not a troop): its
+     * card's scale, and a raging Zoglin grows ({@link TroopStatus#growth}).
+     */
     public static float scale(Entity entity) {
         BattleCard card = cardOf(entity);
-        return card == null ? 1.0F : card.modelScale();
+        return card == null ? 1.0F :
+                card.modelScale() * TroopStatus.growth(entity);
     }
 }

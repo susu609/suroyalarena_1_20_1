@@ -56,6 +56,11 @@ public final class CombatUnit {
     private int blindTicks;
     private int playDeadTicks;
     private boolean playedDead;
+    /** Of {@link #frozenTicks}, the ticks that are a stun or a lift. */
+    private int stunTicks;
+    private int levitateTicks;
+    /** The unit this one rides (a jockey's rider), or null on foot. */
+    private UUID mount;
 
     CombatUnit(UUID id, TeamSide side, TroopStats stats, int generation,
             double health, double damage, double radius, double x, double z,
@@ -174,6 +179,8 @@ public final class CombatUnit {
         witherPerTick = 0.0D;
         witherSource = null;
         blindTicks = 0;
+        stunTicks = 0;
+        levitateTicks = 0;
     }
 
     public boolean alive() {
@@ -253,6 +260,10 @@ public final class CombatUnit {
             teleportCooldown--;
         if (blindTicks > 0)
             blindTicks--;
+        if (stunTicks > 0)
+            stunTicks--;
+        if (levitateTicks > 0)
+            levitateTicks--;
         // A frozen unit's attack does not charge.
         if (frozenTicks > 0)
             frozenTicks--;
@@ -341,6 +352,15 @@ public final class CombatUnit {
         return witherPerTick;
     }
 
+    /** The unit it rides, or null when it walks on its own. */
+    public UUID mount() {
+        return mount;
+    }
+
+    void setMount(UUID mount) {
+        this.mount = mount;
+    }
+
     /** Blinds the unit (an Illusioner's arrow): shorter range for a while. */
     void blind(int ticks) {
         blindTicks = Math.max(blindTicks, ticks);
@@ -425,7 +445,24 @@ public final class CombatUnit {
     /** Stops the unit for {@code ticks} and restarts its attack. */
     void stun(int ticks) {
         freeze(ticks);
+        stunTicks = Math.max(stunTicks, ticks);
         startCooldown();
+    }
+
+    /** Lifts the unit off the floor (a Shulker bullet): stopped meanwhile. */
+    void levitate(int ticks) {
+        freeze(ticks);
+        levitateTicks = Math.max(levitateTicks, ticks);
+    }
+
+    /** Stopped by a stun (Zap, Lightning), not by frost. */
+    public boolean stunned() {
+        return stunTicks > 0 && frozen();
+    }
+
+    /** Lifted by a Shulker bullet. */
+    public boolean levitating() {
+        return levitateTicks > 0 && frozen();
     }
 
     /** Kills the unit outright (a Creeper that has exploded). */

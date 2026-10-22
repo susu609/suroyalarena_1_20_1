@@ -490,3 +490,19 @@ now (its ability counts x2.0 in the cost). Endermite was 4 mites and won
 makes it 2 elixir, not 3 (its wither and the healing it blocks are in the
 cost). Pillager (62-64%) and Camel (62-64%) were already over 60% before this
 batch and are left as they were.
+
+## Riders: two lives
+
+A jockey's rider is its own troop from the start (`CombatEngine.addRider`,
+`SplitRule.into` now means "carries"): it rides, aims and fights from the
+saddle and never walks while mounted; whichever of the two dies first, the
+other goes on alone (a rider whose mount falls gets off and walks; a mount
+whose rider falls keeps running). The rider's damage counts for the played
+card. The cost adds the rider's damage to the mount's (`CostFormula`).
+
+| Card | Elixir (was) | Mount | Rider | Win rate |
+|---|---|---|---|---|
+| Spider Jockey | **4** (3) | spider 16 HP, bites 2 a second | Skeleton Archer | 45% |
+| Skeleton Rider | 3 | skeleton horse 20 HP (was 15), kicks 2, towers only | Skeleton Archer, shoots only buildings while mounted | 50% |
+| Chicken Jockey | 2 | chicken 4 HP, pecks 1 | baby Zombie | 51% |
+| Camel | **3** (2) | camel 32 HP, 2.5 and its dash | Husk | 43% (was 62-64% at 2) |

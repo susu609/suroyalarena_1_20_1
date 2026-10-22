@@ -699,9 +699,8 @@ public final class DeckScreen extends Screen {
                     BattleCard.LEAP_SPLASH));
         if (s.split() != null && s.split().into() != null) {
             BattleCard rider = BattleCard.forStats(s.split().into());
-            if (rider != null && card != BattleCard.SPIDER_JOCKEY &&
-                    card != BattleCard.SKELETON_RIDER)
-                lines.add(line("When it falls, its %s fights on",
+            if (rider != null)
+                lines.add(line("Carries a %s: two lives, whichever is left fights on",
                         rider.displayName()));
         }
         return lines;

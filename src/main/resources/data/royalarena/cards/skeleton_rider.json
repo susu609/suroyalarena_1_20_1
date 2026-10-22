@@ -9,13 +9,14 @@
   "model_scale": 1.0,
   "count": 1,
   "unit": {
-    "health": 15,
-    "damage": 6,
+    "health": 20,
+    "damage": 2,
     "attack_interval_ticks": 20,
-    "range": 6.0,
+    "range": 1.2,
     "move_speed": 1.4,
     "flying": false,
     "targets": "buildings"
   },
-  "splits_into": "skeleton_archer"
+  "rider": "skeleton_archer",
+  "rider_rule": "carried from the start, shooting buildings only from the saddle; two lives"
 }

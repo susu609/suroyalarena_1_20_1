@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -12,17 +13,21 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.monster.hoglin.Hoglin;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.susu609.royalarena.client.state.ClientMatchState;
+import net.susu609.royalarena.combat.TroopFlags;
 import net.susu609.royalarena.config.ArenaClientConfig;
 import net.susu609.royalarena.match.TeamSide;
 
 /**
  * Per-troop effects drawn on this client only: a ring of the team's colour
- * on the floor under every troop, and dust kicked up by the heavy ones
- * (Iron Golem, Ravager, Hoglin) as they walk.
+ * on the floor under every troop, dust kicked up by the heavy ones
+ * (Iron Golem, Ravager, Hoglin) as they walk, web and sparks on webbed and
+ * stunned troops.
  */
 public final class TroopEffects {
     private TroopEffects() {
@@ -33,6 +38,8 @@ public final class TroopEffects {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.isPaused() || !ClientMatchState.active())
             return;
+        for (Entity entity : mc.level.entitiesForRendering())
+            stateParticles(mc, entity);
         for (Entity entity : mc.level.entitiesForRendering()) {
             if (!(entity instanceof IronGolem || entity instanceof Ravager ||
                     entity instanceof Hoglin) ||
@@ -60,6 +67,31 @@ public final class TroopEffects {
                         0.15D, -dz * 2.0D);
             }
         }
+    }
+
+    /**
+     * Threads of web round the feet of a webbed troop (Cobweb), sparks round
+     * the head of a stunned one (Zap, Lightning).
+     */
+    private static void stateParticles(Minecraft mc, Entity entity) {
+        int flags = TroopStatus.flags(entity);
+        if (flags == 0)
+            return;
+        double w = entity.getBbWidth() * 0.6D;
+        if (TroopFlags.has(flags, TroopFlags.WEBBED) && entity.tickCount % 5 == 0)
+            mc.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM,
+                            new ItemStack(Items.COBWEB)),
+                    entity.getX() + (mc.level.random.nextDouble() - 0.5D) * w,
+                    entity.getY() + 0.1D,
+                    entity.getZ() + (mc.level.random.nextDouble() - 0.5D) * w,
+                    0.0D, 0.02D, 0.0D);
+        if (TroopFlags.has(flags, TroopFlags.STUNNED) && entity.tickCount % 3 == 0)
+            mc.level.addParticle(ParticleTypes.ELECTRIC_SPARK,
+                    entity.getX() + (mc.level.random.nextDouble() - 0.5D) * w,
+                    entity.getY() + entity.getBbHeight() *
+                            TroopVisuals.scale(entity) + 0.1D,
+                    entity.getZ() + (mc.level.random.nextDouble() - 0.5D) * w,
+                    0.0D, 0.05D, 0.0D);
     }
 
     /** A team-coloured ring under every troop, flat on the arena floor. */

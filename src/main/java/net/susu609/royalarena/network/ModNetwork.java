@@ -27,9 +27,10 @@ import net.susu609.royalarena.network.s2c.S2CMatchSnapshotPacket;
 import net.susu609.royalarena.network.s2c.S2CQueueStatusPacket;
 import net.susu609.royalarena.network.s2c.S2CArenaSoundPacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
+import net.susu609.royalarena.network.s2c.S2CTroopStatePacket;
 
 public final class ModNetwork {
-    private static final String PROTOCOL = "31";
+    private static final String PROTOCOL = "32";
     public static final SimpleChannel CHANNEL =
             NetworkRegistry.newSimpleChannel(
                     RL.of(RoyalArena.MOD_ID, "main"),
@@ -159,6 +160,12 @@ public final class ModNetwork {
                 .encoder(S2CArenaSoundPacket::encode)
                 .decoder(S2CArenaSoundPacket::decode)
                 .consumerMainThread(S2CArenaSoundPacket::handle).add();
+        CHANNEL.messageBuilder(
+                        S2CTroopStatePacket.class, id++,
+                        NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(S2CTroopStatePacket::encode)
+                .decoder(S2CTroopStatePacket::decode)
+                .consumerMainThread(S2CTroopStatePacket::handle).add();
     }
 
     public static void sendToServer(Object packet) {

@@ -60,6 +60,7 @@ import net.susu609.royalarena.combat.CombatUnit;
 import net.susu609.royalarena.combat.Formation;
 import net.susu609.royalarena.combat.Separation;
 import net.susu609.royalarena.combat.TickResult;
+import net.susu609.royalarena.combat.TroopFlags;
 import net.susu609.royalarena.config.ArenaCommonConfig;
 import net.susu609.royalarena.match.MatchInstance;
 import net.susu609.royalarena.match.PendingDeploy;
@@ -70,6 +71,7 @@ import net.susu609.royalarena.network.s2c.S2CArenaSoundPacket;
 import net.susu609.royalarena.network.s2c.S2CBurnPacket;
 import net.susu609.royalarena.network.s2c.S2CProjectilePacket;
 import net.susu609.royalarena.network.s2c.S2CShakePacket;
+import net.susu609.royalarena.network.s2c.S2CTroopStatePacket;
 import net.susu609.royalarena.sound.ArenaSfx;
 import net.susu609.royalarena.tower.TowerId;
 import net.susu609.royalarena.tower.TowerKind;
@@ -141,6 +143,21 @@ public final class BattleField {
     /** Game tick each Shulker last opened its shell to shoot. */
     private final Map<UUID, Long> shulkerOpenAt = new HashMap<>();
 
+    /** State bits last sent to the clients, per unit. */
+    private final Map<UUID, Integer> stateShown = new HashMap<>();
+
+    private void sendState(CombatUnit unit, Entity entity) {
+        int flags = TroopFlags.of(unit);
+        Integer shown = stateShown.get(unit.id());
+        if (shown != null && shown == flags &&
+                (flags == 0 || level.getGameTime() % 40 != 0))
+            return;
+        stateShown.put(unit.id(), flags);
+        ModNetwork.sendNear(level, entity.getX(), entity.getY(), entity.getZ(),
+                S2CArenaSoundPacket.RANGE,
+                new S2CTroopStatePacket(entity.getId(), flags));
+    }
+
     /** Shulkers shut their shell again once the shot is out. */
     private void closeShulkers() {
         long now = level.getGameTime();
@@ -198,8 +215,10 @@ public final class BattleField {
             Entity entity = createMob(card, deploy.side(), 0, stats.health(),
                     spot.x(), spot.z());
             if (entity != null) {
-                engine.add(entity.getUUID(), deploy.side(), stats, spot.x(),
-                        spot.z());
+                CombatUnit unit = engine.add(entity.getUUID(), deploy.side(),
+                        stats, spot.x(), spot.z());
+                if (stats.split() != null && stats.split().into() != null)
+                    seatRider(entity, unit, deploy.side());
                 if (first == null)
                     first = entity;
             }
@@ -278,52 +297,41 @@ public final class BattleField {
                     card.entityId(), card.id());
             return null;
         }
-        if (card == BattleCard.SPIDER_JOCKEY ||
-                card == BattleCard.SKELETON_RIDER)
-            mountRider(entity);
-        else if (card == BattleCard.CHICKEN_JOCKEY)
-            mountRider(entity, EntityType.ZOMBIE, null, true);
-        else if (card == BattleCard.CAMEL)
-            mountRider(entity, EntityType.HUSK, null, false);
         return entity;
     }
 
     /**
-     * The Skeleton on a Spider Jockey's or Skeleton Rider's back. It is only
-     * for show: the engine fights with the mount's unit (for the Spider
-     * Jockey, the rider's own Skeleton Archer unit takes over when it dies).
+     * A jockey's rider (the Spider Jockey's and Skeleton Rider's archer, the
+     * Chicken Jockey's baby zombie, the Camel's Husk): its own troop, with its
+     * own health, riding the mount from the start (two lives).
      */
-    private void mountRider(Entity spider) {
-        mountRider(spider, EntityType.SKELETON, Items.BOW, false);
+    private void seatRider(Entity mount, CombatUnit mountUnit, TeamSide side) {
+        TroopStats riderStats = mountUnit.stats().split().into();
+        BattleCard riderCard = cardOf(riderStats);
+        if (riderCard == null)
+            return;
+        Entity rider = createMob(riderCard, side, 1, riderStats.health(),
+                mount.getX(), mount.getZ());
+        if (rider == null)
+            return;
+        rider.startRiding(mount, true);
+        engine.addRider(rider.getUUID(), mountUnit);
     }
 
     /**
-     * A rider for show on a mount (the Chicken Jockey's baby zombie, the
-     * Camel's Husk): the mount's unit fights, and the rider's own card unit
-     * takes over when the mount dies.
+     * A fallen troop tips over red for a second, as vanilla mobs die, and
+     * vanilla then takes it away in a puff. Slimes and magma cubes (vanilla
+     * would split them again) and non-mobs (End Crystal) just vanish.
      */
-    private void mountRider(Entity spider, EntityType<?> type, Item held,
-            boolean baby)
-    {
-        Entity rider = type.create(level);
-        if (rider == null)
+    private static void fallDead(Entity entity) {
+        if (!(entity instanceof LivingEntity living) || entity instanceof Slime) {
+            discardMob(entity);
             return;
-        if (baby && rider instanceof net.minecraft.world.entity.monster.Zombie z)
-            z.setBaby(true);
-        rider.moveTo(spider.getX(), spider.getY(), spider.getZ(),
-                spider.getYRot(), 0.0F);
-        rider.addTag("royalarena_troop");
-        rider.setInvulnerable(true);
-        if (rider instanceof Mob mob) {
-            mob.setNoAi(true);
-            mob.setPersistenceRequired();
-            if (held != null) {
-                mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(held));
-                mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
-            }
         }
-        if (level.addFreshEntity(rider))
-            rider.startRiding(spider, true);
+        for (Entity rider : new ArrayList<>(entity.getPassengers()))
+            rider.discard();
+        entity.setCustomNameVisible(false);
+        living.setHealth(0.0F);
     }
 
     /** Discards a troop mob and whatever rides it. */
@@ -364,6 +372,7 @@ public final class BattleField {
                 forgetSounds(unit.id());
                 animator.forget(unit.id());
                 burnShown.remove(unit.id());
+                stateShown.remove(unit.id());
                 flashedHealth.remove(unit.id());
                 flashedAt.remove(unit.id());
                 continue;
@@ -480,6 +489,12 @@ public final class BattleField {
             Entity entity = level.getEntity(unit.id());
             if (entity == null)
                 continue;
+            // A rider is carried by its mount: it only aims and swings.
+            if (unit.mount() != null) {
+                animator.updatePose(entity, unit.target() != null, false);
+                faceTarget(entity, unit);
+                continue;
+            }
             double[] own = walk.getOrDefault(unit.id(), new double[2]);
             if (entity instanceof Slime slime) {
                 double factor = animator.slimeStride(slime,
@@ -1212,9 +1227,10 @@ public final class BattleField {
                 living.setHealth((float) unit.health());
             if (entity != null)
                 flashIfHurt(unit, entity);
-            // Frozen or stunned: vanilla's frozen look, the mob shakes.
-            if (entity != null && unit.frozen())
-                entity.setTicksFrozen(entity.getTicksRequiredToFreeze());
+            // Its state (frozen, stunned, poisoned...) for the clients to
+            // colour: when it changes, and every 2 s for late viewers.
+            if (entity != null)
+                sendState(unit, entity);
             // Chilled by a Stray's arrow: a few snowflakes while slowed.
             if (entity != null && unit.slowed() &&
                     level.getGameTime() % 6 == 0)
@@ -1632,6 +1648,7 @@ public final class BattleField {
         forgetSounds(death.unit());
         animator.forget(death.unit());
         burnShown.remove(death.unit());
+        stateShown.remove(death.unit());
         flashedHealth.remove(death.unit());
         flashedAt.remove(death.unit());
         Entity entity = level.getEntity(death.unit());
@@ -1652,7 +1669,14 @@ public final class BattleField {
             if (entity instanceof MagmaCube)
                 level.sendParticles(ParticleTypes.LAVA, entity.getX(), y,
                         entity.getZ(), 6, spread, 0.2D, spread, 0.0D);
-            discardMob(entity);
+            // A rider whose mount fell gets off and fights on (two lives).
+            for (Entity rider : new ArrayList<>(entity.getPassengers())) {
+                if (engine.unit(rider.getUUID()) == null)
+                    continue;
+                rider.stopRiding();
+                rider.moveTo(rider.getX(), arena.floorY() + 1.0D, rider.getZ());
+            }
+            fallDead(entity);
         }
         for (ChildSpawn child : death.children())
             spawnChild(child);

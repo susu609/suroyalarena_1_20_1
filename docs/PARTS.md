@@ -881,3 +881,20 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `SpellTargetHighlighter` (both sides for water and pearl), `DeckScreen`
   lines; protocol 31
 - `MobsWave6SmokeTest`
+
+## Part 75 — Troop state colours, two-life riders, falls
+
+- `combat/TroopFlags` and `S2CTroopStatePacket` (protocol 32): frozen,
+  stunned (`CombatUnit.stunned`), lifted (`levitating`), poisoned, withered,
+  hastened, webbed, invulnerable, mirror image, building
+- `client/render/TroopStatus` and `LivingEntityRendererMixin` (optional
+  injections): the whole model tinted light blue frozen, pale yellow stunned,
+  green poisoned, grey withered, warm gold hastened, gold shimmer while
+  invulnerable, purple for a raging Zoglin (which also grows to 1.25x);
+  mirror images drawn see-through; lifted troops drawn 0.6 higher; web
+  threads and stun sparks (`TroopEffects`); "Stunned" text; the frozen shake
+  is gone
+- `DamageNumbers`: a building's own decay shows no number, hits still do
+- Riders are troops of their own (`addRider`, `seatRider`): two lives
+- `BattleField.fallDead`: a dead troop tips over red for a second (not
+  slimes: vanilla would split them)

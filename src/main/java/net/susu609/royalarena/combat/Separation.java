@@ -26,12 +26,13 @@ public final class Separation {
     public static double[] offset(CombatUnit unit, List<CombatUnit> all,
             ArenaLayout arena)
     {
-        if (arena.sideOf(unit.z()) == 0)
+        // A rider sits on its mount: neither is pushed by the other.
+        if (arena.sideOf(unit.z()) == 0 || unit.mount() != null)
             return new double[2];
         double pushX = 0.0D;
         double pushZ = 0.0D;
         for (CombatUnit other : all) {
-            if (other == unit)
+            if (other == unit || other.mount() != null)
                 continue;
             double dx = unit.x() - other.x();
             double dz = unit.z() - other.z();

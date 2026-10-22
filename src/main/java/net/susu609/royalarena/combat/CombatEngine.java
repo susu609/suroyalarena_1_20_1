@@ -221,6 +221,41 @@ public final class CombatEngine {
         return credit != null ? credit : cardOf.get(unit);
     }
 
+    /** Mounts that got their rider at deploy (none splits off at death). */
+    private final Set<UUID> carrying = new HashSet<>();
+
+    /**
+     * A jockey's rider ({@code SplitRule.into}), on {@code mount} from the
+     * start: two lives. It rides and fights from the saddle (shooting only
+     * buildings while its mount goes for buildings only); whichever dies
+     * first, the other goes on alone. Its damage counts for the played card.
+     */
+    public CombatUnit addRider(UUID entityId, CombatUnit mount) {
+        TroopStats rider = mount.stats().split().into();
+        TribeBonus bonus = tribeBonus(BattleCard.forStats(rider), mount.side());
+        CombatUnit unit = new CombatUnit(entityId, mount.side(), rider, 1,
+                rider.health() * bonus.health(), rider.damage() * bonus.damage(),
+                rider.radius(), mount.x(), mount.z(), 0, mount.lockedTower());
+        unit.setTribe(bonus);
+        unit.setMount(mount.id());
+        creditOf.put(entityId, creditOf(mount.id()));
+        carrying.add(mount.id());
+        return register(unit);
+    }
+
+    /** Riders sit where their mount is; one whose mount fell walks on. */
+    private void seatRiders() {
+        for (CombatUnit unit : units) {
+            if (unit.mount() == null)
+                continue;
+            CombatUnit mount = unit(unit.mount());
+            if (mount == null || !mount.alive())
+                unit.setMount(null);
+            else
+                unit.setPosition(mount.x(), mount.z());
+        }
+    }
+
     public CombatUnit add(UUID entityId, ChildSpawn spawn) {
         BattleCard credit = riderCredit.remove(spawn);
         if (credit != null)
@@ -293,6 +328,7 @@ public final class CombatEngine {
         tribeEvents.clear();
         spawns.clear();
         now++;
+        seatRiders();
         List<Move> moves = new ArrayList<>();
         List<Attack> attacks = new ArrayList<>();
         for (CombatUnit unit : units) {
@@ -412,6 +448,9 @@ public final class CombatEngine {
             inRange = edgeDistanceToTower(unit, tower) <=
                     unit.range() + EPSILON;
         }
+        // A rider does not walk: its mount carries it.
+        if (!inRange && unit.mount() != null)
+            return;
         // A Magma Cube jumps onto a near enemy instead of walking up.
         if (!inRange && self != null && self.leaps() && leap(unit, attacks))
             return;
@@ -694,7 +733,7 @@ public final class CombatEngine {
      * only targets buildings ignores every troop.
      */
     private CombatUnit pickEnemy(CombatUnit unit) {
-        if (unit.stats().traits().buildingsOnly())
+        if (unit.stats().traits().buildingsOnly() || ridesForTowers(unit))
             return nearestBuilding(unit);
         BattleCard self = cardOf.get(unit.id());
         if (self != null && self.hearsNoise())
@@ -1242,7 +1281,7 @@ public final class CombatEngine {
             }
             if (source != null && source.levitates() && victim != null &&
                     victim.alive() && victim.stats().traits().hover() <= 0.0D) {
-                victim.freeze(BattleCard.LEVITATE_TICKS);
+                victim.levitate(BattleCard.LEVITATE_TICKS);
                 tribeEvents.add(new TribeEvent(victim.id(),
                         TribeEvent.Kind.LEVITATE, victim.x(), victim.z()));
             }
@@ -1453,6 +1492,12 @@ public final class CombatEngine {
                 TribeEvent.Kind.ILLUSION, illusioner.x(), illusioner.z()));
     }
 
+    /** A rider on a mount that only goes for buildings shoots only those. */
+    private boolean ridesForTowers(CombatUnit unit) {
+        CombatUnit mount = unit.mount() == null ? null : unit(unit.mount());
+        return mount != null && mount.stats().traits().buildingsOnly();
+    }
+
     /** Whether an Endermite's or a mirror image's time is up. */
     private boolean outlived(CombatUnit unit, BattleCard card) {
         int age = now - bornAt.getOrDefault(unit.id(), now);
@@ -1604,6 +1649,9 @@ public final class CombatEngine {
                 bestDistance = d;
             }
         }
+        // A pearled rider takes its mount along: the pearl moves the mount.
+        if (best != null && best.mount() != null && unit(best.mount()) != null)
+            best = unit(best.mount());
         return best == null ? List.of() :
                 List.of(new Hit(best, null, 0.0D, active));
     }
@@ -1789,6 +1837,10 @@ public final class CombatEngine {
             return List.of();
         List<ChildSpawn> children = new ArrayList<>(rule.children());
         int sign = ArenaLayout.sideSign(parent.side());
+        // A mount that carried its rider from the start leaves nobody: the
+        // rider is already fighting on its own.
+        if (rule.into() != null && carrying.remove(parent.id()))
+            return List.of();
         if (rule.into() != null) {
             TroopStats rider = rule.into();
             ArenaWaypoint spot = arena.clampSpawn(parent.x(), parent.z(), sign);

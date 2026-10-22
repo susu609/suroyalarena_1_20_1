@@ -105,6 +105,9 @@ config page gets it inside `traitMod`):
 
 Buildings (speed 0) get x0.8: they never move and last 30 s.
 
+A jockey's rider fights from the start, so its damage per second is added to
+the mount's, and the longer of the two ranges sets the ranged bonus.
+
 ## Power band (`PowerCreepTest`)
 
 Cost alone misses how cards play out, so the build also measures every

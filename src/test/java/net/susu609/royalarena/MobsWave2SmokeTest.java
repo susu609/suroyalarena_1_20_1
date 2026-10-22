@@ -144,15 +144,19 @@ public final class MobsWave2SmokeTest {
     private static void skeletonRiderIgnoresTroops() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
-        CombatUnit rider = unit(engine, BattleCard.SKELETON_RIDER,
+        CombatUnit horse = unit(engine, BattleCard.SKELETON_RIDER,
                 TeamSide.BLUE, -6.0D, -5.0D);
+        // The archer rides from the start and shoots from the saddle.
+        CombatUnit rider = engine.addRider(UUID.randomUUID(), horse);
         CombatUnit zombie = unit(engine, BattleCard.ZOMBIE, TeamSide.RED,
                 -6.0D, -6.5D);
         boolean hitTroop = false;
         boolean hitTower = false;
-        for (int i = 0; i < 200; i++) {
+        // While the horse lives (afterwards the archer fights on foot).
+        for (int i = 0; i < 200 && horse.alive(); i++) {
             for (TickResult.Attack a : engine.tick().attacks()) {
-                if (!rider.id().equals(a.attackerUnit()))
+                if (!rider.id().equals(a.attackerUnit()) &&
+                        !horse.id().equals(a.attackerUnit()))
                     continue;
                 hitTroop |= a.victimUnit() != null;
                 hitTower |= a.victimTower() != null;

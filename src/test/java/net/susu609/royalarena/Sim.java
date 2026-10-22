@@ -101,7 +101,11 @@ final class Sim {
         for (double[] o : Formation.offsets(stats.count(), spacing)) {
             ArenaWaypoint spot = match.arena().clampSpawn(x + o[0], z + o[1],
                     sign);
-            engine.add(UUID.randomUUID(), side, stats, spot.x(), spot.z());
+            CombatUnit unit = engine.add(UUID.randomUUID(), side, stats,
+                    spot.x(), spot.z());
+            // A jockey carries its rider from the start, as in the game.
+            if (stats.split() != null && stats.split().into() != null)
+                engine.addRider(UUID.randomUUID(), unit);
         }
     }
 
