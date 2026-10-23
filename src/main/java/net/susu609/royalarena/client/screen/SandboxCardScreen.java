@@ -52,8 +52,24 @@ public final class SandboxCardScreen extends Screen {
     private int size;
     private int scroll;
 
+    /** Set when the picker only chooses a card for someone else (Compare). */
+    private final java.util.function.Consumer<BattleCard> chooser;
+    private final String prompt;
+
     public SandboxCardScreen() {
+        this(null, null);
+    }
+
+    /**
+     * A picker that hands the card to {@code chooser} (which opens the next
+     * screen) instead of picking it for the panel; {@code prompt} heads it.
+     */
+    public SandboxCardScreen(java.util.function.Consumer<BattleCard> chooser,
+            String prompt)
+    {
         super(Component.literal("Sandbox cards"));
+        this.chooser = chooser;
+        this.prompt = prompt;
     }
 
     @Override protected void init() {
@@ -151,6 +167,10 @@ public final class SandboxCardScreen extends Screen {
 
     @Override public boolean mouseClicked(double mx, double my, int button) {
         BattleCard card = cardAt(mx, my);
+        if (card != null && button == 0 && chooser != null) {
+            chooser.accept(card);
+            return true;
+        }
         if (card != null && button == 0) {
             ClientSandbox.select(card);
             // Shift: pick and keep looking.
@@ -177,9 +197,13 @@ public final class SandboxCardScreen extends Screen {
     {
         renderBackground(graphics);
         TeamSide side = ClientSandbox.side();
-        graphics.drawCenteredString(font, "Pick a card for " + side.name() +
-                        " (Tab on the panel switches side)", width / 2, 10,
-                side == TeamSide.BLUE ? 0xFF6FA0FF : 0xFFFF7070);
+        if (prompt != null)
+            graphics.drawCenteredString(font, prompt, width / 2, 10,
+                    0xFFFFE680);
+        else
+            graphics.drawCenteredString(font, "Pick a card for " + side.name() +
+                            " (Tab on the panel switches side)", width / 2, 10,
+                    side == TeamSide.BLUE ? 0xFF6FA0FF : 0xFFFF7070);
         graphics.drawCenteredString(font, "Click: pick  Shift: stay open  " +
                         "Right click: pin (keys 1-8)  Wheel: scroll", width / 2,
                 48, 0xFF9AA4B8);

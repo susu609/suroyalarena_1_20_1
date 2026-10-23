@@ -7,6 +7,7 @@ import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.client.camera.ArenaCameraController;
 import net.susu609.royalarena.client.input.RoyalArenaKeyMappings;
 import net.susu609.royalarena.client.screen.SandboxCardScreen;
+import net.susu609.royalarena.client.screen.SandboxCompareScreen;
 import net.susu609.royalarena.client.screen.SandboxTribeScreen;
 import net.susu609.royalarena.client.state.ClientSandbox;
 import net.susu609.royalarena.match.MatchSnapshot;
@@ -216,6 +217,10 @@ public final class SandboxHud {
         out.add(new Button(LEFT, y, WIDTH, ROW, "Tribes...", PLAIN,
                 () -> Minecraft.getInstance()
                         .setScreen(new SandboxTribeScreen())));
+        y += ROW + GAP;
+        out.add(new Button(LEFT, y, WIDTH, ROW, "Compare cards...", PLAIN,
+                () -> Minecraft.getInstance()
+                        .setScreen(new SandboxCompareScreen())));
         y += ROW + GAP;
         out.add(new Button(LEFT, y, WIDTH, ROW, ClientSandbox.stats() ?
                 "Stats: on" : "Stats: off", ClientSandbox.stats() ? ON : PLAIN,

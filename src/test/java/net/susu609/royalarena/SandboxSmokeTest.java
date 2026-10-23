@@ -1,5 +1,6 @@
 package net.susu609.royalarena;
 
+import net.susu609.royalarena.sim.Sim;
 import net.susu609.royalarena.card.BattleCard;
 import net.susu609.royalarena.card.Tribe;
 import net.susu609.royalarena.combat.CombatEngine;

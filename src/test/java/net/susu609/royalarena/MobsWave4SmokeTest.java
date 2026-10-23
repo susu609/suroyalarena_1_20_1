@@ -1,5 +1,6 @@
 package net.susu609.royalarena;
 
+import net.susu609.royalarena.sim.Sim;
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
 import net.susu609.royalarena.card.BattleCard;

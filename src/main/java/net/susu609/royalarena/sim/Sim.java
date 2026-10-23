@@ -1,4 +1,4 @@
-package net.susu609.royalarena;
+package net.susu609.royalarena.sim;
 
 import net.susu609.royalarena.arena.ArenaLayout;
 import net.susu609.royalarena.arena.ArenaPoint;
@@ -29,21 +29,21 @@ import java.util.UUID;
 /**
  * Pure-Java battle simulation for balance measurements: troops walk like
  * {@code BattleField} walks them (one step toward the engine's waypoint,
- * nudged apart), slimes split, spells land. Used by {@link PowerCreepTest}
- * and {@link BalanceReport}.
+ * nudged apart), slimes split, spells land. Used by the power
+ * creep test, the balance report and {@link CardCompare}.
  */
-final class Sim {
+public final class Sim {
     /** Tower health a fight is worth per elixir, in the push score. */
-    static final double TOWER_HP_PER_ELIXIR = 25.0D;
+    public static final double TOWER_HP_PER_ELIXIR = 25.0D;
 
     private Sim() {
     }
 
-    static MatchInstance battle() {
+    public static MatchInstance battle() {
         return battle(null, null);
     }
 
-    static MatchInstance battle(BattleDeck blue, BattleDeck red) {
+    public static MatchInstance battle(BattleDeck blue, BattleDeck red) {
         ArenaLayout arena = ArenaLayout.standard(new ArenaPoint(0, 80, 0));
         MatchInstance match = blue == null ?
                 MatchInstance.create(UUID.randomUUID(), UUID.randomUUID(),
@@ -55,7 +55,7 @@ final class Sim {
     }
 
     /** One combat tick, the walk, and the split children. */
-    static TickResult step(CombatEngine engine, ArenaLayout arena) {
+    public static TickResult step(CombatEngine engine, ArenaLayout arena) {
         TickResult result = engine.tick();
         Map<UUID, double[]> walk = new HashMap<>();
         for (TickResult.Move move : result.moves()) {
@@ -92,7 +92,7 @@ final class Sim {
     }
 
     /** A card's units in its formation around (x, z). */
-    static void spawn(CombatEngine engine, MatchInstance match,
+    public static void spawn(CombatEngine engine, MatchInstance match,
             BattleCard card, TeamSide side, double x, double z)
     {
         TroopStats stats = card.stats();
@@ -113,7 +113,7 @@ final class Sim {
      * Health of a whole card, split children included, and the units it
      * brings along (a Wandering Trader's llamas, the Golem Villagers call).
      */
-    static double cardHealth(BattleCard card) {
+    public static double cardHealth(BattleCard card) {
         double health = CardRole.bodyHealth(card.stats()) * card.stats().count();
         if (card.bringsLlamas())
             health += BattleCard.TRADER_LLAMA.health() * BattleCard.TRADER_LLAMAS;
@@ -123,7 +123,7 @@ final class Sim {
         return health;
     }
 
-    static double healthLeft(CombatEngine engine, TeamSide side) {
+    public static double healthLeft(CombatEngine engine, TeamSide side) {
         double sum = 0.0D;
         for (CombatUnit unit : engine.units()) {
             if (unit.side() == side)
@@ -132,7 +132,7 @@ final class Sim {
         return sum;
     }
 
-    static int towerHealth(MatchInstance match) {
+    public static int towerHealth(MatchInstance match) {
         int sum = 0;
         for (TowerId id : TowerId.values())
             sum += match.tower(id).health();
@@ -146,7 +146,7 @@ final class Sim {
      * defender destroyed times its cost, plus tower damage, minus the share
      * of its own card lost times its cost.
      */
-    static double push(BattleCard attacker, BattleCard defender) {
+    public static double push(BattleCard attacker, BattleCard defender) {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         spawn(engine, match, attacker, TeamSide.BLUE, -6.0D, 2.0D);
@@ -172,7 +172,7 @@ final class Sim {
      * fight, the Allay) walking in just behind {@code attacker}; both cards'
      * losses count.
      */
-    static double pushWith(BattleCard attacker, BattleCard helper,
+    public static double pushWith(BattleCard attacker, BattleCard helper,
             BattleCard defender)
     {
         MatchInstance match = battle();
@@ -211,7 +211,7 @@ final class Sim {
     }
 
     /** Tower health one card alone takes off the tower it walks to. */
-    static int soloTowerDamage(BattleCard card) {
+    public static int soloTowerDamage(BattleCard card) {
         return solo(card).towerDamage();
     }
 
@@ -221,12 +221,12 @@ final class Sim {
      * its health left then, the tower health it takes in all, and the second
      * the tower falls (-1 if it stands).
      */
-    record Solo(double reachSeconds, double healthOnArrival, int towerDamage,
+    public record Solo(double reachSeconds, double healthOnArrival, int towerDamage,
                 double fallSeconds)
     {
     }
 
-    static Solo solo(BattleCard card) {
+    public static Solo solo(BattleCard card) {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         spawn(engine, match, card, TeamSide.BLUE, -6.0D, 2.0D);
@@ -252,21 +252,21 @@ final class Sim {
     }
 
     /** How a bot match went, with the match and engine to look into. */
-    record Outcome(TeamSide winner, int ticks, boolean overtime,
+    public record Outcome(TeamSide winner, int ticks, boolean overtime,
                    boolean kingFell, MatchInstance match, CombatEngine engine,
                    BotPersonality blue, BotPersonality red)
     {
     }
 
     /** A full bot-versus-bot match ({@code winner} null on a draw). */
-    static Outcome botMatch(BattleDeck blue, BattleDeck red, long seed,
+    public static Outcome botMatch(BattleDeck blue, BattleDeck red, long seed,
             Map<BattleCard, Integer> plays)
     {
         // Bot matches play as the game does, tribe bonuses included.
         return botMatch(blue, red, seed, plays, true);
     }
 
-    static Outcome botMatch(BattleDeck blue, BattleDeck red, long seed,
+    public static Outcome botMatch(BattleDeck blue, BattleDeck red, long seed,
             Map<BattleCard, Integer> plays, boolean tribes)
     {
         MatchInstance match = battle(blue, red);

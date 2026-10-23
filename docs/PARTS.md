@@ -943,3 +943,13 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   added), pins saved in `royalarena-client.toml` `[sandbox] pinned`
 - The pick stays after a card is played (right click drops it)
 - `SandboxQuickBarSmokeTest`
+
+## Part 79 — Comparing two cards
+
+- `sim/Sim` moved from the tests to main (public); `sim/CardCompare` (pure):
+  duel, same-elixir duel, attack and defence, lone run at a tower, Witch
+  behind, swarms, spells on troops, and the pool summary (counts and three
+  names each way)
+- `/royalarena compare <a> <b>` (`RoyalArenaCommand`); sandbox
+  `SandboxCompareScreen`, `SandboxCardScreen` picks for it
+- `CardCompareSmokeTest`; docs/COMPARE.md

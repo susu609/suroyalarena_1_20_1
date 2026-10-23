@@ -21,6 +21,7 @@ The hand is replaced by a panel down the left edge (`client/hud/SandboxHud`):
 | Elixir: endless / B n / R n | Endless (the default): cards cost nothing and both meters stay full. Off: each side has its own meter, filling at the normal 1x rate, and a card needs its side's elixir. |
 | `||` 0.5x 1x 2x | Pause, half, normal or double speed (half: one match tick every other server tick). The panel works while paused, and cards played wait until time runs again. |
 | Tribes... | `SandboxTribeScreen`: the tribe step (0 to its last) each side plays with, chosen by hand since the sandbox has no deck. Troops get their tribe bonus when they appear, so a change applies to the next ones. |
+| Compare cards... | `SandboxCompareScreen`: pick two cards, compare them (docs/COMPARE.md), or play them at the bridge. Also `/royalarena compare <a> <b>` anywhere. |
 | Stats: on / off | The overlay (`SandboxStatsRenderer`): each troop's attack range (team colour, from the body's edge) and sight (faint white), and a yellow line to the troop it is aiming at (orange to its tower). Only on this screen. |
 | Exit sandbox | Back to where you were. |
 
