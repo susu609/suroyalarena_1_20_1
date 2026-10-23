@@ -12,7 +12,7 @@
   "count": 1,
   "unit": {
     "health": 20,
-    "damage": 6,
+    "damage": 8,
     "attack_interval_ticks": 30,
     "range": 1.2,
     "move_speed": 0.8,

@@ -6,7 +6,7 @@
     "attack"
   ],
   "body": "undead",
-  "elixir": 3,
+  "elixir": 4,
   "entity": "minecraft:zoglin",
   "fire_immune": true,
   "model_scale": 1.0,
@@ -18,7 +18,7 @@
     "range": 1.2,
     "move_speed": 1.4,
     "flying": false,
-    "targets": "buildings",
+    "targets": "ground",
     "knockback": 1.0,
     "rage": "attacks up to 60% faster as it loses health"
   }

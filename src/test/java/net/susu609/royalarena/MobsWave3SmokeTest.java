@@ -101,8 +101,8 @@ public final class MobsWave3SmokeTest {
         engine.tick();
         check(pig.target() == null, "Piglets ignore troops");
         check(BattleCard.PIGLETS.stats().count() == 4 &&
-                        BattleCard.PIGLETS.modelScale() < 1.0F,
-                "four small pigs");
+                        BattleCard.PIGLETS.entityId().equals("minecraft:hoglin"),
+                "four baby Hoglins");
     }
 
     private static void milkClearsEveryEffectOnBothSides() {

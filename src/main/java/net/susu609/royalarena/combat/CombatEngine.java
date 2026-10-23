@@ -1777,7 +1777,7 @@ public final class CombatEngine {
                                     (attack.ranged() ? witherShield(victim) : 1.0D),
                             attack.side(), source);
                 if (victim != null && victim.alive() && source != null &&
-                        source.threeHeads())
+                        source.withersOnHit())
                     witherOn(victim, source);
                 if (victim != null && victim.alive() && source != null &&
                         bodyOf(victim).poisonable() &&
@@ -2079,6 +2079,8 @@ public final class CombatEngine {
         int age = now - bornAt.getOrDefault(unit.id(), now);
         if (card.luresEndermen())
             return age >= BattleCard.ENDERMITE_TICKS;
+        if (card == BattleCard.VEX)
+            return age >= BattleCard.VEX_TICKS;
         return card.castsIllusions() && unit.generation() > 0 &&
                 age >= BattleCard.ILLUSION_TICKS;
     }

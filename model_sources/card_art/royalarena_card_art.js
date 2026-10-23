@@ -75,7 +75,7 @@
         'frog': 1,
         'piglets': 3,
         'milk_bucket': 1,
-        'zoglin': 3,
+        'zoglin': 4,
         'killer_rabbits': 2,
         'chicken_jockey': 2,
         'panda': 2,

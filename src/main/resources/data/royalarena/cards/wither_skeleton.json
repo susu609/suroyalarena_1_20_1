@@ -2,7 +2,10 @@
   "id": "wither_skeleton",
   "type": "troop",
   "display_name": "Wither Skeleton",
-  "roles": ["attack", "defense"],
+  "roles": [
+    "attack",
+    "defense"
+  ],
   "body": "undead",
   "elixir": 2,
   "fire_immune": true,
@@ -16,9 +19,12 @@
     "range": 1.5,
     "move_speed": 0.85,
     "targets": "ground",
-    "poison_ticks": 60,
-    "poison_per_second": 1.5,
-    "flying": false
+    "flying": false,
+    "wither": {
+      "ticks": 100,
+      "damage_per_second": 1.0,
+      "through_armor": true
+    }
   },
   "held_item": "minecraft:stone_sword"
 }

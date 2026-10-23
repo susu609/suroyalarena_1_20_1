@@ -93,9 +93,9 @@ public final class MobsWave4SmokeTest {
         }
         check(gap > 0 && gap < calm, "a hurt Zoglin rages: " + gap + " < " +
                 calm);
-        check(BattleCard.ZOGLIN.stats().traits().buildingsOnly() &&
+        check(!BattleCard.ZOGLIN.stats().traits().buildingsOnly() &&
                         BattleCard.ZOGLIN.fireImmune(),
-                "it only goes for towers, and never burns");
+                "it fights every troop, and never burns");
         check(BattleCard.ZOGLIN.rages() && !BattleCard.HOGLIN.rages(),
                 "the Hoglin has no rage");
     }

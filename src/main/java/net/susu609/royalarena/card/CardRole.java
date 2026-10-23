@@ -21,7 +21,11 @@ public enum CardRole {
     /** Ignores troops and walks straight to the towers. */
     BUILDINGS("Targets towers"),
     /** Fights up close. */
-    MELEE("Melee");
+    MELEE("Melee"),
+    /** Does not fight: heals, draws fire, makes or calls others. */
+    SUPPORT("Support"),
+    /** A building: stands still and lives 30 s. */
+    BUILDING("Building");
 
     /** Health of one body (with its split children) that makes it a tank. */
     public static final double TANK_HEALTH = 50.0D;
@@ -45,6 +49,14 @@ public enum CardRole {
         TroopStats s = card.stats();
         if (s.count() == 1 && bodyHealth(s) >= TANK_HEALTH)
             roles.add(TANK);
+        if (card.isBuilding())
+            roles.add(BUILDING);
+        // A card that never hits (a Parrot, a Beacon, a Sheep) is a support
+        // card, not a melee or ranged one: the deck needs real attackers.
+        if (!fights(card)) {
+            roles.add(SUPPORT);
+            return roles;
+        }
         roles.add(s.melee() ? MELEE : RANGED);
         if (s.count() >= 3)
             roles.add(SWARM);
@@ -53,6 +65,12 @@ public enum CardRole {
         if (s.traits().buildingsOnly())
             roles.add(BUILDINGS);
         return roles;
+    }
+
+    /** Whether a troop card hits anything (a support card does not). */
+    private static boolean fights(BattleCard card) {
+        return card.stats().damage() > 0.0D && !card.peaceful() &&
+                !card.followsTroops();
     }
 
     /**

@@ -2,7 +2,9 @@
   "id": "vex",
   "type": "troop",
   "display_name": "Vex",
-  "roles": ["defense"],
+  "roles": [
+    "defense"
+  ],
   "body": "undead",
   "elixir": 2,
   "entity": "minecraft:vex",
@@ -10,13 +12,13 @@
   "count": 2,
   "unit": {
     "health": 14,
-    "damage": 10,
+    "damage": 4,
     "attack_interval_ticks": 20,
     "range": 1.2,
     "move_speed": 2.0,
     "targets": "ground",
-    "self_destruct": true,
-    "flying": false
+    "flying": false,
+    "lifetime_ticks": 200
   },
   "held_item": "minecraft:iron_sword"
 }

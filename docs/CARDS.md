@@ -549,3 +549,22 @@ Captain won 61% with a 9 crossbow (now 8), the Campfire 38% with 30 HP (now
 40), the Beacon 34% at 2 elixir (now 1 elixir, 25 HP). The Monster Spawner,
 Campfire and Beacon are in Night, Village and Golem (every troop card has a
 tribe).
+
+## Sửa kho thẻ (vai, và bốn thẻ lệch)
+
+- **Vai thẻ** (`CardRole`): thêm **Support** (không đánh: Parrot, Sheep,
+  Wandering Trader, Allay, Sniffer, Beacon, Spawner, Campfire) và
+  **Building** (công trình). Thẻ không đánh không còn bị gắn Melee/Ranged,
+  nên deck ngẫu nhiên không tính chúng là sát thương.
+- **Vex**: không tự huỷ nữa; đánh nhiều đòn (4 mỗi giây) rồi biến mất sau
+  10 s. Không còn bị loại khỏi kiểm tra "cáo chạy nhanh nhất" vì là quân bay
+  nhanh có chủ ý.
+- **Zoglin**: đánh mọi quân gần nhất (trước đây chỉ đánh tháp). 4 elixir.
+- **Piglets**: bốn Hoglin con (trước là heo).
+- **Wither Skeleton**: mỗi đòn gây wither (trước là độc).
+- **Chỉnh chỉ số** (đưa về 40–60%): Turtle giáp 10 → 8 (57%); Pillager nỏ
+  11 → 9 (56%); Enderman 7 → 6 (58%); Panda 6 → 8 (45%); Snowball Volley
+  6 → 7 (40%); Shulker 3 → 2.8 để giữ trong khoảng sức mạnh (47%).
+- **Chưa đạt:** End Crystal 34% (tăng máu và sát thương vụ nổ không đổi
+  được). Bot chỉ đặt nó khi thủ và khi elixir đầy, và vụ nổ cũng làm thương
+  quân mình. Cần quyết định thiết kế (vụ nổ chỉ hại địch?) trước khi chỉnh.

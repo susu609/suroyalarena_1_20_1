@@ -175,7 +175,9 @@ public final class MobsWave2SmokeTest {
         check(fox.count() == 2 && BattleCard.FOX.cost() == 2,
                 "Fox: a pack of two (10 health each, was three of 6) for 2 elixir");
         for (BattleCard card : BattleCard.values()) {
+            // A Vex is a fast flyer on purpose: the fastest walker is the Fox.
             if (!card.isSpell() && card != BattleCard.FOX &&
+                    card != BattleCard.VEX &&
                     !card.stats().traits().selfDestruct() &&
                     card.stats().traits().hover() == 0.0D)
                 check(fox.speed() >= card.stats().speed(),

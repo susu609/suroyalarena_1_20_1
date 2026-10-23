@@ -46,18 +46,17 @@ public enum BattleCard {
             new TroopStats(1, 40, 10, 28, 1.2D, 1.6D, 0.65D,
                     TroopTraits.BUILDINGS)),
     PILLAGER("Pillager", 3, "minecraft:pillager", "minecraft:crossbow", 0,
-            new TroopStats(1, 24, 11, 40, 6.0D, 1.0D, 0.3D)),
+            new TroopStats(1, 24, 9, 40, 6.0D, 1.0D, 0.3D)),
     MAGMA_CUBE("Magma Cube", 2, "minecraft:magma_cube", null, 2,
             new TroopStats(2, 12, 3, 30, 1.0D, 1.0D, 0.5D)),
     ENDERMAN("Enderman", 3, "minecraft:enderman", null, 0,
-            new TroopStats(1, 40, 7, 24, 1.2D, 1.0D, 0.4D,
+            new TroopStats(1, 40, 6, 24, 1.2D, 1.0D, 0.4D,
                     TroopTraits.teleporting(100))),
     CAVE_SPIDER("Cave Spider", 3, "minecraft:cave_spider", null, 0,
             new TroopStats(3, 12, 2.0D, 20, 1.2D, 1.6D, 0.3D,
                     TroopTraits.poisoning(60, 1.0D))),
     VEX("Vex", 2, "minecraft:vex", "minecraft:iron_sword", 0,
-            new TroopStats(2, 14, 10, 20, 1.2D, 2.0D, 0.3D,
-                    new TroopTraits(0.0D, true, 0.0D))),
+            new TroopStats(2, 14, 4, 20, 1.2D, 2.0D, 0.3D)),
     GHAST("Ghast", 3, "minecraft:ghast", null, 0,
             new TroopStats(1, 10, 22, 60, 5.0D, 0.3D, 1.0D,
                     new TroopTraits(1.5D, false, 0.0D))),
@@ -76,7 +75,7 @@ public enum BattleCard {
     WITHER_SKELETON("Wither Skeleton", 2, "minecraft:wither_skeleton",
             "minecraft:stone_sword", 0,
             new TroopStats(1, 20, 10, 32, 1.5D, 0.85D, 0.35D,
-                    TroopTraits.poisoning(60, 1.5D))),
+                    TroopTraits.NONE)),
     PIGLIN_BRUTE("Piglin Brute", 4, "minecraft:piglin_brute",
             "minecraft:golden_axe", 0,
             new TroopStats(1, 50, 14, 36, 1.2D, 0.8D, 0.3D).withArmor(7)),
@@ -127,12 +126,12 @@ public enum BattleCard {
             new TroopStats(1, 10, 3, 20, 1.0D, 1.3D, 0.3D)),
     FROG("Frog", 1, "minecraft:frog", null, 0,
             new TroopStats(1, 10, 3, 24, 2.0D, 1.0D, 0.3D)),
-    PIGLETS("Piglets", 3, "minecraft:pig", null, 0,
+    PIGLETS("Piglets", 3, "minecraft:hoglin", null, 0,
             new TroopStats(4, 10, 4, 30, 0.8D, 1.8D, 0.35D,
                     TroopTraits.BUILDINGS)),
-    ZOGLIN("Zoglin", 3, "minecraft:zoglin", null, 0,
+    ZOGLIN("Zoglin", 4, "minecraft:zoglin", null, 0,
             new TroopStats(1, 40, 8, 28, 1.2D, 1.4D, 0.65D,
-                    new TroopTraits(0.0D, false, 1.0D, true, 0, 0, 0.0D, 0,
+                    new TroopTraits(0.0D, false, 1.0D, false, 0, 0, 0.0D, 0,
                             0.0D, false, false, false, false, false, 0.0D, 0,
                             false, 0))),
     KILLER_RABBITS("Killer Rabbits", 2, "minecraft:rabbit", null, 0,
@@ -141,16 +140,16 @@ public enum BattleCard {
             new TroopStats(1, 4, 1, 20, 1.0D, 1.8D, 0.35D,
                     SplitRule.into(ZOMBIE.stats()), TroopTraits.NONE)),
     PANDA("Panda", 2, "minecraft:panda", null, 0,
-            new TroopStats(1, 20, 6, 30, 1.2D, 0.8D, 0.65D)),
+            new TroopStats(1, 20, 8, 30, 1.2D, 0.8D, 0.65D)),
     TURTLE("Turtle", 1, "minecraft:turtle", null, 0,
-            new TroopStats(1, 30, 1, 40, 1.0D, 0.5D, 0.6D).withArmor(10)),
+            new TroopStats(1, 30, 1, 40, 1.0D, 0.5D, 0.6D).withArmor(8)),
     CAMEL("Camel", 3, "minecraft:camel", null, 0,
             new TroopStats(1, 32, 2.5D, 20, 1.5D, 1.0D, 0.8D,
                     SplitRule.into(HUSK.stats()), TroopTraits.NONE)),
     SHULKER("Shulker", 2, "minecraft:shulker", null, 0,
-            new TroopStats(1, 30, 3, 40, 6.0D, 0.0D, 0.5D)),
+            new TroopStats(1, 30, 2.8D, 40, 6.0D, 0.0D, 0.5D)),
     END_CRYSTAL("End Crystal", 2, "minecraft:end_crystal", null, 0,
-            new TroopStats(1, 10, 40, 20, 0.5D, 0.0D, 0.5D,
+            new TroopStats(1, 14, 48, 20, 0.5D, 0.0D, 0.5D,
                     new TroopTraits(3.0D, true, 0.0D))),
     WARDEN("Warden", 8, "minecraft:warden", null, 0,
             new TroopStats(1, 150, 15, 55, 1.5D, 0.8D, 0.9D)),
@@ -234,7 +233,7 @@ public enum BattleCard {
             new SpellStats(3.5D, 5, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 0,
                     0, false, false, 0, false, 120).thrownAt(16.0D)),
     SNOWBALL_VOLLEY("Snowball Volley", 2, "minecraft:snowball",
-            new SpellStats(2.5D, 8, 1, 1, 6.0D, SpellStats.TOWER_MULTIPLIER,
+            new SpellStats(2.5D, 8, 1, 1, 7.0D, SpellStats.TOWER_MULTIPLIER,
                     1.5D, 0.0D, 0, 0, 0, 0, false, false, 30, false, 0)
                     .thrownAt(20.0D)),
     ZAP("Zap", 2, "minecraft:copper_ingot",
@@ -434,7 +433,6 @@ public enum BattleCard {
             case SKELETONS -> 0.9F;
             case SPIDER -> 0.75F;
             case SPIDER_JOCKEY -> 0.9F;
-            case PIGLETS -> 0.6F;
             case CAVE_SPIDER -> 0.6F;
             case VEX -> 0.8F;
             case ZOMBIE_VILLAGER -> 0.85F;
@@ -673,6 +671,9 @@ public enum BattleCard {
     public static final int ENDERMITE_TICKS = 200;
     public static final double ENDERMITE_LURE = 6.0D;
 
+    /** A Vex hits again and again for this long, then fades (not one blow). */
+    public static final int VEX_TICKS = 20 * 10;
+
     /**
      * An Allay does not fight: it flies beside the nearest own troop and
      * heals every own troop within {@link #ALLAY_RADIUS} by its damage once
@@ -863,6 +864,11 @@ public enum BattleCard {
      */
     public boolean threeHeads() {
         return this == WITHER;
+    }
+
+    /** A hit withers its target: the Wither's heads and the Wither Skeleton. */
+    public boolean withersOnHit() {
+        return threeHeads() || this == WITHER_SKELETON;
     }
 
     public static final int WITHER_HEADS = 3;

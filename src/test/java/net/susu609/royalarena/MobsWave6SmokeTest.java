@@ -190,6 +190,16 @@ public final class MobsWave6SmokeTest {
         engine.tick();
         check(zombie.withered() && !wither.withered(),
                 "the skull withers the Zombie, not the Wither Skeleton");
+        // A Wither Skeleton's own blow withers too (it is immune itself).
+        CombatUnit victim = unit(engine, BattleCard.ZOMBIE, TeamSide.BLUE,
+                1.0D, 2.2D);
+        CombatUnit skeleton = unit(engine, BattleCard.WITHER_SKELETON,
+                TeamSide.RED, 1.0D, 3.0D);
+        check(skeleton.alive() && victim.alive(), "a brawl under way");
+        for (int t = 0; t < 60 && !victim.withered(); t++)
+            engine.tick();
+        check(victim.withered() || !victim.alive(),
+                "a Wither Skeleton's blow withers what it hits");
         double after = zombie.health();
         double lowest = after;
         for (int t = 0; t < BattleCard.WITHER_TICKS - 5; t++) {

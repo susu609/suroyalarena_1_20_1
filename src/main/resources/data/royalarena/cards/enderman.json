@@ -2,7 +2,9 @@
   "id": "enderman",
   "type": "troop",
   "display_name": "Enderman",
-  "roles": ["attack"],
+  "roles": [
+    "attack"
+  ],
   "body": "living",
   "elixir": 3,
   "entity": "minecraft:enderman",
@@ -10,7 +12,7 @@
   "count": 1,
   "unit": {
     "health": 40,
-    "damage": 7,
+    "damage": 6,
     "attack_interval_ticks": 24,
     "range": 1.2,
     "move_speed": 1.0,

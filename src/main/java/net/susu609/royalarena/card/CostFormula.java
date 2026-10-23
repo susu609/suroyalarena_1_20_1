@@ -180,6 +180,10 @@ public final class CostFormula {
             case ALLAY -> 2.0D;
             // Leaps onto an archer and splashes where it lands.
             case MAGMA_CUBE -> 1.2D;
+            // Frail flyers that fade after 10 s.
+            case VEX -> LIFETIME_10S;
+            // Each hit withers: 1 a second through armour for 5 s.
+            case WITHER_SKELETON -> 1.1D;
             // Draws every troop's and tower's fire; its flowers heal.
             case SNIFFER -> TAUNT;
             // Its banner: +15% damage and +10% speed to Illagers near it.

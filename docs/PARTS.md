@@ -982,3 +982,12 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   effects; `ProjectileRenderer` LAVA, HARMING_POTION, FIREWORK; `DeckScreen`
   lines; protocol 34
 - `MobsWave8SmokeTest`
+
+## Part 82 — Card library fixes (roles, four cards, tuning)
+
+- `CardRole`: SUPPORT and BUILDING roles; cards that never hit are support
+- Vex: no self-destruct, `BattleCard.VEX_TICKS` fade; Zoglin fights all;
+  Piglets are baby Hoglins (`AgeableMob.setAge`); Wither Skeleton withers
+  (`BattleCard.withersOnHit`)
+- Tuning: Turtle, Pillager, Enderman, Panda, Snowball Volley, Shulker, End
+  Crystal; Zoglin 4 elixir; `NewMobsSmokeTest`, `MobsWave2/3/4/6` updated

@@ -501,8 +501,8 @@ public final class SpellSmokeTest {
                 -6.0D);
         TickResult first = engine.tick();
         near(zombie.health(), BattleCard.ZOMBIE.stats().health() -
-                        6.0D * BattleCard.ZOMBIE.stats().armorFactor(),
-                "6 damage, less the zombie's armour");
+                        7.0D * BattleCard.ZOMBIE.stats().armorFactor(),
+                "7 damage, less the zombie's armour");
         check(zombie.slowed(), "slowed");
         check(first.pushes().stream().anyMatch(
                 push -> push.unit().equals(zombie.id())), "and pushed back");

@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -342,6 +343,9 @@ public final class BattleField {
                     net.minecraft.world.item.DyeColor.RED);
         if (entity instanceof net.minecraft.world.entity.ambient.Bat bat)
             bat.setResting(false);
+        // Piglets are baby Hoglins: vanilla's age, not a grown one.
+        if (card == BattleCard.PIGLETS && entity instanceof AgeableMob young)
+            young.setAge(-24000);
         // Killer Rabbits are vanilla's killer bunny.
         if (entity instanceof net.minecraft.world.entity.animal.Rabbit rabbit)
             rabbit.setVariant(net.minecraft.world.entity.animal.Rabbit.Variant.EVIL);

@@ -12,7 +12,7 @@
   "count": 1,
   "unit": {
     "health": 30,
-    "armor": 10,
+    "armor": 8,
     "damage": 1,
     "attack_interval_ticks": 40,
     "range": 1.0,

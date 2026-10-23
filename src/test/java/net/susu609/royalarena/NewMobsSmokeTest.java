@@ -31,7 +31,7 @@ public final class NewMobsSmokeTest {
         blazeCrossesTheRiver();
         blazeIsHurtByFrostAndWater();
         drownedDeploysOnTheRiver();
-        vexDiesWhenItStrikes();
+        vexStrikesAgainAndFades();
         System.out.println("RoyalArena new mobs smoke tests: PASS");
     }
 
@@ -205,7 +205,7 @@ public final class NewMobsSmokeTest {
                 "nor outside the arena");
     }
 
-    private static void vexDiesWhenItStrikes() {
+    private static void vexStrikesAgainAndFades() {
         MatchInstance match = battle();
         CombatEngine engine = new CombatEngine(match);
         CombatUnit vex = unit(engine, BattleCard.VEX, TeamSide.BLUE, -6.0D, 5.0D);
@@ -215,14 +215,22 @@ public final class NewMobsSmokeTest {
         check(result.attacks().stream().anyMatch(
                 a -> vex.id().equals(a.attackerUnit())),
                 "the Vex strikes");
-        check(!vex.alive(), "and dies with it");
         near(zombie.health(), 20.0D - BattleCard.VEX.stats().damage() *
                         BattleCard.ZOMBIE.stats().armorFactor(),
-                "the blow is the Vex's damage (10), less the zombie's armour");
-        check(result.deaths().stream().anyMatch(d -> d.unit().equals(vex.id())),
-                "the death is reported");
-        check(engine.stats().card(TeamSide.BLUE, BattleCard.VEX).kills() == 0,
-                "a Vex that did not finish anything has no kill");
+                "the blow is the Vex's damage, less the zombie's armour");
+        check(vex.alive(), "and it does not die with the blow");
+        // Alone, a Vex fades after its time, and not before.
+        CombatEngine alone = new CombatEngine(battle());
+        CombatUnit lone = unit(alone, BattleCard.VEX, TeamSide.BLUE, -6.0D,
+                5.0D);
+        for (int t = 0; t < BattleCard.VEX_TICKS - 2; t++)
+            alone.tick();
+        check(lone.alive(), "a Vex lives for its time");
+        alone.tick();
+        alone.tick();
+        check(!lone.alive(), "then it fades");
+        check(alone.stats().card(TeamSide.BLUE, BattleCard.VEX).kills() == 0,
+                "a Vex that fades kills nothing");
     }
 
     private static void near(double actual, double expected, String name) {
