@@ -59,6 +59,7 @@ public final class DomainSmokeTest {
         MusicSmokeTest.run();
         SfxSmokeTest.run();
         ArenaWorldSmokeTest.run();
+        SandboxQuickBarSmokeTest.run();
         System.out.println("RoyalArena domain smoke tests: PASS");
     }
 

@@ -932,3 +932,14 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   `DeckScreen` lines; `SpellTargetHighlighter` (Anvil: one troop);
   protocol 33
 - `MobsWave7SmokeTest`
+
+## Part 78 — Sandbox card picking
+
+- `SandboxCardScreen`: the grid scrolls (wheel, scroll bar) and shrinks on
+  a short screen (78 cards no longer run off the bottom); Shift+click keeps
+  it open; right click pins; the tooltip is `DeckScreen.describe`
+- `match/SandboxQuickBar` (pure): 8 slots, pins first, then last picks;
+  `SandboxHud` draws it along the bottom, keys 1-8 (`CARD_5`..`CARD_8`
+  added), pins saved in `royalarena-client.toml` `[sandbox] pinned`
+- The pick stays after a card is played (right click drops it)
+- `SandboxQuickBarSmokeTest`

@@ -488,7 +488,7 @@ public final class DeckScreen extends Screen {
     }
 
     /** Tooltip lines: name, cost, roles and the numbers that matter. */
-    private static List<Component> describe(BattleCard card) {
+    static List<Component> describe(BattleCard card) {
         List<Component> lines = new ArrayList<>();
         lines.add(Component.literal(card.displayName())
                 .withStyle(ChatFormatting.YELLOW));

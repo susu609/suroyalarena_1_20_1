@@ -33,6 +33,10 @@ public final class ClientModEvents {
         event.register(RoyalArenaKeyMappings.CARD_2);
         event.register(RoyalArenaKeyMappings.CARD_3);
         event.register(RoyalArenaKeyMappings.CARD_4);
+        event.register(RoyalArenaKeyMappings.CARD_5);
+        event.register(RoyalArenaKeyMappings.CARD_6);
+        event.register(RoyalArenaKeyMappings.CARD_7);
+        event.register(RoyalArenaKeyMappings.CARD_8);
         event.register(RoyalArenaKeyMappings.WATCH_SPEED);
         event.register(RoyalArenaKeyMappings.SANDBOX_SIDE);
         event.register(RoyalArenaKeyMappings.SANDBOX_CARDS);

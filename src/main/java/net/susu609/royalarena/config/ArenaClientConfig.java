@@ -91,6 +91,19 @@ public final class ArenaClientConfig {
 
     static {
         BUILDER.pop();
+        BUILDER.comment("Sandbox.").push("sandbox");
+    }
+
+    public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>>
+            SANDBOX_PINNED = BUILDER
+            .comment("Cards pinned on the sandbox quick bar (keys 1-8), by " +
+                    "card id, e.g. [\"giant\", \"fireball\"]. Pinning in " +
+                    "the card picker (right click) saves them here.")
+            .defineListAllowEmpty(java.util.List.of("pinned"),
+                    java.util.List::of, o -> o instanceof String);
+
+    static {
+        BUILDER.pop();
     }
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();

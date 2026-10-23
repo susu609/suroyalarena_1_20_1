@@ -82,6 +82,10 @@ public final class ClientForgeEvents {
         consumeCardKey(RoyalArenaKeyMappings.CARD_2, 1);
         consumeCardKey(RoyalArenaKeyMappings.CARD_3, 2);
         consumeCardKey(RoyalArenaKeyMappings.CARD_4, 3);
+        consumeCardKey(RoyalArenaKeyMappings.CARD_5, 4);
+        consumeCardKey(RoyalArenaKeyMappings.CARD_6, 5);
+        consumeCardKey(RoyalArenaKeyMappings.CARD_7, 6);
+        consumeCardKey(RoyalArenaKeyMappings.CARD_8, 7);
         while (RoyalArenaKeyMappings.WATCH_SPEED.consumeClick()) {
             if (ClientMatchState.spectating())
                 ModNetwork.sendToServer(new C2SWatchSpeedPacket());
@@ -100,8 +104,13 @@ public final class ClientForgeEvents {
     private static void consumeCardKey(net.minecraft.client.KeyMapping mapping,
             int slot)
     {
-        while (mapping.consumeClick())
-            ClientMatchState.selectSlot(slot);
+        while (mapping.consumeClick()) {
+            // In a sandbox the keys pick from the quick bar.
+            if (ClientSandbox.active())
+                ClientSandbox.selectQuick(slot);
+            else
+                ClientMatchState.selectSlot(slot);
+        }
     }
 
     @SubscribeEvent
@@ -183,9 +192,9 @@ public final class ClientForgeEvents {
         BlockPos target = ArenaCameraController.projectCursorToArena();
         if (target != null && ClientMatchState.canDeploySelected(
                 target.getX(), target.getZ())) {
+            // The pick stays, to play it again (a right click drops it).
             ModNetwork.sendToServer(C2SSandboxPacket.deploy(card.id(),
                     ClientSandbox.side(), target));
-            ClientMatchState.clearSelection();
         } else {
             ClientSounds.ui(ArenaSounds.CARD_REFUSED, 0.8F, 1.0F);
         }

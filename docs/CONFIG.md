@@ -44,6 +44,9 @@ panel, increase `lookAhead`.
 	teamRings = true       # a blue or red ring under every troop
 	battleMusic = true     # the Pigstep disc on the Music volume while a battle runs
 	menuHint = true        # "Press M to open Royal Arena" in the top left corner outside a match
+
+[sandbox]
+	pinned = []            # cards pinned on the sandbox quick bar (keys 1-8), e.g. ["giant", "fireball"]; right click in the card picker sets it
 ```
 
 ## `royalarena-common.toml`: troops, bot, debug, arena world

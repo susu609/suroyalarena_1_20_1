@@ -17,6 +17,15 @@ public final class RoyalArenaKeyMappings {
             key("key.royalarena.card_3", GLFW.GLFW_KEY_3);
     public static final KeyMapping CARD_4 =
             key("key.royalarena.card_4", GLFW.GLFW_KEY_4);
+    /** Sandbox quick bar slots 5 to 8 (1 to 4 share the hand keys). */
+    public static final KeyMapping CARD_5 =
+            key("key.royalarena.card_5", GLFW.GLFW_KEY_5);
+    public static final KeyMapping CARD_6 =
+            key("key.royalarena.card_6", GLFW.GLFW_KEY_6);
+    public static final KeyMapping CARD_7 =
+            key("key.royalarena.card_7", GLFW.GLFW_KEY_7);
+    public static final KeyMapping CARD_8 =
+            key("key.royalarena.card_8", GLFW.GLFW_KEY_8);
     /** While watching bots: x1 / x2. */
     public static final KeyMapping WATCH_SPEED =
             key("key.royalarena.watch_speed", GLFW.GLFW_KEY_X);
