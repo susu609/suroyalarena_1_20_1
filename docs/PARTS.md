@@ -953,3 +953,11 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
 - `/royalarena compare <a> <b>` (`RoyalArenaCommand`); sandbox
   `SandboxCompareScreen`, `SandboxCardScreen` picks for it
 - `CardCompareSmokeTest`; docs/COMPARE.md
+
+## Part 80 — Screens that fit
+
+- `MatchingScreen`: Find Match on its own line, then Play vs Bot / Watch Bots
+  and Sandbox / Deck in two columns; the block is centred and never leaves
+  the screen
+- `SandboxHud`: button height and gaps shrink with the GUI-scaled height;
+  the quick bar stays clear of the panel

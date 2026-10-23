@@ -32,8 +32,15 @@ public final class SandboxHud {
     private static final int LEFT = 6;
     private static final int TOP = 6;
     private static final int WIDTH = 120;
-    private static final int ROW = 16;
-    private static final int GAP = 2;
+    /** Button height and gap on a tall screen; they shrink on a short one. */
+    private static final int ROW_MAX = 16;
+    private static final int ROW_MIN = 11;
+    private static final int GAP_MAX = 2;
+    /** Buttons in the panel, and the gaps between them in units of one gap. */
+    private static final int BUTTONS = 11;
+    private static final int GAP_UNITS = 14;
+    /** The pick's name under the panel. */
+    private static final int NAME_LINE = 18;
     private static final int BLUE = 0xFF1F4FD6;
     private static final int RED = 0xFFC81E1E;
     private static final int PLAIN = 0xFF3A3F4C;
@@ -68,8 +75,8 @@ public final class SandboxHud {
         int bottom = TOP;
         for (Button b : buttons)
             bottom = Math.max(bottom, b.y + b.h);
-        graphics.fill(LEFT - 3, TOP - 3, LEFT + WIDTH + 3, bottom + 18,
-                0xC0101010);
+        graphics.fill(LEFT - 3, TOP - 3, LEFT + WIDTH + 3,
+                bottom + NAME_LINE, 0xC0101010);
         double mx = ArenaCameraController.cursorGuiX();
         double my = ArenaCameraController.cursorGuiY();
         for (Button b : buttons) {
@@ -92,7 +99,9 @@ public final class SandboxHud {
     private static int quickX(int slot, int width) {
         int total = SandboxQuickBar.SIZE * QUICK_W +
                 (SandboxQuickBar.SIZE - 1) * QUICK_GAP;
-        return (width - total) / 2 + slot * (QUICK_W + QUICK_GAP);
+        // Centred, but right of the panel when the screen is narrow.
+        int left = Math.max((width - total) / 2, LEFT + WIDTH + 8);
+        return left + slot * (QUICK_W + QUICK_GAP);
     }
 
     private static int quickY(int height) {
@@ -174,8 +183,27 @@ public final class SandboxHud {
         return false;
     }
 
+    /**
+     * {row height, gap}: the largest that lets the whole panel and the pick's
+     * name fit on the screen, down to {@link #ROW_MIN}; a short screen never
+     * needs scrolling.
+     */
+    private static int[] metrics() {
+        int room = Minecraft.getInstance().getWindow().getGuiScaledHeight() -
+                2 * TOP - NAME_LINE;
+        for (int row = ROW_MAX; row > ROW_MIN; row--) {
+            int gap = row >= ROW_MAX ? GAP_MAX : 1;
+            if (BUTTONS * row + GAP_UNITS * gap <= room)
+                return new int[] {row, gap};
+        }
+        return new int[] {ROW_MIN, 1};
+    }
+
     private static List<Button> buttons(MatchSnapshot.Sandbox box) {
         List<Button> out = new ArrayList<>();
+        int[] m = metrics();
+        final int ROW = m[0];
+        final int GAP = m[1];
         int y = TOP;
         TeamSide side = ClientSandbox.side();
         out.add(new Button(LEFT, y, WIDTH, ROW, "Side: " + side.name() + " [" +

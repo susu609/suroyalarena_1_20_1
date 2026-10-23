@@ -9,6 +9,11 @@ matching screen (M). You sit on BLUE's seat; nobody plays RED.
 
 ## Panel
 
+The panel has 11 buttons; on a short screen (a large GUI scale) the buttons
+shrink, down to 11 px high, so that all of them and the pick's name fit
+without scrolling (`SandboxHud.metrics`). The quick bar moves right of the
+panel on a narrow screen.
+
 The hand is replaced by a panel down the left edge (`client/hud/SandboxHud`):
 
 | Button | What it does |
