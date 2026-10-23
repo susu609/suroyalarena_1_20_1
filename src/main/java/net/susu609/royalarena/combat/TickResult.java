@@ -29,7 +29,8 @@ public record TickResult(List<Move> moves, List<Attack> attacks,
         public enum Kind {
             REVIVE, TOTEM, LAST_FLAME, DODGE, VOLLEY, SNEEZE, DASH, LEVITATE,
             SONIC_BOOM, BLAST, ILLUSION, BLIND, PLAY_DEAD, WAKE, LEAP,
-            HEAL_AURA, VANISH, GOLEM_CALL, CONVERT, FLOWER, HIDE, REVEAL
+            HEAL_AURA, VANISH, GOLEM_CALL, CONVERT, FLOWER, HIDE, REVEAL,
+            BANNER, STEW, WARMTH, SPAWN, SHEARED, INK
         }
     }
 

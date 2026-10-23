@@ -1,0 +1,26 @@
+{
+  "id": "zombie_horse",
+  "type": "troop",
+  "display_name": "Zombie Horse",
+  "roles": [
+    "attack"
+  ],
+  "body": "undead",
+  "elixir": 3,
+  "entity": "minecraft:zombie_horse",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 24,
+    "damage": 3,
+    "attack_interval_ticks": 20,
+    "range": 1.2,
+    "move_speed": 1.6,
+    "flying": false,
+    "targets": "ground",
+    "rider": {
+      "card": "zombie",
+      "rides_from_the_start": true
+    }
+  }
+}

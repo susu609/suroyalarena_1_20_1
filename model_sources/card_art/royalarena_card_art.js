@@ -98,6 +98,20 @@
         'anvil': 2,
         'dragons_breath': 4,
         'bell': 2,
+        'pillager_captain': 3,
+        'wither': 9,
+        'zombie_horse': 3,
+        'bat': 2,
+        'mooshroom': 2,
+        'parrot': 1,
+        'glow_squid': 1,
+        'sheep': 1,
+        'monster_spawner': 4,
+        'campfire': 2,
+        'beacon': 1,
+        'lava_bucket': 3,
+        'harming_potion': 3,
+        'firework_rocket': 2,
     };
     const CARD_IDS = Object.keys(CARDS);
 

@@ -109,6 +109,10 @@ public final class BattleField {
     /** Purple for Dragon's Breath, gold for a Bell. */
     private static final int BREATH_FLASH = 0xB050E0;
     private static final int BELL_FLASH = 0xFFD54A;
+    /** Orange for lava, dark red for Harming, white for a Firework. */
+    private static final int LAVA_FLASH = 0xFF7A1A;
+    private static final int HARM_FLASH = 0x7A0F1E;
+    private static final int FIREWORK_FLASH = 0xFFFFFF;
     /** Arrows drawn per Arrow Storm volley (one volley per pulse). */
     private static final int VOLLEY_ARROWS = 5;
     /** Fewest ticks between two red hurt flashes of one troop. */
@@ -298,6 +302,46 @@ public final class BattleField {
         // An End Crystal stands on the floor, without its bedrock base.
         if (entity instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal crystal)
             crystal.setShowBottom(false);
+        // A building made of a block shows that block, centred on its spot.
+        if (entity instanceof net.minecraft.world.entity.Display.BlockDisplay
+                && card.displayBlock() != null) {
+            net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+            net.minecraft.nbt.CompoundTag state = new net.minecraft.nbt.CompoundTag();
+            state.putString("Name", card.displayBlock());
+            if (card == BattleCard.CAMPFIRE) {
+                net.minecraft.nbt.CompoundTag props = new net.minecraft.nbt.CompoundTag();
+                props.putString("lit", "true");
+                state.put("Properties", props);
+            }
+            tag.put("block_state", state);
+            // The block is drawn from its corner: shift it half a block so
+            // the entity (where the engine has the troop) is its centre.
+            net.minecraft.nbt.CompoundTag shape = new net.minecraft.nbt.CompoundTag();
+            shape.put("translation", floats(-0.5F, 0.0F, -0.5F));
+            shape.put("left_rotation", floats(0.0F, 0.0F, 0.0F, 1.0F));
+            shape.put("right_rotation", floats(0.0F, 0.0F, 0.0F, 1.0F));
+            shape.put("scale", floats(1.0F, 1.0F, 1.0F));
+            tag.put("transformation", shape);
+            // load() resets the flags set above: set them again.
+            entity.load(tag);
+            entity.moveTo(x, arena.floorY() + 1.0D, z, 0.0F, 0.0F);
+            entity.setInvulnerable(true);
+        }
+        // The Captain wears the ominous banner, as a raid captain does.
+        if (entity instanceof net.minecraft.world.entity.raid.Raider raider &&
+                card.carriesBanner()) {
+            raider.setItemSlot(EquipmentSlot.HEAD,
+                    net.minecraft.world.entity.raid.Raid.getLeaderBannerInstance());
+            raider.setDropChance(EquipmentSlot.HEAD, 0.0F);
+            raider.setPatrolLeader(true);
+        }
+        // Sheep in their team's colour; bats awake and flying.
+        if (entity instanceof net.minecraft.world.entity.animal.Sheep sheep)
+            sheep.setColor(side == TeamSide.BLUE ?
+                    net.minecraft.world.item.DyeColor.BLUE :
+                    net.minecraft.world.item.DyeColor.RED);
+        if (entity instanceof net.minecraft.world.entity.ambient.Bat bat)
+            bat.setResting(false);
         // Killer Rabbits are vanilla's killer bunny.
         if (entity instanceof net.minecraft.world.entity.animal.Rabbit rabbit)
             rabbit.setVariant(net.minecraft.world.entity.animal.Rabbit.Variant.EVIL);
@@ -317,7 +361,18 @@ public final class BattleField {
                     entityId, card.id());
             return null;
         }
+        // A Wither troop shows no boss bar.
+        if (entity instanceof net.minecraft.world.entity.boss.wither.WitherBoss wither)
+            ((net.susu609.royalarena.mixin.WitherBossAccessor) wither)
+                    .royalarena$bossEvent().setVisible(false);
         return entity;
+    }
+
+    private static net.minecraft.nbt.ListTag floats(float... values) {
+        net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
+        for (float v : values)
+            list.add(net.minecraft.nbt.FloatTag.valueOf(v));
+        return list;
     }
 
     /**
@@ -334,6 +389,10 @@ public final class BattleField {
                 mount.getX(), mount.getZ());
         if (rider == null)
             return;
+        // Only a Chicken Jockey's zombie is a baby; a Zombie Horse's is grown.
+        if (rider instanceof net.minecraft.world.entity.monster.Zombie zombie &&
+                !(mount instanceof net.minecraft.world.entity.animal.Chicken))
+            zombie.setBaby(false);
         rider.startRiding(mount, true);
         engine.addRider(rider.getUUID(), mountUnit);
     }
@@ -419,6 +478,7 @@ public final class BattleField {
         showPoison();
         showFireTrails();
         showFrozenTowers();
+        showBeacons();
         towerSounds();
         stateSounds();
         for (TickResult.Death death : result.deaths())
@@ -756,6 +816,24 @@ public final class BattleField {
                             SoundEvents.ENDER_DRAGON_SHOOT, SoundSource.HOSTILE,
                             0.6F, 1.2F);
                 }
+                case LAVA_BUCKET, HARMING_POTION -> {
+                    sendProjectile(deploy.card() == BattleCard.LAVA_BUCKET ?
+                                    S2CProjectilePacket.Kind.LAVA :
+                                    S2CProjectilePacket.Kind.HARMING_POTION,
+                            hand, new double[] {tx, floor + 0.3D, tz},
+                            deploy.ticksLeft(), 4.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            ArenaSfx.SPELL_THROW.get(), SoundSource.HOSTILE,
+                            0.8F, 0.9F);
+                }
+                case FIREWORK_ROCKET -> {
+                    sendProjectile(S2CProjectilePacket.Kind.FIREWORK, hand,
+                            new double[] {tx, floor + 2.5D, tz},
+                            deploy.ticksLeft(), 1.0F);
+                    arenaSound(hand[0], hand[1], hand[2],
+                            SoundEvents.FIREWORK_ROCKET_LAUNCH,
+                            SoundSource.HOSTILE, 0.9F, 1.0F);
+                }
                 case BELL -> level.sendParticles(ParticleTypes.NOTE, tx,
                         floor + 1.5D, tz, 6, 0.4D, 0.3D, 0.4D, 1.0D);
                 case ZAP -> level.sendParticles(
@@ -955,6 +1033,43 @@ public final class BattleField {
                 level.sendParticles(ParticleTypes.DRAGON_BREATH, x,
                         floor + 0.3D, z, 40, radius * 0.5D, 0.15D,
                         radius * 0.5D, 0.01D);
+            }
+            case LAVA_BUCKET -> {
+                if (pulse.index() == 0) {
+                    flash(x, z, radius, LAVA_FLASH);
+                    arenaSound(x, floor, z, SoundEvents.BUCKET_EMPTY_LAVA,
+                            SoundSource.HOSTILE, 0.9F, 1.0F);
+                }
+                if (pulse.index() % 3 == 0)
+                    flash(x, z, radius, LAVA_FLASH);
+                level.sendParticles(ParticleTypes.LAVA, x, floor + 0.1D, z, 6,
+                        radius * 0.5D, 0.05D, radius * 0.5D, 0.0D);
+                level.sendParticles(ParticleTypes.FLAME, x, floor + 0.1D, z,
+                        10, radius * 0.5D, 0.05D, radius * 0.5D, 0.01D);
+                double[] spot = randomIn(x, z, radius);
+                arenaSound(spot[0], floor, spot[1], SoundEvents.LAVA_POP,
+                        SoundSource.HOSTILE, 0.6F, 1.0F);
+            }
+            case HARMING_POTION -> {
+                flash(x, z, radius, HARM_FLASH);
+                level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, x,
+                        floor + 0.6D, z, 20, radius * 0.5D, 0.3D, radius * 0.5D,
+                        0.1D);
+                level.sendParticles(ParticleTypes.ENTITY_EFFECT, x,
+                        floor + 0.3D, z, 30, radius * 0.5D, 0.2D, radius * 0.5D,
+                        0.0D);
+                arenaSound(x, floor, z, SoundEvents.SPLASH_POTION_BREAK,
+                        SoundSource.HOSTILE, 0.9F, 0.8F);
+            }
+            case FIREWORK_ROCKET -> {
+                flash(x, z, radius, FIREWORK_FLASH);
+                level.sendParticles(ParticleTypes.FIREWORK, x, floor + 2.5D, z,
+                        60, radius * 0.4D, 0.4D, radius * 0.4D, 0.15D);
+                level.sendParticles(ParticleTypes.FLASH, x, floor + 2.5D, z, 1,
+                        0.0D, 0.0D, 0.0D, 0.0D);
+                arenaSound(x, floor + 2.5D, z,
+                        SoundEvents.FIREWORK_ROCKET_LARGE_BLAST,
+                        SoundSource.HOSTILE, 1.0F, 1.0F);
             }
             case BELL -> {
                 // The bell rings: notes ring out over everyone it calls.
@@ -1652,6 +1767,50 @@ public final class BattleField {
                 arenaSound(x, y, z, SoundEvents.WANDERING_TRADER_DISAPPEARED,
                         SoundSource.HOSTILE, 0.8F, 1.0F);
             }
+            case BANNER -> {
+                level.sendParticles(ParticleTypes.CLOUD, x, y + 0.6D, z, 8,
+                        0.3D, 0.3D, 0.3D, 0.02D);
+                arenaSound(x, y, z, SoundEvents.RAID_HORN.value(),
+                        SoundSource.HOSTILE, 0.6F, 1.0F);
+            }
+            case STEW -> {
+                level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM,
+                                new ItemStack(Items.MUSHROOM_STEW)), x, y + 0.8D,
+                        z, 8, 0.3D, 0.2D, 0.3D, 0.05D);
+                level.sendParticles(ParticleTypes.HEART, x, y + 1.0D, z, 2,
+                        BattleCard.STEW_RADIUS * 0.4D, 0.2D,
+                        BattleCard.STEW_RADIUS * 0.4D, 0.0D);
+                arenaSound(x, y, z, SoundEvents.GENERIC_EAT,
+                        SoundSource.HOSTILE, 0.5F, 1.0F);
+            }
+            case WARMTH -> {
+                level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, x,
+                        y + 0.6D, z, 1, 0.1D, 0.0D, 0.1D, 0.01D);
+                level.sendParticles(ParticleTypes.FLAME, x, y + 0.2D, z, 3,
+                        0.2D, 0.05D, 0.2D, 0.01D);
+                arenaSound(x, y, z, SoundEvents.CAMPFIRE_CRACKLE,
+                        SoundSource.HOSTILE, 0.5F, 1.0F);
+            }
+            case SPAWN -> {
+                level.sendParticles(ParticleTypes.FLAME, x, y + 0.5D, z, 12,
+                        0.3D, 0.3D, 0.3D, 0.01D);
+                level.sendParticles(ParticleTypes.SMOKE, x, y + 0.5D, z, 12,
+                        0.3D, 0.3D, 0.3D, 0.01D);
+            }
+            case SHEARED -> {
+                if (level.getEntity(event.unit()) instanceof
+                        net.minecraft.world.entity.animal.Sheep sheep)
+                    sheep.setSheared(true);
+                arenaSound(x, y, z, SoundEvents.SHEEP_SHEAR,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
+            case INK -> {
+                level.sendParticles(ParticleTypes.GLOW_SQUID_INK, x, y + 0.6D,
+                        z, 30, BattleCard.INK_RADIUS * 0.4D, 0.3D,
+                        BattleCard.INK_RADIUS * 0.4D, 0.05D);
+                arenaSound(x, y, z, SoundEvents.GLOW_SQUID_SQUIRT,
+                        SoundSource.HOSTILE, 0.8F, 1.0F);
+            }
             case REVEAL -> {
                 // A Bell gets a playing-dead Axolotl up again.
                 if (level.getEntity(event.unit()) instanceof
@@ -1722,6 +1881,21 @@ public final class BattleField {
     }
 
     /** Snowflakes drifting around a frozen tower. */
+    /** A Beacon's beam: a column of light, its colour the effect it gives now. */
+    private void showBeacons() {
+        if (level.getGameTime() % 10 != 0)
+            return;
+        for (CombatUnit unit : engine.units()) {
+            BattleCard card = BattleCard.forStats(unit.stats());
+            if (card == null || !card.beams())
+                continue;
+            for (int i = 0; i < 6; i++)
+                level.sendParticles(ParticleTypes.END_ROD, unit.x(),
+                        arena.floorY() + 2.0D + i * 1.5D, unit.z(), 1, 0.05D,
+                        0.3D, 0.05D, 0.0D);
+        }
+    }
+
     private void showFrozenTowers() {
         if (level.getGameTime() % 5 != 0)
             return;

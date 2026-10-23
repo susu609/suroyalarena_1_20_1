@@ -961,3 +961,24 @@ See `docs/CARDS.md` (Rebalance) for the before/after numbers.
   the screen
 - `SandboxHud`: button height and gaps shrink with the GUI-scaled height;
   the quick bar stays clear of the panel
+
+## Part 81 — Batch 6 cards
+
+- `BattleCard`: Pillager Captain, Wither, Zombie Horse, Bat, Mooshroom,
+  Parrot, Glow Squid, Sheep, Monster Spawner, Campfire, Beacon (block
+  buildings: `displayBlock`), Lava Bucket, Potion of Harming, Firework Rocket
+- `CombatEngine`: banner aura and dropped banners, Wither heads, wither on
+  hit and armour, stew (with the Sniffer's flowers), Parrot dance (attack
+  haste) and follow, ink, wool, spawner mobs (seeded dice), campfire burn and
+  warmth, Beacon effects in turn, lava pool (fire-immune skipped), Harming
+  heals own undead, Firework x2 on flyers; event kinds BANNER, STEW, WARMTH,
+  SPAWN, SHEARED, INK
+- `CostFormula`: multipliers, `noDamageRaw`, `spawnerRaw`, spell rules;
+  `Sim.pushIntoHelped`, `PowerCreepTest.buildingSupportScore`; bot values
+  lava; `MobSounds` (Mooshroom as a cow, block buildings)
+- `BattleField`: block displays for the buildings, the Captain's banner,
+  team-coloured sheep, waking bats, a grown Zombie on the Zombie Horse, no
+  Wither boss bar (`WitherBossAccessor`), Beacon beams, spell and event
+  effects; `ProjectileRenderer` LAVA, HARMING_POTION, FIREWORK; `DeckScreen`
+  lines; protocol 34
+- `MobsWave8SmokeTest`

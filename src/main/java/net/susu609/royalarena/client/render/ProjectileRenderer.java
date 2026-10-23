@@ -108,6 +108,12 @@ public final class ProjectileRenderer {
             } else if (f.kind() == Kind.WATER) {
                 mc.level.addParticle(ParticleTypes.FALLING_WATER, p.x, p.y, p.z,
                         0.0D, 0.0D, 0.0D);
+            } else if (f.kind() == Kind.LAVA) {
+                mc.level.addParticle(ParticleTypes.DRIPPING_LAVA, p.x, p.y, p.z,
+                        0.0D, 0.0D, 0.0D);
+            } else if (f.kind() == Kind.FIREWORK) {
+                mc.level.addParticle(ParticleTypes.FIREWORK, p.x, p.y, p.z,
+                        0.0D, -0.05D, 0.0D);
             } else if (f.kind() == Kind.DRAGON_FIREBALL) {
                 mc.level.addParticle(ParticleTypes.DRAGON_BREATH, p.x, p.y, p.z,
                         0.0D, 0.01D, 0.0D);
@@ -180,6 +186,8 @@ public final class ProjectileRenderer {
             case WATER -> EntityType.POTION;
             case ANVIL -> EntityType.FALLING_BLOCK;
             case DRAGON_FIREBALL -> EntityType.DRAGON_FIREBALL;
+            case LAVA, HARMING_POTION -> EntityType.POTION;
+            case FIREWORK -> EntityType.FIREWORK_ROCKET;
         };
         Entity entity = type.create(level);
         if (entity != null)
@@ -195,6 +203,12 @@ public final class ProjectileRenderer {
             tag.put("BlockState", state);
             entity.load(tag);
         }
+        // Lava flies as a lava bucket, Harming as its splash potion.
+        if (kind == Kind.LAVA && entity instanceof ThrownPotion potion)
+            potion.setItem(new ItemStack(Items.LAVA_BUCKET));
+        if (kind == Kind.HARMING_POTION && entity instanceof ThrownPotion potion)
+            potion.setItem(PotionUtils.setPotion(
+                    new ItemStack(Items.SPLASH_POTION), Potions.HARMING));
         // Water Bucket flies as a splash bottle of water.
         if (kind == Kind.WATER && entity instanceof ThrownPotion potion)
             potion.setItem(PotionUtils.setPotion(

@@ -22,6 +22,8 @@ public final class MobSounds {
         return switch (path) {
             case "cave_spider" -> "spider";
             case "trader_llama" -> "llama";
+            // A Mooshroom has the cow's sounds in vanilla.
+            case "mooshroom" -> "cow";
             case "giant" -> "hostile";
             default -> path;
         };
@@ -43,6 +45,9 @@ public final class MobSounds {
         // An End Crystal is no mob: it has no sounds of its own.
         if (path.equals("end_crystal"))
             return "entity.generic.hurt";
+        // A building made of a block (Monster Spawner, Campfire, Beacon).
+        if (path.equals("block_display"))
+            return "block.stone.hit";
         return "entity." + path + ".hurt" + small(path, tiny) +
                 land(path);
     }
@@ -52,6 +57,8 @@ public final class MobSounds {
         String path = mob(entityId);
         if (path.equals("end_crystal"))
             return "entity.generic.explode";
+        if (path.equals("block_display"))
+            return "block.stone.break";
         return "entity." + path + ".death" + small(path, tiny) +
                 land(path);
     }
@@ -65,7 +72,7 @@ public final class MobSounds {
         String path = mob(entityId);
         return switch (path) {
             case "creeper", "iron_golem", "slime", "magma_cube", "end_crystal",
-                    "hostile" -> null;
+                    "hostile", "block_display" -> null;
             case "sniffer" -> "entity.sniffer.idle";
             case "bee" -> "entity.bee.loop";
             case "guardian" -> "entity.guardian.ambient_land";
@@ -93,6 +100,8 @@ public final class MobSounds {
             // The Giant: a deep zombie groan.
             case "hostile" -> "entity.zombie.ambient";
             case "sniffer" -> "entity.sniffer.scenting";
+            case "wither" -> "entity.wither.spawn";
+            case "bat" -> "entity.bat.takeoff";
             default -> ambient(entityId);
         };
     }
@@ -106,6 +115,7 @@ public final class MobSounds {
         return switch (path) {
             case "pillager", "vindicator", "evoker", "ravager", "witch",
                     "piglin" -> "entity." + path + ".celebrate";
+            case "wither" -> "entity.wither.ambient";
             default -> ambient(entityId);
         };
     }

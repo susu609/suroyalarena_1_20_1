@@ -182,8 +182,85 @@ public final class CostFormula {
             case MAGMA_CUBE -> 1.2D;
             // Draws every troop's and tower's fire; its flowers heal.
             case SNIFFER -> TAUNT;
+            // Its banner: +15% damage and +10% speed to Illagers near it.
+            case PILLAGER_CAPTAIN -> BANNER;
+            // Three heads (more targets in a crowd), wither, armour at half.
+            case WITHER -> WITHER_HEADS * WITHER_ON_HIT * WITHER_ARMOUR;
+            // Stew: 3 health every 5 s to each own troop close by.
+            case MOOSHROOM -> STEW;
+            // Ink that blinds what hurts it, fast on the river.
+            case GLOW_SQUID -> INK * RIVER_SWIMMER;
+            // Burns every enemy close by, heals own troops.
+            case CAMPFIRE -> CAMPFIRE_AREA;
             default -> 1.0D;
         };
+    }
+
+    /** Ability multipliers of batch 6 (docs/BALANCE.md). */
+    public static final double BANNER = 1.15D;
+    public static final double WITHER_HEADS = 1.15D;
+    public static final double WITHER_ON_HIT = 1.1D;
+    public static final double WITHER_ARMOUR = 1.08D;
+    public static final double STEW = 1.25D;
+    public static final double INK = 1.1D;
+    public static final double RIVER_SWIMMER = 1.05D;
+    public static final double CAMPFIRE_AREA = 2.4D;
+
+    /**
+     * What a troop that deals no damage brings, as damage per second over
+     * its health (docs/BALANCE.md): a Sheep is a wall; a Parrot's dance is a
+     * share of its friends' attacks; a Beacon's effects work on every own
+     * troop near it.
+     */
+    public static final double SHEEP_WALL_DPS = 1.0D;
+    public static final double DANCE_DPS = 1.6D;
+    public static final double BEACON_DPS = 2.0D;
+    /** A Sheep's wool: each hit it takes whole, as health. */
+    public static final double WOOL_HIT_HEALTH = 6.0D;
+    /**
+     * A Monster Spawner's mobs come one at a time, spread over its life:
+     * each counts this share of what it is worth on its own.
+     */
+    public static final double TRICKLE = 0.45D;
+
+    /** A troop card that deals no damage: its health against its use. */
+    private static double noDamageRaw(BattleCard card) {
+        TroopStats s = card.stats();
+        double health = s.effectiveHealth() * s.count();
+        double dps = switch (card) {
+            case SHEEP -> {
+                health += BattleCard.WOOL_HITS * WOOL_HIT_HEALTH;
+                yield SHEEP_WALL_DPS;
+            }
+            case PARROT -> DANCE_DPS;
+            case BEACON -> BEACON_DPS;
+            default -> 0.0D;
+        };
+        double modifier = traitModifier(s);
+        if (s.speed() >= 1.33D)
+            modifier *= 1.1D;
+        if (s.speed() <= 0.0D)
+            modifier *= BUILDING;
+        return Math.sqrt(health * dps) * modifier / COST_DIVISOR;
+    }
+
+    /**
+     * A Monster Spawner: every mob it makes over its life (one per interval,
+     * and those it lets out when it breaks), each worth one unit of its card
+     * at the spawned health, times {@link #TRICKLE}.
+     */
+    private static double spawnerRaw(BattleCard card) {
+        int mobs = BattleCard.BUILDING_LIFETIME_TICKS / card.stats().attackTicks() +
+                BattleCard.SPAWNER_BREAK_MOBS;
+        double each = 0.0D;
+        for (BattleCard mob : BattleCard.SPAWNER_MOBS) {
+            TroopStats m = mob.stats();
+            each += raw(new TroopStats(1, m.health() * BattleCard.SPAWNED_HEALTH,
+                    m.damage(), m.attackTicks(), m.range(), m.speed(),
+                    m.radius(), m.split(), m.traits(), m.armor())) /
+                    BattleCard.SPAWNER_MOBS.size();
+        }
+        return mobs * each * TRICKLE;
     }
 
     /** A troop that vanishes after 10 s does a share of its work. */
@@ -216,6 +293,16 @@ public final class CostFormula {
             case BELL -> (BattleCard.BELL_LURE_TICKS / 20.0D *
                     SpellStats.SLOW_VALUE_PER_SECOND + REVEAL_VALUE) *
                     s.radius() / SPELL_COST_DIVISOR;
+            // Lava's burn: it burns all the time a troop stands in it (the
+            // formula leaves burn out of a spell's value).
+            case LAVA_BUCKET -> s.burnPerSecond() * (s.durationTicks() +
+                    s.burnTicks()) / 20.0D * s.radius() / SPELL_COST_DIVISOR;
+            // Through armour, and own undead healed (a quarter of a crowd).
+            case HARMING_POTION -> (s.damagePerPulse() * HALF_ARMOR_GAIN * 2.0D +
+                    s.damagePerPulse() * 0.25D) * s.radius() / SPELL_COST_DIVISOR;
+            // Double on flyers, a fifth of the troops.
+            case FIREWORK_ROCKET -> s.damagePerPulse() * 0.2D * s.radius() /
+                    SPELL_COST_DIVISOR;
             default -> 0.0D;
         };
     }
@@ -252,6 +339,11 @@ public final class CostFormula {
             return raw(card.spell()) + spellAbility(card);
         if (card.bringsLlamas())
             return traderRaw(card.stats());
+        if (card.spawnsMobs())
+            return spawnerRaw(card);
+        if (card.stats().damage() <= 0.0D && (card.woolly() || card.dances() ||
+                card.beams()))
+            return noDamageRaw(card);
         double raw = raw(card.stats()) * abilityModifier(card);
         // The Golem the Villagers may call, at its called health.
         if (card.callsGolem()) {

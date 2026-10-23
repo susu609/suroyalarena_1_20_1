@@ -1,0 +1,32 @@
+{
+  "id": "wither",
+  "type": "troop",
+  "display_name": "Wither",
+  "roles": [
+    "attack"
+  ],
+  "body": "undead",
+  "elixir": 9,
+  "entity": "minecraft:wither",
+  "model_scale": 0.8,
+  "count": 1,
+  "unit": {
+    "health": 100,
+    "damage": 5,
+    "attack_interval_ticks": 30,
+    "range": 5.0,
+    "move_speed": 0.6,
+    "flying": true,
+    "targets": "ground",
+    "hover": 2.0,
+    "crosses_river": true,
+    "fire_immune": true,
+    "splash_radius": 1.0,
+    "heads": 3,
+    "wither_on_hit": {
+      "ticks": 100,
+      "damage_per_second": 1.0
+    },
+    "shots_halved_under_half_health": true
+  }
+}

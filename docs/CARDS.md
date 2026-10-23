@@ -524,3 +524,28 @@ Villager won 62% with 12 HP and a 50% Golem (now 10 HP, 40%), the Anvil
 60% at 50 damage (now 45; radius 1.5, not 1, so the formula gives it 2
 elixir, not 1.5), the Sniffer is 2 elixir, not 5 (see docs/BALANCE.md). The
 Iron Golem is in the new Village tribe.
+
+## Batch 6: troops, support, buildings and three spells
+
+| Card | Elixir | Stats | Rule | Win rate |
+|---|---|---|---|---|
+| Pillager Captain | 3 | 28 HP, crossbow 8 every 2 s, range 6; wears the ominous banner; Illager | **Banner**: every other own Illager within 4 blocks +15% damage, +10% speed; when it dies the banner stays 5 s where it fell. | 59% |
+| Wither | 9 | 100 HP, flies (crosses the river), skull 5 every 1.5 s, range 5, splash 1; Nether, Skeleton; no boss bar | **Three heads**: a skull each at its own target in range, each **withering** (1 a second for 5 s, no healing). Under half health its **armour** halves every arrow, shot and tower shot. Immune to wither. | 44% |
+| Zombie Horse | 3 | 24 HP, kick 3, fast; a grown Zombie rides it; Zombie, Beast | **Two lives**, as the jockeys: whichever dies first, the other goes on. | 46% |
+| Bat | 2 | 5 bats, 4 HP, bite 1.5 every 1.1 s, fly, very fast; Night | Clash Royale's Bats: a frail, fast swarm in the air. | 50% |
+| Mooshroom | 2 | 40 HP, horns 3 every 1.25 s; Beast | **Stew**: every 5 s each other own troop within 2.5 blocks heals 3. | 50% |
+| Parrot | 1 | 8 HP, flies, never attacks; Beast | Flies beside the nearest own troop and **dances**: own troops within 3 blocks attack 20% faster. | 46% |
+| Glow Squid | 1 | 20 HP, slap 2 every 1 s; played on the river too, 3x as fast there; Aquatic | **Ink**: the first time it is hurt, enemies within 2 blocks are blinded (range 60%) for 3 s. | 53% |
+| Sheep | 1 | 16 HP, never attacks, team-coloured wool; Beast | **Wool** takes the first 2 hits whole (burning and poison go through), then it is sheared. | 53% |
+| Monster Spawner | 4 | building, 40 HP, 30 s; Night | Every 5 s a **random spawner mob** comes out at half health (Zombie twice as likely as Skeleton Archer, Spider, Cave Spider, Silverfish, Blaze); 2 more when it is broken. | 54% |
+| Campfire | 2 | building, 40 HP, 30 s; fire immune; Village | Enemies within 2 blocks **burn** 1 a second; own troops within 2.5 **heal** 1 a second. | 41% |
+| Beacon | 1 | building, 25 HP, 30 s, never attacks; Golem | Own troops within 5 blocks get one effect, a new one every 10 s: **Speed** (x1.2 walk), **Strength** (x1.2 damage), **Regeneration** (1 a second), **Resistance** (-20% damage taken). | 46% |
+| Lava Bucket | 3 | spell, radius 2, thrown, 5 s | A pool: enemies in it burn 2.5 a second and are slowed; fire-immune troops do not care; towers are left alone. | 43% |
+| Potion of Harming | 3 | spell, radius 2.5, thrown | 12 damage **through armour** to enemies (towers 30%); the caster's own **undead** in it heal 12 instead. | 41% |
+| Firework Rocket | 2 | spell, radius 2.5, thrown fast, bursts in the air | 8 damage, **double on flying troops**; towers 30%. | 45% |
+
+Win rates from 4000 bot matches. Changes from the first numbers: the
+Captain won 61% with a 9 crossbow (now 8), the Campfire 38% with 30 HP (now
+40), the Beacon 34% at 2 elixir (now 1 elixir, 25 HP). The Monster Spawner,
+Campfire and Beacon are in Night, Village and Golem (every troop card has a
+tribe).

@@ -1,0 +1,28 @@
+{
+  "id": "mooshroom",
+  "type": "troop",
+  "display_name": "Mooshroom",
+  "roles": [
+    "attack",
+    "support"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:mooshroom",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 40,
+    "damage": 3,
+    "attack_interval_ticks": 25,
+    "range": 1.0,
+    "move_speed": 0.7,
+    "flying": false,
+    "targets": "ground",
+    "stew": {
+      "every_ticks": 100,
+      "radius": 2.5,
+      "heal": 3
+    }
+  }
+}

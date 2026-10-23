@@ -210,6 +210,49 @@ public final class Sim {
                 attacker.cost() * (1.0D - keptA) - helper.cost() * (1.0D - keptH);
     }
 
+    /**
+     * Like {@link #push}, with {@code helper} (a support building, the
+     * Beacon) standing beside {@code defender}; the defending side's losses
+     * are both cards', each by its cost. Elixir the attacker comes out ahead.
+     */
+    public static double pushIntoHelped(BattleCard attacker,
+            BattleCard defender, BattleCard helper)
+    {
+        MatchInstance match = battle();
+        CombatEngine engine = new CombatEngine(match);
+        spawn(engine, match, attacker, TeamSide.BLUE, -6.0D, 2.0D);
+        spawn(engine, match, defender, TeamSide.RED, -6.0D, -7.0D);
+        int defenders = engine.units().size();
+        spawn(engine, match, helper, TeamSide.RED, -4.5D, -8.0D);
+        java.util.Set<UUID> helpers = new java.util.HashSet<>();
+        for (int i = defenders; i < engine.units().size(); i++)
+            helpers.add(engine.units().get(i).id());
+        int towersBefore = towerHealth(match);
+        for (int tick = 0; tick < 1200; tick++) {
+            step(engine, match.arena());
+            if (match.state() != MatchState.BATTLE ||
+                    healthLeft(engine, TeamSide.BLUE) <= 0.0D)
+                break;
+        }
+        double keptD = 0.0D;
+        double keptH = 0.0D;
+        for (CombatUnit unit : engine.units()) {
+            if (unit.side() != TeamSide.RED)
+                continue;
+            if (helpers.contains(unit.id()))
+                keptH += unit.health();
+            else
+                keptD += unit.health();
+        }
+        keptD = Math.min(1.0D, keptD / cardHealth(defender));
+        keptH = Math.min(1.0D, keptH / cardHealth(helper));
+        double keptA = Math.min(1.0D, healthLeft(engine, TeamSide.BLUE) /
+                cardHealth(attacker));
+        return defender.cost() * (1.0D - keptD) + helper.cost() * (1.0D - keptH) +
+                (towersBefore - towerHealth(match)) / TOWER_HP_PER_ELIXIR -
+                attacker.cost() * (1.0D - keptA);
+    }
+
     /** Tower health one card alone takes off the tower it walks to. */
     public static int soloTowerDamage(BattleCard card) {
         return solo(card).towerDamage();

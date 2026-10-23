@@ -1,0 +1,16 @@
+{
+  "id": "harming_potion",
+  "type": "spell",
+  "display_name": "Potion of Harming",
+  "roles": [
+    "attack",
+    "defense"
+  ],
+  "elixir": 3,
+  "radius": 2.5,
+  "travel_ticks": 5,
+  "flight_speed": 16,
+  "damage": 12,
+  "through_armor": true,
+  "heals_own_undead": true
+}

@@ -1,0 +1,30 @@
+{
+  "id": "glow_squid",
+  "type": "troop",
+  "display_name": "Glow Squid",
+  "roles": [
+    "defense",
+    "support"
+  ],
+  "body": "living",
+  "elixir": 1,
+  "entity": "minecraft:glow_squid",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 20,
+    "damage": 2,
+    "attack_interval_ticks": 20,
+    "range": 1.0,
+    "move_speed": 0.8,
+    "flying": false,
+    "targets": "ground",
+    "deploy_on_river": true,
+    "river_speed": 3.0,
+    "ink": {
+      "radius": 2.0,
+      "blind_ticks": 60,
+      "once": true
+    }
+  }
+}

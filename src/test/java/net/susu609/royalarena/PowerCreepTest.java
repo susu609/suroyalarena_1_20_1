@@ -51,7 +51,7 @@ public final class PowerCreepTest {
                         card.id(), value);
                 if (value < MIN_SPELL || value > MAX_SPELL)
                     problems.add(line);
-            } else if (card.digsFlowers()) {
+            } else if (card.digsFlowers() || card.woolly()) {
                 // A tank that does not fight: what it adds walking in front
                 // of a Witch, its own cost included.
                 double score = tankScore(card);
@@ -59,10 +59,18 @@ public final class PowerCreepTest {
                         card.id(), score);
                 if (score < MIN_SCORE || score > MAX_SCORE)
                     problems.add(line);
-            } else if (card.healsAround()) {
+            } else if (card.followsTroops()) {
                 // A support troop does not fight: it is measured by what it
                 // adds to a Zombie's fights, its own cost included.
                 double score = supportScore(card);
+                line = String.format(Locale.ROOT, "%-16s support score %+.2f",
+                        card.id(), score);
+                if (score < MIN_SCORE || score > MAX_SCORE)
+                    problems.add(line);
+            } else if (card.beams()) {
+                // A support building does not fight: what it adds to a
+                // Witch defending beside it, its own cost included.
+                double score = buildingSupportScore(card);
                 line = String.format(Locale.ROOT, "%-16s support score %+.2f",
                         card.id(), score);
                 if (score < MIN_SCORE || score > MAX_SCORE)
@@ -99,7 +107,8 @@ public final class PowerCreepTest {
     /** A troop that fights both ways: no spell, building or support. */
     static boolean fights(BattleCard card) {
         return !card.isSpell() && !card.stats().traits().buildingsOnly() &&
-                !card.isBuilding() && !card.healsAround() && !card.digsFlowers();
+                !card.isBuilding() && !card.followsTroops() &&
+                !card.digsFlowers() && !card.woolly();
     }
 
     /**
@@ -132,6 +141,23 @@ public final class PowerCreepTest {
                 continue;
             gain += Sim.pushWith(card, BattleCard.WITCH, other) -
                     Sim.push(BattleCard.WITCH, other);
+            fights++;
+        }
+        return gain / fights;
+    }
+
+    /**
+     * Elixir a support building (the Beacon) adds beside a Witch defending
+     * against each fighting troop, over the Witch alone.
+     */
+    static double buildingSupportScore(BattleCard card) {
+        double gain = 0.0D;
+        int fights = 0;
+        for (BattleCard other : BattleCard.values()) {
+            if (!fights(other))
+                continue;
+            gain += Sim.push(other, BattleCard.WITCH) -
+                    Sim.pushIntoHelped(other, BattleCard.WITCH, card);
             fights++;
         }
         return gain / fights;

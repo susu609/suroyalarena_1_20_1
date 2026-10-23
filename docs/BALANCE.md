@@ -257,3 +257,30 @@ its own losses counted (`supportScore`).
 
 `Sim` counts the units a card brings (llamas, the called Golem) in its
 health, and a side keeps at most all of its card.
+
+## Batch 6 in the cost
+
+| Card | Rule | In the cost |
+|---|---|---|
+| Pillager Captain | banner | x1.15 |
+| Wither | heads x1.15, wither on hit x1.1, armour at half x1.08 | x1.37 |
+| Mooshroom | stew | x1.25 |
+| Glow Squid | ink x1.1, fast on the river x1.05 | x1.16 |
+| Campfire | burns everything close, heals | x2.4 |
+
+Cards that deal no damage are costed on their health against what they do,
+as damage a second (`CostFormula.noDamageRaw`): a Sheep is a wall (1, its
+wool 6 health a hit), a Parrot's dance 1.6, a Beacon's effects 2. The
+Monster Spawner is every mob it makes in 30 s (6, and 2 when broken), each
+worth one unit of its card at half health, times 0.45 (they come one at a
+time).
+
+| Spell | Rule | Adds |
+|---|---|---|
+| Lava Bucket | its burn all the time a troop stands in it | +1.33 |
+| Potion of Harming | through armour, own undead healed (a quarter of a crowd) | +0.48 |
+| Firework Rocket | double on flyers (a fifth of the troops) | +0.19 |
+
+`PowerCreepTest` measures the Parrot like the Allay (what it adds to a
+Zombie), the Sheep like the Sniffer (in front of a Witch), and the Beacon by
+what it adds to a Witch defending beside it (`buildingSupportScore`).

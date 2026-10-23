@@ -526,6 +526,10 @@ public final class BotBrain {
         if (card.rings())
             return bellValue(match, engine, spell, x, z);
         double perTarget = spell.damagePerTarget();
+        // Lava burns all the time a troop stands in it.
+        if (card.lava())
+            perTarget = spell.burnPerSecond() * (spell.durationTicks() +
+                    spell.burnTicks()) / 20.0D * 0.5D;
         // The skull's wither keeps hurting after the blast.
         if (card.withers())
             perTarget += BattleCard.WITHER_PER_SECOND *

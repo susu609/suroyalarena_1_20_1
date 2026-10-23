@@ -65,8 +65,8 @@ public final class CardCompare {
     /** Whether the card fights both ways: troops that attack and defend. */
     public static boolean fights(BattleCard card) {
         return !card.isSpell() && !card.stats().traits().buildingsOnly() &&
-                !card.isBuilding() && !card.healsAround() &&
-                !card.digsFlowers();
+                !card.isBuilding() && !card.followsTroops() &&
+                !card.digsFlowers() && !card.woolly();
     }
 
     public static Report compare(BattleCard a, BattleCard b) {

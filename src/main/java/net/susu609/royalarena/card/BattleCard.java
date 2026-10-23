@@ -176,6 +176,36 @@ public enum BattleCard {
     WANDERING_TRADER("Wandering Trader", 4, "minecraft:wandering_trader",
             null, 0,
             new TroopStats(1, 20, 0, 20, 0.5D, 0.9D, 0.3D)),
+    PILLAGER_CAPTAIN("Pillager Captain", 3, "minecraft:pillager",
+            "minecraft:crossbow", 0,
+            new TroopStats(1, 28, 8, 40, 6.0D, 1.0D, 0.3D)),
+    WITHER("Wither", 9, "minecraft:wither", null, 0,
+            new TroopStats(1, 100, 5, 30, 5.0D, 0.6D, 0.9D,
+                    new TroopTraits(1.0D, false, 0.0D, false, 0, 0, 0.0D, 0,
+                            2.0D, true, false, false, false, false, 0.0D, 0,
+                            false))),
+    ZOMBIE_HORSE("Zombie Horse", 3, "minecraft:zombie_horse", null, 0,
+            new TroopStats(1, 24, 3, 20, 1.2D, 1.6D, 0.6D,
+                    SplitRule.into(ZOMBIE.stats()), TroopTraits.NONE)),
+    BAT("Bat", 2, "minecraft:bat", null, 0,
+            new TroopStats(5, 4, 1.5D, 22, 0.8D, 2.0D, 0.25D,
+                    TroopTraits.hovering(1.5D, true, false, false))),
+    MOOSHROOM("Mooshroom", 2, "minecraft:mooshroom", null, 0,
+            new TroopStats(1, 40, 3, 25, 1.0D, 0.7D, 0.65D)),
+    PARROT("Parrot", 1, "minecraft:parrot", null, 0,
+            new TroopStats(1, 8, 0, 20, 0.5D, 1.4D, 0.25D,
+                    TroopTraits.hovering(1.5D, true, false, false))),
+    GLOW_SQUID("Glow Squid", 1, "minecraft:glow_squid", null, 0,
+            new TroopStats(1, 20, 2, 20, 1.0D, 0.8D, 0.4D,
+                    TroopTraits.riverDeploy())),
+    SHEEP("Sheep", 1, "minecraft:sheep", null, 0,
+            new TroopStats(1, 16, 0, 20, 0.5D, 0.8D, 0.45D)),
+    MONSTER_SPAWNER("Monster Spawner", 4, "minecraft:block_display", null, 0,
+            new TroopStats(1, 40, 0, 100, 0.5D, 0.0D, 0.5D)),
+    CAMPFIRE("Campfire", 2, "minecraft:block_display", null, 0,
+            new TroopStats(1, 40, 1, 20, 2.0D, 0.0D, 0.5D)),
+    BEACON("Beacon", 1, "minecraft:block_display", null, 0,
+            new TroopStats(1, 25, 0, 20, 5.0D, 0.0D, 0.5D)),
     ARROW_STORM("Arrow Storm", 3, "minecraft:arrow",
             new SpellStats(2.3D, 6, 3, 8, 7.0D, 0.5D, 0.0D, 0.0D, 0)
                     .thrownAt(24.0D)),
@@ -230,7 +260,16 @@ public enum BattleCard {
                     0.0D, 0.0D, 0).thrownAt(16.0D)),
     BELL("Bell", 2, "minecraft:bell",
             new SpellStats(6.0D, 10, 1, 1, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0, 10,
-                    0, false));
+                    0, false)),
+    LAVA_BUCKET("Lava Bucket", 3, "minecraft:lava_bucket",
+            new SpellStats(2.0D, 5, 10, 10, 0.0D, 0.0D, 0.0D, 2.5D, 20, 0, 0,
+                    0, false, false, 15, false, 0).thrownAt(16.0D)),
+    HARMING_POTION("Potion of Harming", 3, "minecraft:splash_potion",
+            new SpellStats(2.5D, 5, 1, 1, 12.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0).thrownAt(16.0D)),
+    FIREWORK_ROCKET("Firework Rocket", 2, "minecraft:firework_rocket",
+            new SpellStats(2.5D, 5, 1, 1, 8.0D, SpellStats.TOWER_MULTIPLIER,
+                    0.0D, 0.0D, 0).thrownAt(24.0D));
 
     /** Time between a troop card play and the troop appearing (1 s). */
     public static final int DEPLOY_TICKS = 20;
@@ -349,6 +388,15 @@ public enum BattleCard {
             case GIANT -> EnumSet.of(Tribe.ZOMBIE);
             case VILLAGER, WANDERING_TRADER -> EnumSet.of(Tribe.VILLAGE);
             case SNIFFER -> EnumSet.of(Tribe.BEAST);
+            case PILLAGER_CAPTAIN -> EnumSet.of(Tribe.ILLAGER);
+            case WITHER -> EnumSet.of(Tribe.NETHER, Tribe.SKELETON);
+            case ZOMBIE_HORSE -> EnumSet.of(Tribe.ZOMBIE, Tribe.BEAST);
+            case BAT -> EnumSet.of(Tribe.NIGHT);
+            case MOOSHROOM, PARROT, SHEEP -> EnumSet.of(Tribe.BEAST);
+            case GLOW_SQUID -> EnumSet.of(Tribe.AQUATIC);
+            case MONSTER_SPAWNER -> EnumSet.of(Tribe.NIGHT);
+            case CAMPFIRE -> EnumSet.of(Tribe.VILLAGE);
+            case BEACON -> EnumSet.of(Tribe.GOLEM);
             case BEE -> EnumSet.of(Tribe.ARTHROPOD, Tribe.BEAST);
             case WOLVES, FOX, POLAR_BEAR, GOAT, LLAMA, CAT, PIGLETS,
                     KILLER_RABBITS, PANDA, CAMEL ->
@@ -393,6 +441,7 @@ public enum BattleCard {
             case WITHER_SKELETON -> 0.85F;
             case POLAR_BEAR -> 0.8F;
             case GIANT -> 0.4F;
+            case WITHER -> 0.8F;
             default -> 1.0F;
         };
     }
@@ -406,24 +455,24 @@ public enum BattleCard {
             case SNOWBALL_VOLLEY, ZOMBIE, ZOMBIE_VILLAGER, SKELETONS, VINDICATOR, CAVE_SPIDER, VEX,
                     ZOMBIFIED_PIGLIN, HUSK, SILVERFISH, GUARDIAN, GOAT, CAT, FROG,
                     KILLER_RABBITS, PANDA, TURTLE, SHULKER, END_CRYSTAL, AXOLOTL,
-                    ENDERMITE ->
+                    ENDERMITE, SHEEP, MONSTER_SPAWNER, CAMPFIRE, FIREWORK_ROCKET ->
                     EnumSet.of(CardTactic.DEFENSE);
             case SKELETON_ARCHER, STRAY, WITCH, PILLAGER, GHAST, BEE, EVOKER, LLAMA, PIGLIN,
                     SNOW_GOLEM, ARROW_STORM, COBWEB, ZAP, ILLUSIONER, WATER_BUCKET,
-                    WANDERING_TRADER, BELL ->
+                    WANDERING_TRADER, BELL, PILLAGER_CAPTAIN, GLOW_SQUID ->
                     EnumSet.of(CardTactic.DEFENSE, CardTactic.SUPPORT);
             case SPIDER, SPIDER_JOCKEY, FOX, SKELETON_RIDER, PIGLETS, ZOGLIN,
                     CHICKEN_JOCKEY, CAMEL, WARDEN, STRIDER, IRON_GOLEM, WOLVES, RAVAGER, HOGLIN, ENDERMAN,
-                    PIGLIN_BRUTE, PHANTOM, LIGHTNING, GIANT ->
+                    PIGLIN_BRUTE, PHANTOM, LIGHTNING, GIANT, WITHER, ZOMBIE_HORSE ->
                     EnumSet.of(CardTactic.ATTACK);
             case BIG_SLIME, CREEPER, MAGMA_CUBE, WITHER_SKELETON, POLAR_BEAR,
                     FIREBALL, TNT, POISON_CLOUD, WITHER_SKULL, ANVIL,
-                    DRAGONS_BREATH ->
+                    DRAGONS_BREATH, BAT, LAVA_BUCKET, HARMING_POTION ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.DEFENSE);
-            case DROWNED, BLAZE, FREEZE, VILLAGER, SNIFFER ->
+            case DROWNED, BLAZE, FREEZE, VILLAGER, SNIFFER, MOOSHROOM ->
                     EnumSet.of(CardTactic.ATTACK, CardTactic.SUPPORT);
             case HEALING_POTION, SWIFTNESS_POTION, MILK_BUCKET, ALLAY,
-                    ENDER_PEARL ->
+                    ENDER_PEARL, PARROT, BEACON ->
                     EnumSet.of(CardTactic.SUPPORT);
         };
     }
@@ -434,12 +483,13 @@ public enum BattleCard {
      */
     public Body body() {
         return switch (this) {
-            case IRON_GOLEM, SNOW_GOLEM, END_CRYSTAL ->
-                    Body.CONSTRUCT;
+            case IRON_GOLEM, SNOW_GOLEM, END_CRYSTAL, MONSTER_SPAWNER, CAMPFIRE,
+                    BEACON -> Body.CONSTRUCT;
             case ZOMBIE, SKELETON_ARCHER, SKELETONS,
                     STRAY, ZOMBIFIED_PIGLIN, HUSK,
                     WITHER_SKELETON, DROWNED, PHANTOM,
-                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER, ZOGLIN, GIANT ->
+                    ZOMBIE_VILLAGER, BLAZE, VEX, SKELETON_RIDER, ZOGLIN, GIANT,
+                    WITHER, ZOMBIE_HORSE ->
                     Body.UNDEAD;
             default -> Body.LIVING;
         };
@@ -452,7 +502,8 @@ public enum BattleCard {
     public boolean fireImmune() {
         return switch (this) {
             case BLAZE, GHAST, MAGMA_CUBE, ZOMBIFIED_PIGLIN, HOGLIN,
-                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER, PIGLIN, ZOGLIN -> true;
+                    WITHER_SKELETON, PIGLIN_BRUTE, STRIDER, PIGLIN, ZOGLIN, WITHER,
+                    CAMPFIRE -> true;
             default -> false;
         };
     }
@@ -514,7 +565,7 @@ public enum BattleCard {
 
     /** A Turtle swims: it walks {@link #RIVER_SWIM} times as fast on the river. */
     public boolean swimsFast() {
-        return this == TURTLE;
+        return this == TURTLE || this == GLOW_SQUID;
     }
 
     public static final double RIVER_SWIM = 3.0D;
@@ -525,7 +576,21 @@ public enum BattleCard {
      * for it first when they see it.
      */
     public boolean isBuilding() {
-        return this == SHULKER || this == END_CRYSTAL;
+        return this == SHULKER || this == END_CRYSTAL || this == MONSTER_SPAWNER ||
+                this == CAMPFIRE || this == BEACON;
+    }
+
+    /**
+     * The block a building made of a block shows ({@code minecraft:
+     * block_display} entities), or null for a mob.
+     */
+    public String displayBlock() {
+        return switch (this) {
+            case MONSTER_SPAWNER -> "minecraft:spawner";
+            case CAMPFIRE -> "minecraft:campfire";
+            case BEACON -> "minecraft:beacon";
+            default -> null;
+        };
     }
 
     public static final int BUILDING_LIFETIME_TICKS = 20 * 30;
@@ -648,7 +713,7 @@ public enum BattleCard {
 
     /** Wither Skeletons shrug off the wither, as in vanilla. */
     public boolean witherImmune() {
-        return this == WITHER_SKELETON;
+        return this == WITHER_SKELETON || this == WITHER;
     }
 
     /**
@@ -734,7 +799,8 @@ public enum BattleCard {
 
     /** Troops that never attack (they walk, heal or draw fire). */
     public boolean peaceful() {
-        return this == SNIFFER || this == WANDERING_TRADER;
+        return this == SNIFFER || this == WANDERING_TRADER || this == SHEEP ||
+                this == MONSTER_SPAWNER || this == CAMPFIRE || this == BEACON;
     }
 
     /**
@@ -773,6 +839,164 @@ public enum BattleCard {
     public static final int BELL_DODGE_OFF_TICKS = 100;
     public static final double BELL_WARDEN_RANGE = 12.0D;
     public static final int BELL_WARDEN_TICKS = 60;
+
+    /**
+     * Pillager Captain: its banner gives every other own Illager within
+     * {@link #BANNER_RADIUS} +{@link #BANNER_DAMAGE} damage and
+     * +{@link #BANNER_SPEED} speed; when it dies the banner stays where it
+     * fell for {@link #BANNER_DROP_TICKS}.
+     */
+    public boolean carriesBanner() {
+        return this == PILLAGER_CAPTAIN;
+    }
+
+    public static final double BANNER_RADIUS = 4.0D;
+    public static final double BANNER_DAMAGE = 0.15D;
+    public static final double BANNER_SPEED = 0.10D;
+    public static final int BANNER_DROP_TICKS = 100;
+
+    /**
+     * Wither: each of its {@link #WITHER_HEADS} heads shoots a skull at its
+     * own target in range (splash, and the target withers like the Wither
+     * Skull spell); under half health its armour halves every arrow, shot
+     * and tower shot.
+     */
+    public boolean threeHeads() {
+        return this == WITHER;
+    }
+
+    public static final int WITHER_HEADS = 3;
+    public static final double WITHER_SHIELD = 0.5D;
+
+    /**
+     * Mooshroom: every {@link #STEW_TICKS} it shares stew: each other own
+     * troop within {@link #STEW_RADIUS} heals {@link #STEW_HEAL}.
+     */
+    public boolean sharesStew() {
+        return this == MOOSHROOM;
+    }
+
+    public static final int STEW_TICKS = 100;
+    public static final double STEW_RADIUS = 2.5D;
+    public static final double STEW_HEAL = 3.0D;
+
+    /**
+     * Parrot: never attacks; it flies beside the nearest own troop and
+     * dances: own troops within {@link #DANCE_RADIUS} attack
+     * {@link #DANCE_HASTE} times as fast.
+     */
+    public boolean dances() {
+        return this == PARROT;
+    }
+
+    public static final double DANCE_RADIUS = 3.0D;
+    public static final double DANCE_HASTE = 1.2D;
+
+    /** Troops that never fight and fly beside their own (Allay, Parrot). */
+    public boolean followsTroops() {
+        return healsAround() || dances();
+    }
+
+    /**
+     * Glow Squid: the first time it is hurt it squirts ink: enemies within
+     * {@link #INK_RADIUS} are blinded (range cut to
+     * {@link #BLIND_RANGE}) for {@link #INK_TICKS}. Swims fast on the river
+     * and may be played there.
+     */
+    public boolean squirtsInk() {
+        return this == GLOW_SQUID;
+    }
+
+    public static final double INK_RADIUS = 2.0D;
+    public static final int INK_TICKS = 60;
+
+    /**
+     * Sheep: never attacks; its wool takes the first {@link #WOOL_HITS}
+     * hits whole (burning and poison go through), then it is sheared.
+     */
+    public boolean woolly() {
+        return this == SHEEP;
+    }
+
+    public static final int WOOL_HITS = 2;
+
+    /**
+     * Monster Spawner: every {@code attackTicks} a mob a vanilla spawner can
+     * hold comes out ({@link #SPAWNER_MOBS}, at {@link #SPAWNED_HEALTH} of
+     * its health); {@link #SPAWNER_BREAK_MOBS} more when it breaks.
+     */
+    public boolean spawnsMobs() {
+        return this == MONSTER_SPAWNER;
+    }
+
+    /** What vanilla spawners hold, as a weighted list (Zombie twice). */
+    public static final java.util.List<BattleCard> SPAWNER_MOBS =
+            java.util.List.of(ZOMBIE, ZOMBIE, SKELETON_ARCHER, SPIDER,
+                    CAVE_SPIDER, SILVERFISH, BLAZE);
+    public static final double SPAWNED_HEALTH = 0.5D;
+    public static final int SPAWNER_BREAK_MOBS = 2;
+
+    /**
+     * Campfire: enemies within its range burn {@code damage} a second;
+     * own troops within {@link #CAMPFIRE_HEAL_RADIUS} heal
+     * {@link #CAMPFIRE_HEAL} a second.
+     */
+    public boolean warms() {
+        return this == CAMPFIRE;
+    }
+
+    public static final double CAMPFIRE_HEAL_RADIUS = 2.5D;
+    public static final double CAMPFIRE_HEAL = 1.0D;
+
+    /**
+     * Beacon: own troops within its range get one effect, a new one every
+     * {@link #BEACON_PHASE_TICKS}: Speed, Strength, Regeneration,
+     * Resistance ({@link BeaconEffect}).
+     */
+    public boolean beams() {
+        return this == BEACON;
+    }
+
+    public static final int BEACON_PHASE_TICKS = 200;
+
+    /** The Beacon's effects in turn. */
+    public enum BeaconEffect {
+        SPEED, STRENGTH, REGENERATION, RESISTANCE;
+
+        public static BeaconEffect at(int ageTicks) {
+            return values()[Math.floorMod(ageTicks / BEACON_PHASE_TICKS,
+                    values().length)];
+        }
+    }
+
+    /** Speed and Strength x1.2, Regeneration 1 a second, Resistance -20%. */
+    public static final double BEACON_SPEED = 1.2D;
+    public static final double BEACON_STRENGTH = 1.2D;
+    public static final double BEACON_REGEN = 1.0D;
+    public static final double BEACON_RESIST = 0.8D;
+
+    /**
+     * Lava Bucket: a pool that burns and slows enemies standing in it;
+     * fire-immune troops do not care; towers are left alone.
+     */
+    public boolean lava() {
+        return this == LAVA_BUCKET;
+    }
+
+    /**
+     * Potion of Harming: enemies take its damage through armour; own undead
+     * in it heal by as much (instant damage heals the undead in vanilla).
+     */
+    public boolean harms() {
+        return this == HARMING_POTION;
+    }
+
+    /** Firework Rocket: flying troops take {@link #FIREWORK_FLYING} times as much. */
+    public boolean firework() {
+        return this == FIREWORK_ROCKET;
+    }
+
+    public static final double FIREWORK_FLYING = 2.0D;
 
     public static final double HEAR_RANGE = 8.0D;
     public static final int BOOM_TICKS = 20 * 15;

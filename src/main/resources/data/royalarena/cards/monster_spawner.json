@@ -1,0 +1,38 @@
+{
+  "id": "monster_spawner",
+  "type": "troop",
+  "display_name": "Monster Spawner",
+  "roles": [
+    "defense"
+  ],
+  "body": "construct",
+  "elixir": 4,
+  "entity": "minecraft:block_display",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 40,
+    "damage": 0,
+    "attack_interval_ticks": 100,
+    "range": 0.5,
+    "move_speed": 0.0,
+    "flying": false,
+    "targets": "none",
+    "building": true,
+    "block": "minecraft:spawner",
+    "spawns": {
+      "every_ticks": 100,
+      "mobs": [
+        "zombie",
+        "zombie",
+        "skeleton_archer",
+        "spider",
+        "cave_spider",
+        "silverfish",
+        "blaze"
+      ],
+      "health_share": 0.5,
+      "on_break": 2
+    }
+  }
+}

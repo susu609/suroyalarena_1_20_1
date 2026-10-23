@@ -1,0 +1,30 @@
+{
+  "id": "campfire",
+  "type": "troop",
+  "display_name": "Campfire",
+  "roles": [
+    "defense"
+  ],
+  "body": "construct",
+  "elixir": 2,
+  "entity": "minecraft:block_display",
+  "model_scale": 1.0,
+  "count": 1,
+  "unit": {
+    "health": 40,
+    "damage": 1,
+    "attack_interval_ticks": 20,
+    "range": 2.0,
+    "move_speed": 0.0,
+    "flying": false,
+    "targets": "none",
+    "building": true,
+    "block": "minecraft:campfire",
+    "fire_immune": true,
+    "burns_enemies_per_second": 1,
+    "heals_own_within": {
+      "radius": 2.5,
+      "per_second": 1
+    }
+  }
+}

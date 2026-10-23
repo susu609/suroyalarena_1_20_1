@@ -20,7 +20,8 @@ public record S2CProjectilePacket(Kind kind, float fromX, float fromY,
 {
     public enum Kind {
         ARROW, FIREBALL, POTION, HEALING_POTION, SNOWBALL, TNT, SHULKER_BULLET,
-        WITHER_SKULL, ENDER_PEARL, WATER, ANVIL, DRAGON_FIREBALL
+        WITHER_SKULL, ENDER_PEARL, WATER, ANVIL, DRAGON_FIREBALL, LAVA,
+        HARMING_POTION, FIREWORK
     }
 
     public static void encode(S2CProjectilePacket p, FriendlyByteBuf buffer) {

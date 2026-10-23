@@ -1,0 +1,23 @@
+{
+  "id": "lava_bucket",
+  "type": "spell",
+  "display_name": "Lava Bucket",
+  "roles": [
+    "attack",
+    "defense"
+  ],
+  "elixir": 3,
+  "radius": 2.0,
+  "travel_ticks": 5,
+  "flight_speed": 16,
+  "duration_ticks": 100,
+  "pulse_interval_ticks": 10,
+  "damage_per_pulse": 0,
+  "burn": {
+    "damage_per_second": 2.5,
+    "duration_ticks": 20
+  },
+  "slow_ticks": 15,
+  "tower_multiplier": 0.0,
+  "fire_immune_unharmed": true
+}

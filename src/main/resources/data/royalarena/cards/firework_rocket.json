@@ -1,0 +1,14 @@
+{
+  "id": "firework_rocket",
+  "type": "spell",
+  "display_name": "Firework Rocket",
+  "roles": [
+    "defense"
+  ],
+  "elixir": 2,
+  "radius": 2.5,
+  "travel_ticks": 5,
+  "flight_speed": 24,
+  "damage": 8,
+  "flying_multiplier": 2.0
+}

@@ -1,0 +1,25 @@
+{
+  "id": "bat",
+  "type": "troop",
+  "display_name": "Bat",
+  "roles": [
+    "attack",
+    "defense"
+  ],
+  "body": "living",
+  "elixir": 2,
+  "entity": "minecraft:bat",
+  "model_scale": 1.0,
+  "count": 5,
+  "unit": {
+    "health": 4,
+    "damage": 1.5,
+    "attack_interval_ticks": 22,
+    "range": 0.8,
+    "move_speed": 2.0,
+    "flying": true,
+    "targets": "ground",
+    "hover": 1.5,
+    "crosses_river": true
+  }
+}

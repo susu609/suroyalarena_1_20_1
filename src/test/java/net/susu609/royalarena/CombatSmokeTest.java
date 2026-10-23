@@ -280,9 +280,13 @@ public final class CombatSmokeTest {
         near(json.contains("\"freeze_ticks\"") ? number(json, "freeze_ticks")
                 : 0.0D, s.freezeTicks(), id + " freeze");
         if (s.burnTicks() > 0) {
-            near(number(json, "damage_per_second"), s.burnPerSecond(),
+            // The burn's numbers are read from its own block: a spell that
+            // pulses (Lava Bucket) has a duration of its own too.
+            String burn = json.contains("\"burn\"") ?
+                    json.substring(json.indexOf("\"burn\"")) : json;
+            near(number(burn, "damage_per_second"), s.burnPerSecond(),
                     id + " burn");
-            near(number(json, "duration_ticks"), s.burnTicks(),
+            near(number(burn, "duration_ticks"), s.burnTicks(),
                     id + " burn time");
         }
     }

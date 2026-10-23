@@ -56,6 +56,7 @@ public final class DomainSmokeTest {
         MobsWave5SmokeTest.run();
         MobsWave6SmokeTest.run();
         MobsWave7SmokeTest.run();
+        MobsWave8SmokeTest.run();
         MusicSmokeTest.run();
         SfxSmokeTest.run();
         ArenaWorldSmokeTest.run();

@@ -557,6 +557,16 @@ public final class DeckScreen extends Screen {
                 lines.add(line("Goes through half of a troop's armour"));
             if (card.blocksHealing())
                 lines.add(line("Enemies inside heal nothing"));
+            if (card.lava())
+                lines.add(line("A pool that burns (%.1f a second) and slows " +
+                        "enemies standing in it; fire-immune troops do not care",
+                        s.burnPerSecond()));
+            if (card.harms())
+                lines.add(line("Through armour; your own undead in it heal " +
+                        "by as much"));
+            if (card.firework())
+                lines.add(line("Flying troops take %.0fx",
+                        BattleCard.FIREWORK_FLYING));
             if (card.rings()) {
                 lines.add(line("Enemies walk to the bell for %.0f s, attacking nothing",
                         BattleCard.BELL_LURE_TICKS / 20.0D));
@@ -708,6 +718,41 @@ public final class DeckScreen extends Screen {
         if (card.healsAround())
             lines.add(line("Never attacks: follows your troops, heals each within %.0f blocks by %.0f a second",
                     BattleCard.ALLAY_RADIUS, s.damage() * 20.0D / s.attackTicks()));
+        if (card.carriesBanner())
+            lines.add(line("Banner: your Illagers within %.0f blocks +%.0f%% damage, +%.0f%% speed; it stays %.0f s where it falls",
+                    BattleCard.BANNER_RADIUS, BattleCard.BANNER_DAMAGE * 100.0D,
+                    BattleCard.BANNER_SPEED * 100.0D,
+                    BattleCard.BANNER_DROP_TICKS / 20.0D));
+        if (card.threeHeads()) {
+            lines.add(line("%d heads: a skull each at its own target, each withering",
+                    BattleCard.WITHER_HEADS));
+            lines.add(line("Under half health: arrows and shots do half"));
+        }
+        if (card.sharesStew())
+            lines.add(line("Every %.0f s: stew heals your troops within %.1f blocks by %.0f",
+                    BattleCard.STEW_TICKS / 20.0D, BattleCard.STEW_RADIUS,
+                    BattleCard.STEW_HEAL));
+        if (card.dances())
+            lines.add(line("Never attacks: dances; your troops within %.0f blocks attack %.0f%% faster",
+                    BattleCard.DANCE_RADIUS,
+                    (BattleCard.DANCE_HASTE - 1.0D) * 100.0D));
+        if (card.squirtsInk())
+            lines.add(line("Hurt once: ink blinds enemies within %.0f blocks for %.0f s",
+                    BattleCard.INK_RADIUS, BattleCard.INK_TICKS / 20.0D));
+        if (card.woolly())
+            lines.add(line("Never attacks; its wool takes the first %d hits whole",
+                    BattleCard.WOOL_HITS));
+        if (card.spawnsMobs())
+            lines.add(line("Every %.0f s a random spawner mob at %.0f%% health; %d more when it breaks",
+                    s.attackTicks() / 20.0D, BattleCard.SPAWNED_HEALTH * 100.0D,
+                    BattleCard.SPAWNER_BREAK_MOBS));
+        if (card.warms())
+            lines.add(line("Enemies within %.0f blocks burn %.0f a second; your troops within %.1f heal %.0f",
+                    s.range(), s.damage(), BattleCard.CAMPFIRE_HEAL_RADIUS,
+                    BattleCard.CAMPFIRE_HEAL));
+        if (card.beams())
+            lines.add(line("Your troops within %.0f blocks: Speed, Strength, Regeneration, Resistance, %.0f s each",
+                    s.range(), BattleCard.BEACON_PHASE_TICKS / 20.0D));
         if (card.callsGolem()) {
             lines.add(line("After %.0f s with %d still up: they call an Iron Golem (%.0f%% health)",
                     BattleCard.VILLAGER_CALL_TICKS / 20.0D,

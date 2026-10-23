@@ -106,6 +106,28 @@ public final class CombatEngine {
     private final Map<String, Integer> villageBorn = new HashMap<>();
     /** Villagers killed by a zombie, and the side they rise for. */
     private final Map<UUID, TeamSide> converted = new HashMap<>();
+    /** Banners Pillager Captains dropped as they fell. */
+    private final List<Banner> banners = new ArrayList<>();
+    /** Sheep wool hits left. */
+    private final Map<UUID, Integer> wool = new HashMap<>();
+    /** Glow Squids that have squirted their ink. */
+    private final Set<UUID> inked = new HashSet<>();
+    /** Spawns a Monster Spawner makes: which mob comes out next. */
+    private final java.util.Random spawnerDice = new java.util.Random(609L);
+
+    private static final class Banner {
+        final TeamSide side;
+        final double x;
+        final double z;
+        int ticksLeft;
+
+        Banner(TeamSide side, double x, double z, int ticksLeft) {
+            this.side = side;
+            this.x = x;
+            this.z = z;
+            this.ticksLeft = ticksLeft;
+        }
+    }
 
     private static final class FirePatch {
         final TeamSide side;
@@ -370,31 +392,37 @@ public final class CombatEngine {
     }
 
     /**
-     * Every Sniffer digs up a flower once per its attack interval: each
+     * Every Sniffer digs up a flower once per its attack interval (each
      * other own troop within {@link BattleCard#FLOWER_RADIUS} heals by its
-     * damage.
+     * damage), and every Mooshroom shares stew.
      */
     private void snifferFlowers() {
-        for (CombatUnit sniffer : units) {
-            BattleCard card = cardOf.get(sniffer.id());
-            int age = now - bornAt.getOrDefault(sniffer.id(), now);
-            if (card == null || !card.digsFlowers() || !sniffer.alive() ||
-                    sniffer.frozen() || age <= 0 ||
-                    age % sniffer.stats().attackTicks() != 0)
+        for (CombatUnit source : units) {
+            BattleCard card = cardOf.get(source.id());
+            if (card == null || !(card.digsFlowers() || card.sharesStew()) ||
+                    !source.alive() || source.frozen())
+                continue;
+            // A Sniffer's flower heals its damage once per attack interval;
+            // a Mooshroom (which fights) shares stew on a clock of its own.
+            boolean stew = card.sharesStew();
+            int every = stew ? BattleCard.STEW_TICKS :
+                    source.stats().attackTicks();
+            double radius = stew ? BattleCard.STEW_RADIUS :
+                    BattleCard.FLOWER_RADIUS;
+            double amount = stew ? BattleCard.STEW_HEAL : source.damage();
+            int age = now - bornAt.getOrDefault(source.id(), now);
+            if (age <= 0 || age % every != 0)
                 continue;
             for (CombatUnit other : units) {
-                if (other == sniffer || other.side() != sniffer.side() ||
-                        !other.alive() || Math.hypot(other.x() - sniffer.x(),
-                                other.z() - sniffer.z()) >
-                                BattleCard.FLOWER_RADIUS + other.radius())
+                if (other == source || other.side() != source.side() ||
+                        !other.alive() || Math.hypot(other.x() - source.x(),
+                                other.z() - source.z()) > radius + other.radius())
                     continue;
-                double before = other.health();
-                if (other.heal(sniffer.damage()))
-                    stats.healing(sniffer.side(), creditOf(sniffer.id()),
-                            other.health() - before);
+                heal(source, other, amount);
             }
-            tribeEvents.add(new TribeEvent(sniffer.id(),
-                    TribeEvent.Kind.FLOWER, sniffer.x(), sniffer.z()));
+            tribeEvents.add(new TribeEvent(source.id(), stew ?
+                    TribeEvent.Kind.STEW : TribeEvent.Kind.FLOWER,
+                    source.x(), source.z()));
         }
     }
 
@@ -469,6 +497,7 @@ public final class CombatEngine {
         applyBurns();
         allayAuras();
         snifferFlowers();
+        buildingAuras();
         applySpellHits(hits, destroyed, pushes);
         applyBooms(destroyed);
         sneezes(pushes);
@@ -532,8 +561,9 @@ public final class CombatEngine {
             }
             return;
         }
-        // An Allay only follows its troops (it heals in allayAuras).
-        if (self != null && self.healsAround()) {
+        // An Allay or a Parrot only follows its troops (they heal or dance
+        // from there).
+        if (self != null && self.followsTroops()) {
             followTroops(unit, moves);
             return;
         }
@@ -599,7 +629,7 @@ public final class CombatEngine {
                 slow *= BattleCard.RIVER_SWIM;
             moves.add(new Move(unit.id(), waypoint.x(), waypoint.z(),
                     stats.speedPerTick() * speedMultiplier * slow *
-                            unit.tribe().speed()));
+                            unit.tribe().speed() * auraSpeed(unit)));
             return;
         }
         // Mirror images draw fire; they do not fight.
@@ -615,6 +645,9 @@ public final class CombatEngine {
         if (!unit.ready())
             return;
         unit.startShotCooldown();
+        // A Parrot dancing close by: the next attack comes sooner.
+        if (dancerNear(unit))
+            unit.hasteCooldown(BattleCard.DANCE_HASTE);
         // Every attack is a sound the Warden can hear (and opens a shell).
         lastAttackAt.put(unit.id(), now);
         BattleCard own = cardOf.get(unit.id());
@@ -634,6 +667,7 @@ public final class CombatEngine {
             damage *= unit.tribe().riverDamage();
         if (unit.tribe().packDamage() > 0.0D)
             damage *= 1.0D + unit.tribe().packDamage() * packmates(unit);
+        damage *= auraDamage(unit);
         if (enemy != null && swallows(unit, enemy))
             damage = SWALLOW_DAMAGE;
         double knockback = ranged ? 0.0D : traits.knockback();
@@ -657,6 +691,9 @@ public final class CombatEngine {
             blinding.add(attack);
         if (ranged && unit.volley(unit.tribe().extraShotEvery()))
             volley(unit, enemy, damage, attacks);
+        // The Wither's other two heads each pick a target of their own.
+        if (own != null && own.threeHeads())
+            otherHeads(unit, enemy, damage, attacks);
         if (traits.selfDestruct())
             unit.expire();
     }
@@ -667,6 +704,187 @@ public final class CombatEngine {
     private final Map<UUID, Integer> boomReady = new java.util.HashMap<>();
     /** Sonic Booms decided this tick: the Warden and its target. */
     private final List<Object[]> booms = new ArrayList<>();
+
+    /** A Pillager Captain or its dropped banner close to an own Illager. */
+    private boolean underBanner(CombatUnit unit) {
+        BattleCard card = cardOf.get(unit.id());
+        if (card == null || !card.tribes().contains(Tribe.ILLAGER))
+            return false;
+        for (CombatUnit other : units) {
+            BattleCard of = cardOf.get(other.id());
+            if (other != unit && other.alive() && other.side() == unit.side() &&
+                    of != null && of.carriesBanner() &&
+                    distance(unit, other) <= BattleCard.BANNER_RADIUS)
+                return true;
+        }
+        for (Banner banner : banners) {
+            if (banner.side == unit.side() && Math.hypot(unit.x() - banner.x,
+                    unit.z() - banner.z) <= BattleCard.BANNER_RADIUS)
+                return true;
+        }
+        return false;
+    }
+
+    /** The Beacon effect on a unit now, or null when no own Beacon reaches it. */
+    private BattleCard.BeaconEffect beaconOn(CombatUnit unit) {
+        for (CombatUnit other : units) {
+            BattleCard card = cardOf.get(other.id());
+            if (other != unit && other.alive() && other.side() == unit.side() &&
+                    card != null && card.beams() &&
+                    distance(unit, other) <= other.stats().range() +
+                            unit.radius())
+                return BattleCard.BeaconEffect.at(
+                        now - bornAt.getOrDefault(other.id(), now));
+        }
+        return null;
+    }
+
+    /** Walking speed from a Captain's banner and a Beacon's Speed. */
+    private double auraSpeed(CombatUnit unit) {
+        double speed = underBanner(unit) ? 1.0D + BattleCard.BANNER_SPEED : 1.0D;
+        if (beaconOn(unit) == BattleCard.BeaconEffect.SPEED)
+            speed *= BattleCard.BEACON_SPEED;
+        return speed;
+    }
+
+    /** Damage from a Captain's banner and a Beacon's Strength. */
+    private double auraDamage(CombatUnit unit) {
+        double damage = underBanner(unit) ? 1.0D + BattleCard.BANNER_DAMAGE :
+                1.0D;
+        if (beaconOn(unit) == BattleCard.BeaconEffect.STRENGTH)
+            damage *= BattleCard.BEACON_STRENGTH;
+        return damage;
+    }
+
+    /** Whether an own Parrot dances within reach of a unit. */
+    private boolean dancerNear(CombatUnit unit) {
+        for (CombatUnit other : units) {
+            BattleCard card = cardOf.get(other.id());
+            if (other != unit && other.alive() && other.side() == unit.side() &&
+                    card != null && card.dances() && !other.frozen() &&
+                    distance(unit, other) <= BattleCard.DANCE_RADIUS)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * The Wither's other heads: a skull each at the nearest other enemy
+     * troops in its range, the same damage, splash and wither.
+     */
+    private void otherHeads(CombatUnit wither, CombatUnit first, double damage,
+            List<Attack> attacks)
+    {
+        List<CombatUnit> picked = new ArrayList<>();
+        for (int head = 1; head < BattleCard.WITHER_HEADS; head++) {
+            CombatUnit best = null;
+            double bestDistance = Double.MAX_VALUE;
+            for (CombatUnit other : units) {
+                if (other == first || picked.contains(other) ||
+                        other.side() == wither.side() || !other.alive() ||
+                        other.untargetable())
+                    continue;
+                double d = edgeDistance(wither, other);
+                if (d <= wither.range() + EPSILON && d < bestDistance) {
+                    best = other;
+                    bestDistance = d;
+                }
+            }
+            if (best == null)
+                return;
+            picked.add(best);
+            attacks.add(new Attack(wither.id(), null, best.id(), null, damage,
+                    true, flightTicks(wither.x(), wither.z(), best.x(),
+                            best.z()), wither.side(), best.x(), best.z(),
+                    wither.stats().traits().splashRadius(), 0.0D, 0, 0.0D,
+                    0.0D, wither.x(), wither.z()));
+        }
+    }
+
+    /**
+     * Mooshroom stew, Campfire warmth and burn, Beacon regeneration, Monster
+     * Spawner mobs, and dropped banners running out.
+     */
+    private void buildingAuras() {
+        for (int i = 0; i < banners.size(); i++) {
+            if (--banners.get(i).ticksLeft <= 0)
+                banners.remove(i--);
+        }
+        for (CombatUnit source : new ArrayList<>(units)) {
+            BattleCard card = cardOf.get(source.id());
+            if (card == null || !source.alive() || source.frozen())
+                continue;
+            int age = now - bornAt.getOrDefault(source.id(), now);
+            if (card.warms() && age > 0 && age % 20 == 0)
+                campfire(source);
+            if (card.beams())
+                for (CombatUnit other : units) {
+                    if (other != source && other.side() == source.side() &&
+                            other.alive() && beaconOn(other) ==
+                                    BattleCard.BeaconEffect.REGENERATION)
+                        heal(source, other, BattleCard.BEACON_REGEN / 20.0D);
+                }
+            if (card.spawnsMobs() && age > 0 &&
+                    age % source.stats().attackTicks() == 0)
+                spawnFrom(source, 1);
+        }
+    }
+
+    /** Heals {@code target} by {@code amount}, credited to {@code source}'s card. */
+    private void heal(CombatUnit source, CombatUnit target, double amount) {
+        double before = target.health();
+        if (target.heal(amount))
+            stats.healing(source.side(), creditOf(source.id()),
+                    target.health() - before);
+    }
+
+    /** One second of a Campfire: enemies close burn, own troops heal. */
+    private void campfire(CombatUnit fire) {
+        BattleCard source = creditOf(fire.id());
+        for (CombatUnit other : units) {
+            if (other == fire || !other.alive())
+                continue;
+            double d = Math.hypot(other.x() - fire.x(), other.z() - fire.z()) -
+                    other.radius();
+            if (other.side() != fire.side()) {
+                BattleCard card = cardOf.get(other.id());
+                if (d <= fire.stats().range() &&
+                        (card == null || !card.fireImmune()))
+                    other.ignite(25, fire.damage(), source);
+            } else if (d <= BattleCard.CAMPFIRE_HEAL_RADIUS) {
+                heal(fire, other, BattleCard.CAMPFIRE_HEAL);
+            }
+        }
+        tribeEvents.add(new TribeEvent(fire.id(), TribeEvent.Kind.WARMTH,
+                fire.x(), fire.z()));
+    }
+
+    /**
+     * {@code count} mobs out of a Monster Spawner, each a vanilla spawner
+     * mob picked at random, at {@link BattleCard#SPAWNED_HEALTH} of its
+     * health, in front of the spawner. They fight for the spawner card.
+     */
+    private void spawnFrom(CombatUnit spawner, int count) {
+        int sign = ArenaLayout.sideSign(spawner.side());
+        for (int i = 0; i < count; i++) {
+            BattleCard mob = BattleCard.SPAWNER_MOBS.get(
+                    spawnerDice.nextInt(BattleCard.SPAWNER_MOBS.size()));
+            TroopStats st = mob.stats();
+            TribeBonus bonus = tribeBonus(mob, spawner.side());
+            ArenaWaypoint spot = arena.clampSpawn(spawner.x() +
+                            (i - (count - 1) / 2.0D) * 0.8D,
+                    spawner.z() - sign * (spawner.radius() + st.radius() + 0.2D),
+                    sign);
+            ChildSpawn child = new ChildSpawn(spawner.side(), st, 0,
+                    st.health() * BattleCard.SPAWNED_HEALTH * bonus.health(),
+                    st.damage() * bonus.damage(), st.radius(), spot.x(),
+                    spot.z(), 0, null);
+            riderCredit.put(child, creditOf(spawner.id()));
+            spawns.add(child);
+        }
+        tribeEvents.add(new TribeEvent(spawner.id(), TribeEvent.Kind.SPAWN,
+                spawner.x(), spawner.z()));
+    }
 
     /**
      * For a troop that only hits towers: the nearest enemy building in
@@ -1110,6 +1328,10 @@ public final class CombatEngine {
         for (CombatUnit unit : units) {
             if (unit.side() == active.side || !unit.alive())
                 continue;
+            // Lava does nothing to a fire-immune troop.
+            BattleCard target = cardOf.get(unit.id());
+            if (active.card.lava() && target != null && target.fireImmune())
+                continue;
             double reach = spell.radius() + unit.radius();
             if (Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
                     reach + EPSILON) {
@@ -1120,9 +1342,21 @@ public final class CombatEngine {
                 health.add(unit.health());
             }
         }
+        // Harming heals the caster's own undead in it.
+        if (active.card.harms()) {
+            for (CombatUnit unit : units) {
+                if (unit.side() == active.side && unit.alive() &&
+                        bodyOf(unit) == Body.UNDEAD &&
+                        Math.hypot(unit.x() - active.x, unit.z() - active.z) <=
+                                spell.radius() + unit.radius() + EPSILON) {
+                    hits.add(new Hit(unit, null, spell.damagePerPulse(), active));
+                    health.add(unit.health());
+                }
+            }
+        }
         for (TowerId id : TowerId.values()) {
             if (id.side() == active.side || match.tower(id).isDestroyed() ||
-                    spell.poison())
+                    spell.poison() || active.card.lava())
                 continue;
             if (distanceToTower(active.x, active.z, id) <=
                     spell.radius() + EPSILON) {
@@ -1308,6 +1542,14 @@ public final class CombatEngine {
                 continue;
             }
             CombatUnit unit = hit.unit();
+            // Harming on an own undead troop: it heals instead.
+            if (hit.spell().card.harms() && unit.side() == hit.spell().side) {
+                double before = unit.health();
+                unit.heal(hit.damage());
+                stats.healing(hit.spell().side, hit.spell().card,
+                        unit.health() - before);
+                continue;
+            }
             if (spell.friendly()) {
                 if (spell.heal()) {
                     double before = unit.health();
@@ -1328,10 +1570,15 @@ public final class CombatEngine {
                     unit.stats().traits().frostWeak();
             double damage = frostWeak ? hit.damage() *
                     TroopTraits.FROST_WEAKNESS : hit.damage();
-            // Anvil and Dragon's Breath go through half the armour.
+            // Anvil and Dragon's Breath go through half the armour, Harming
+            // through all of it; a Firework hits flyers twice as hard.
             boolean half = hit.spell().card.halfArmor();
             if (half)
                 damage *= 0.5D + 0.5D * unit.armorFactor();
+            if (hit.spell().card.firework() &&
+                    unit.stats().traits().hover() > 0.0D)
+                damage *= BattleCard.FIREWORK_FLYING;
+            half |= hit.spell().card.harms();
             if (hit.spell().card.blocksHealing() && unit.alive())
                 unit.blockHeal(BattleCard.BREATH_HEAL_BLOCK_TICKS);
             // A spell that only slows (Cobweb) deals nothing; a poison that
@@ -1520,12 +1767,18 @@ public final class CombatEngine {
                     continue;
                 }
                 // Slowing hits are frost (Stray arrows, snowballs): a
-                // frost-weak victim takes double.
+                // frost-weak victim takes double. A Wither under half
+                // health shrugs off half of every shot.
                 if (victim != null)
-                    damageUnit(victim, attack.slowTicks() > 0 &&
+                    damageUnit(victim, (attack.slowTicks() > 0 &&
                                     victim.stats().traits().frostWeak() ?
                                     attack.damage() * TroopTraits.FROST_WEAKNESS :
-                                    attack.damage(), attack.side(), source);
+                                    attack.damage()) *
+                                    (attack.ranged() ? witherShield(victim) : 1.0D),
+                            attack.side(), source);
+                if (victim != null && victim.alive() && source != null &&
+                        source.threeHeads())
+                    witherOn(victim, source);
                 if (victim != null && victim.alive() && source != null &&
                         bodyOf(victim).poisonable() &&
                         source.stats().traits().poisons())
@@ -1571,6 +1824,22 @@ public final class CombatEngine {
             BattleCard source)
     {
         return damageUnit(victim, amount, by, source, false);
+    }
+
+    /** What reaches a Wither through its armour (under half health: half). */
+    private double witherShield(CombatUnit victim) {
+        BattleCard card = cardOf.get(victim.id());
+        return card != null && card.threeHeads() &&
+                victim.health() < victim.maxHealth() / 2.0D ?
+                BattleCard.WITHER_SHIELD : 1.0D;
+    }
+
+    /** A Wither skull's wither, as the Wither Skull spell's. */
+    private void witherOn(CombatUnit victim, BattleCard source) {
+        BattleCard card = cardOf.get(victim.id());
+        if (card == null || !card.witherImmune())
+            victim.wither(BattleCard.WITHER_TICKS, BattleCard.WITHER_PER_SECOND,
+                    source);
     }
 
     /**
@@ -1701,6 +1970,20 @@ public final class CombatEngine {
             amount *= TroopTraits.WATER_WEAKNESS;
         // A Shulker shut in its shell takes little.
         BattleCard hit = cardOf.get(victim.id());
+        // A Sheep's wool takes a whole hit (not a burn or poison).
+        if (hit != null && hit.woolly() && !throughArmor && amount > 0.0D &&
+                victim.alive()) {
+            int left = wool.getOrDefault(victim.id(), BattleCard.WOOL_HITS);
+            if (left > 0) {
+                wool.put(victim.id(), left - 1);
+                if (left == 1)
+                    tribeEvents.add(new TribeEvent(victim.id(),
+                            TribeEvent.Kind.SHEARED, victim.x(), victim.z()));
+                return false;
+            }
+        }
+        if (beaconOn(victim) == BattleCard.BeaconEffect.RESISTANCE)
+            amount *= BattleCard.BEACON_RESIST;
         if (hit != null && hit.levitates() && now -
                 lastAttackAt.getOrDefault(victim.id(), -1000) >
                 BattleCard.SHELL_OPEN_TICKS)
@@ -1734,6 +2017,15 @@ public final class CombatEngine {
                 victim.health() < victim.maxHealth() * BattleCard.ILLUSION_BELOW &&
                 illusionsCast.add(victim.id()))
             castIllusions(victim);
+        if (card.squirtsInk() && inked.add(victim.id())) {
+            for (CombatUnit other : units) {
+                if (other.side() != victim.side() && other.alive() &&
+                        edgeDistance(victim, other) <= BattleCard.INK_RADIUS)
+                    other.blind(BattleCard.INK_TICKS);
+            }
+            tribeEvents.add(new TribeEvent(victim.id(), TribeEvent.Kind.INK,
+                    victim.x(), victim.z()));
+        }
         if (card.bringsLlamas() && victim.hideOnce(BattleCard.HIDE_TICKS)) {
             for (CombatUnit other : units) {
                 if (victim.id().equals(other.target()))
@@ -1869,7 +2161,7 @@ public final class CombatEngine {
             BattleCard card = cardOf.get(other.id());
             if (other == allay || other.side() != allay.side() ||
                     !other.alive() || (card != null &&
-                            (card.healsAround() || card.isBuilding())))
+                            (card.followsTroops() || card.isBuilding())))
                 continue;
             double d = distance(allay, other);
             if (d < bestDistance) {
@@ -2095,6 +2387,16 @@ public final class CombatEngine {
             TeamSide zombies = converted.remove(unit.id());
             if (zombies != null)
                 rise(unit, zombies);
+            if (dead != null && dead.carriesBanner()) {
+                banners.add(new Banner(unit.side(), unit.x(), unit.z(),
+                        BattleCard.BANNER_DROP_TICKS));
+                tribeEvents.add(new TribeEvent(unit.id(),
+                        TribeEvent.Kind.BANNER, unit.x(), unit.z()));
+            }
+            if (dead != null && dead.spawnsMobs() && unit.health() <= 0.0D &&
+                    now - bornAt.getOrDefault(unit.id(), now) <
+                            BattleCard.BUILDING_LIFETIME_TICKS)
+                spawnFrom(unit, BattleCard.SPAWNER_BREAK_MOBS);
             deaths.add(new Death(unit.id(), unit.x(), unit.z(),
                     childrenOf(unit)));
         }
